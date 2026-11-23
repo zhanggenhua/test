@@ -101,7 +101,7 @@ if burst_clip.is_file():
 
 km = json.loads((refs/"kame/manifest.json").read_text(encoding="utf-8"))
 kame_part = dict(km["parts"][0], source=km["source"])
-kame = [film("kame",kame_part,"Hovl Studio · Unity 教程","按首束离手对齐。左侧以固定侧视的透视相机渲染束身、缠绕带、发射口和冲圈网格。右侧原片供对照姿势、材质和时序，也可切到同角度 3D 检查。",0)]
+kame = [film("kame",kame_part,"原视频 · ErbGameArt 教程","右侧为莉莉丝授权转载中 4.200 至 8.467 秒的原视频节选。左侧是网页试作，按首束离手同步。作者 Unity 包目前未取得。",0)]
 
 def legacy(filename, title, note, length, fps):
     return dict(title=title,note=note,offset=0,start=0,end=length,fps=fps,source="",cards=[],film="dragon-vfx/legacy/"+filename)
@@ -128,8 +128,8 @@ kame.append(legacy("kame-oblique.mp4","历史版 · 斜视投影","同一擂台�
 kame.append(legacy("kame-hovl-v2.mp4","初期重构 · 首束与束身上缘","同一时轴比较首束橙丝和上缘撕开的负形。",128/30,30))
 kame.append(legacy("kame-hovl-v1.mp4","第一版 · 同擂台束身","同一角色、镜头和时轴，比较发射口白热面积、束身轮廓和近远段宽度。",128/30,30))
 kame.append(legacy("kame-pixelfx.mp4","早期版 · pixelfx","保留早期版的完整画幅与原生节奏。",1.48,100/7))
-kame.insert(1,dict(id="mesh-view",title="同角度 3D 检查",
-    note="两侧使用同一套网格、同一时刻与光效。右侧可旋转和显示线框，点「还原侧视」回到与左侧相同的透视侧视。",
+kame.insert(1,dict(id="mesh-view",title="网页候选 · 3D 检查",
+    note="这是网页候选的检查视图。两侧使用同一套网格、同一时刻与光效。右侧可旋转和显示线框，点「还原侧视」回到与左侧相同的透视侧视。",
     offset=0,start=0,end=128/30,fps=30,source="",cards=[]))
 payload = {"actors":actors,"sources":{"spirit":spirit,"kame":kame}}
 atlas = here/"spirit-assets/impact-v15.webp"

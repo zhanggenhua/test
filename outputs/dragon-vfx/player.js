@@ -151,9 +151,9 @@
     if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
     else links.append(external('查看束身与发射环网格源码','dragon-vfx/kame-volume.js'));
     if(!spirit&&index===0){
-      links.append(external('作者教程', 'https://www.youtube.com/watch?v=TR1xM1HMNQ8'),
-        external('完整 Unity 包 · 付费','https://www.patreon.com/hovl/posts/kamehameha-vfx-1-25583523'),
-        external('贴图、模型与 Shader 包 · 付费','https://www.patreon.com/hovl/posts/only-textures-25713270'));
+      links.append(external('作者原发教程', 'https://www.youtube.com/watch?v=TR1xM1HMNQ8'),
+        external('作者 Unity 包 · 需解锁','https://www.patreon.com/hovl/posts/kamehameha-vfx-1-25583523'),
+        external('作者贴图、模型与 Shader 包 · 需解锁','https://www.patreon.com/hovl/posts/only-textures-25713270'));
     }
     el('galleryTitle').hidden=!current.cards.length;
   }
@@ -163,7 +163,7 @@
     el('back').textContent=aligned()?'新版上一帧':'上一帧';
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
-    el('newTitle').textContent=title+' · 完整擂台';
+    el('newTitle').textContent=spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入头顶，双掌送球前压。命中时白纹卷向内核，碎石从壳外抛出。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spirit) {
       const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
