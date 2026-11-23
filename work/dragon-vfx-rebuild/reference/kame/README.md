@@ -40,6 +40,16 @@
 
 源码和预览入口可随仓库迁移，作者贴图、网格采样与合成录像属于本地资源。把 [UnitySourceMeshCapture.cs](../../UnitySourceMeshCapture.cs) 放进准备好的 Unity 参考工程，在普通编辑器模式用 `-executeMethod UnitySourceMeshCapture.PlayAuthorScene` 导出。把生成的 `mesh-capture` 内容复制到网页的 `outputs/dragon-vfx/local/kame/meshes`。若该目录无材质清单，网页显示程序化试作。网页移植与 Unity 以及发布视频仍有机位、舞台、随机发射和边缘采样差别。
 
+## 2D 横版试演
+
+[统一预览中的原材质 2D 版本](../../../../outputs/index.html#kame/arena)使用《天下第一武道会》擂台与原有 2D 火柴人动作。左侧按游戏镜头渲染，右侧可与已确认的 3D 材质版、此前的横版试片或教程原片同步对照。
+
+从 Unity 按横版镜头另采 244 个 60 fps 的粒子网格样本，保留相机面片和拉伸粒子的正确朝向。沿用贴图、裁剪、粒子色、透明混合、深度衰减和 HDR Bloom。相机保持平视，特效掌心挂点和地面涡纹基线分开定位。角色贴图的透明轮廓参与深度合成，原束身前层可遮挡受击角色。网页的目标反应按主束长度触达角色呈现，命中与伤害结算留给游戏。
+
+网页从首束 2.400 秒连续播放到 2.433 秒，两帧依次显示离手与触达目标。锁住角色和舞台后，再比较峰值的橙色绕带、蓝白亮片以及退场时的冷蓝余丝。左右两次 Unity 采样相位对齐，随机粒子的分布各自保留。网页对照为 960×400、30 fps、128 帧的完整演出。
+
+重新导出横版数据时，给 `-executeMethod UnitySourceMeshCapture.PlayAuthorScene` 增加 `-side-particles`，将产出的 `mesh-capture-side` 内容放入网页的本地目录 `outputs/dragon-vfx/local/kame/side-meshes`。用 `node work/dragon-vfx-rebuild/export.cjs kame-source-arena` 导出当前横版录像。
+
 ## 程序化 3D 基线
 
 [统一预览](../../../../outputs/index.html#kame/study)可在原视频和旧 3D 录像之间切换，默认从准备阶段开始。左侧为 WebGL 2 实时全幅场景，原片构图、侧视和作者 Demo 参数三种透视机位共用一份网格与发射时序。作者 Demo 参数按包内变换换算到网页坐标，原片机位另按画面拟合。舞台和施术者用 3D 代理模型。

@@ -2,7 +2,7 @@
 (() => {
   'use strict';
 
-  const folder = 'dragon-vfx/local/kame/meshes/';
+  const local = 'dragon-vfx/local/kame/';
   const vertex = `#version 300 es
     precision highp float;
     layout(location=0) in vec3 position;
@@ -10,14 +10,14 @@
     layout(location=2) in vec4 uv;
     layout(location=3) in vec4 color;
     uniform mat4 projection;
-    uniform vec3 anchor;
+    uniform vec3 anchor,meshScale;
     out vec3 point, normal;
     out vec4 texCoord, tint;
     void main(){
       texCoord=uv;
       tint=color;
-      normal=surfaceNormal;
-      point=position*.8+anchor;
+      normal=surfaceNormal/meshScale;
+      point=position*meshScale+anchor;
       gl_Position=projection*vec4(point,1.);
     }
   `;
@@ -70,7 +70,7 @@
       if(softDepth){
         vec2 screen=gl_FragCoord.xy/vec2(textureSize(stageDepth,0));
         float difference=eyeDepth(texture(stageDepth,screen).r)-eyeDepth(gl_FragCoord.z);
-        alpha*=clamp(difference/(80.*max(depthPower,.0001)),0.,1.);
+        alpha*=clamp(difference/max(depthPower,.0001),0.,1.);
       }
       if(blendMode==1)alpha*=opacity;
       if(alpha<.0001)discard;
@@ -103,7 +103,8 @@
   const transform = p => [p.scale.x,p.scale.y,p.offset.x,p.offset.y];
   const values = p => [p.x,p.y,p.z,p.w];
 
-  async function load() {
+  async function load(kind='meshes') {
+    const folder=local+kind+'/';
     if(!['127.0.0.1','localhost','[::1]'].includes(location.hostname))return null;
     const manifest = await fetch(folder+'material.json');
     if(manifest.status===404)return null;
@@ -121,12 +122,34 @@
       await img.decode();
       maps.set(file,img);
     }));
-    return (gl,makeProgram) => createRenderer(gl,makeProgram,take,frames,maps);
+    const built=(gl,makeProgram) => createRenderer(gl,makeProgram,take,frames,maps);
+    if(kind==='side-meshes'){
+      const i=take.layers.findIndex(layer=>layer.name==='KameCore');
+      if(i<0)throw Error('横版粒子采样缺少主束');
+      const reach=frames.map(frame=>{
+        const {vertexData}=frame.layers[i];
+        const vertices=new DataView(vertexData.buffer,vertexData.byteOffset,vertexData.byteLength);
+        let furthest=0;
+        for(let offset=0;offset<vertices.byteLength;offset+=44){
+          furthest=Math.max(furthest,vertices.getFloat32(offset,true));
+        }
+        return furthest;
+      });
+      built.reach=age=>reach[sampleIndex(take,sampleTime(take,age))];
+    }
+    return built;
   }
 
+  // Align the first visible beam. After release, advance at Unity's sample rate.
+  function sampleTime(take,age){
+    return age<0?take.firstBeam*Math.max(0,1+age/2.4):take.firstBeam+age*take.sampleRate;
+  }
+  function sampleIndex(take,clock){
+    return Math.min(Math.floor(clock+1e-6),take.frames-1);
+  }
   function createRenderer(gl,makeProgram,take,frames,maps) {
     const program=makeProgram(gl,vertex,fragment);
-    const uniformNames=['projection','anchor','eye','mainMap','cutoutMap','noiseMap','stageDepth','mainUV','maskUV',
+    const uniformNames=['projection','anchor','meshScale','eye','mainMap','cutoutMap','noiseMap','stageDepth','mainUV','maskUV',
       'noiseUV','scroll','baseTint','frontTint','backTint','rimTint','clock','emission','threshold','opacity',
       'depthPower','rimCurve','rimStrength','useCustom','useRim','softDepth','centerMask','blendMode'];
     const u=Object.fromEntries(uniformNames.map(name=>[name,gl.getUniformLocation(program,name)]));
@@ -171,9 +194,8 @@
     [u.mainMap,u.cutoutMap,u.noiseMap,u.stageDepth].forEach((location,i)=>gl.uniform1i(location,i));
     let previous=-1;
     return function render(age,stage,hidden,depth){
-      // Align the first visible beam. Play the source at its native speed after release.
-      const frameTime=age<0?take.firstBeam*Math.max(0,1+age/2.4):take.firstBeam+age*take.sampleRate;
-      const i=Math.min(Math.floor(frameTime+1e-6),frames.length-1);
+      const frameTime=sampleTime(take,age);
+      const i=sampleIndex(take,frameTime);
       if(frames[i].time>=3.99)return;
       const frame=frames[i];
       if(i!==previous){
@@ -195,11 +217,14 @@
       gl.useProgram(program);
       gl.uniformMatrix4fv(u.projection,false,stage.matrix);
       gl.uniform3fv(u.eye,stage.eye);
+      const scale=stage.scale??[.8,.8,.8];
+      gl.uniform3fv(u.meshScale,scale);
       gl.uniform1f(u.clock,frame.time+Math.max(0,frameTime-i)/take.sampleRate);
       bindTexture(3,depth);
       for(const {layer,j} of ordering){
         gl.bindVertexArray(layer.vao);
-        const shift=layer.name==='Kamehameha'?[stage.anchor[0],-1.1,stage.anchor[2]]:stage.anchor;
+        const shift=layer.name==='Kamehameha'
+          ?stage.groundAnchor??[stage.anchor[0],-1.1,stage.anchor[2]]:stage.anchor;
         gl.uniform3fv(u.anchor,shift);
         gl.depthMask(layer.mode===2);
         gl.blendFuncSeparate(gl.ONE,layer.mode===0?gl.ONE:gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
@@ -215,7 +240,7 @@
         gl.uniform1f(u.emission,layer.emission);
         gl.uniform1f(u.threshold,layer.cutoff);
         gl.uniform1f(u.opacity,layer.opacity);
-        gl.uniform1f(u.depthPower,layer.depthPower);
+        gl.uniform1f(u.depthPower,100*scale[2]*layer.depthPower);
         gl.uniform1f(u.rimCurve,layer.fresnel);
         gl.uniform1f(u.rimStrength,layer.fresnelEmission);
         gl.uniform1i(u.useCustom,+layer.custom);

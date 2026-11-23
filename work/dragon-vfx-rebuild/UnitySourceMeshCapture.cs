@@ -28,7 +28,8 @@ public class UnitySourceMeshCapture : MonoBehaviour
 
     const int Rate = 60;
     const int Frames = 244;
-    const string Folder = "mesh-capture";
+    static readonly bool SideFacing = Environment.GetCommandLineArgs().Contains("-side-particles");
+    static readonly string Folder = SideFacing ? "mesh-capture-side" : "mesh-capture";
     int index;
     int opening = -1;
     Camera source;
@@ -93,6 +94,16 @@ public class UnitySourceMeshCapture : MonoBehaviour
     {
         Directory.CreateDirectory(Folder);
         source = GetComponent<Camera>();
+        if (SideFacing)
+        {
+            // Leave the author's playback camera alone. Only BakeMesh uses this view.
+            var side = new GameObject("Side-facing particle bake camera", typeof(Camera));
+            source = side.GetComponent<Camera>();
+            source.CopyFrom(GetComponent<Camera>());
+            source.enabled = false;
+            side.transform.SetPositionAndRotation(new Vector3(14, 2.25f, 2.7f),
+                Quaternion.LookRotation(Vector3.left, Vector3.up));
+        }
         particles = FindObjectsOfType<ParticleSystem>().OrderBy(p => p.name).ToArray();
         renderers = particles.Select(p => p.GetComponent<ParticleSystemRenderer>()).ToArray();
         mesh = new Mesh { indexFormat = IndexFormat.UInt32 };

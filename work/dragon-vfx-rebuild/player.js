@@ -7,13 +7,14 @@
   const spirit = key === 'spirit';
   const study = !spirit&&params.has('study');
   const unityDemo = study&&params.has('unity-demo');
+  const arena = !spirit&&!study&&params.has('arena');
   const unitySource = DragonData.unityDemo;
   const studyView = {camera:'reference',hiddenLayer:params.get('hide-layer')};
   if(study){canvas.width=852;canvas.height=480;}
   const meshView=el('meshView'),meshContext=meshView.getContext('2d');
   const meshCamera={yaw:0,pitch:0,wire:false};
-  const engine = study ? window.DragonBeamStudy : spirit ? window.DragonSpirit : window.DragonKame;
-  const refs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : DragonData.sources[key];
+  const engine = study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spirit ? window.DragonSpirit : window.DragonKame;
+  const refs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : arena ? DragonData.sources.kameArena.slice() : DragonData.sources[key];
   const actors = {};
   const title = spirit ? '元气弹' : '龟派气功';
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
@@ -25,9 +26,12 @@
       const offset = ({gather:[-1.8,-55.4],charge:[-10.50,-44.94],drive:[52.08,-58.8],fire:[55.86,-63]})[pose] || [-10.5,-44.94];
       return {x:x+offset[0],y:this.ground+offset[1]};
     },
-    fighter(c,role,x,pose,opts={}){
+    fighterFrame(role,pose){
       const prefix = role==='target'?'target':spirit?'caster':'normal';
-      const frame = actors[prefix+'-'+pose] || actors[prefix+'-idle'];
+      return actors[prefix+'-'+pose] || actors[prefix+'-idle'];
+    },
+    fighter(c,role,x,pose,opts={}){
+      const frame = this.fighterFrame(role,pose);
       c.save();c.translate(x,opts.y??this.ground);c.globalAlpha*=opts.alpha??1;
       c.fillStyle='rgba(32,34,49,.31)';c.beginPath();c.ellipse(0,1,32,4.7,0,0,Math.PI*2);c.fill();
       c.scale(role==='target'?-1:1,1);c.drawImage(frame,-75.6,-150.78,151.2,151.2);c.restore();
@@ -155,11 +159,13 @@
     if(unityDemo){
       links.append(external('单独播放 Unity 全幅实录',unitySource.film));
     }else{
-      const clip=engine.sourceMaterials?'dragon-vfx/local/kame/kame-source-materials.mp4':'dragon-vfx/'+(study?'kame-study':key)+'.mp4';
+      const clip=engine.sourceMaterials
+        ?'dragon-vfx/local/kame/'+(arena?'kame-source-arena':'kame-source-materials')+'.mp4'
+        :'dragon-vfx/'+(study?'kame-study':key)+'.mp4';
       links.append(external('单独播放左侧完整演出',clip));
-      links.append(external('查看本版特效源码','dragon-vfx/'+(study?'kame-study':key)+'.js'));
+      links.append(external('查看本版特效源码','dragon-vfx/'+(study?'kame-study':arena?'kame-arena':key)+'.js'));
       if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
-      else links.append(external('查看束身与发射环网格源码',study?(engine.sourceMaterials?'dragon-vfx/kame-source-meshes.js':'dragon-vfx/kame-study-effects.js'):'dragon-vfx/kame-volume.js'));
+      else links.append(external('查看束身与发射环网格源码',engine.sourceMaterials?'dragon-vfx/kame-source-meshes.js':study?'dragon-vfx/kame-study-effects.js':'dragon-vfx/kame-volume.js'));
     }
     if(!spirit&&index===0){
       links.append(external('作者原发教程', 'https://www.youtube.com/watch?v=TR1xM1HMNQ8'),
@@ -174,7 +180,7 @@
     el('back').textContent=aligned()?'新版上一帧':'上一帧';
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
-    el('newTitle').textContent=unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
+    el('newTitle').textContent=arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入头顶，双掌送球前压。命中时白纹卷向内核，碎石从壳外抛出。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spirit) {
       const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
@@ -190,6 +196,7 @@
     if(study)el('newNote').textContent=engine.sourceMaterials
       ?'由 Unity 采样的粒子网格驱动。网页实时计算原贴图、裁剪、混合和辉光。'
       :'亮束与黑层分别解体，橙光沿束身翻转。冲圈先熄，余丝继续前行。';
+    if(arena&&engine.sourceMaterials)el('newNote').textContent='掌心发射，沿水平战斗轴前进。2D 角色和特效共用深度遮挡。';
     if(unityDemo)el('newNote').textContent='Unity 2021.3 实际播放作者 Demo。原相机、Prefab、材质与 Bloom。';
     el('refNote').textContent=current.note;
     el('scrub').min=from();el('scrub').max=to();el('phases').replaceChildren();
@@ -234,7 +241,6 @@
   el('studyCamera').onchange=()=>{studyView.camera=el('studyCamera').value;paint();};
   el('title').textContent=title+' · 原片对照';document.title=el('title').textContent;
   el('tab'+key).setAttribute('aria-current','page');
-  refs.forEach((r,i)=>el('sources').add(new Option(r.title,i)));
   el('sources').onchange=()=>{loading=choose(Number(el('sources').value),playing,at);};
   function changeMeshView(){
     meshCamera.yaw=Number(el('meshYaw').value);
@@ -272,6 +278,12 @@
       await Promise.all([assetReady,engine.ready]);
       if(spirit&&!DragonImpact.realtime)await loadRecording('dragon-vfx/spirit.mp4','元气弹完整擂台 · 三维渲染录像');
     }
+    if(arena&&engine.sourceMaterials){
+      const comparison=DragonData.sources.kameArena3d;
+      const available=await fetch(comparison.film,{method:'HEAD'}).then(r=>r.ok,()=>false);
+      if(available)refs.unshift(comparison);
+    }
+    refs.forEach((r,i)=>el('sources').add(new Option(r.title,i)));
     usable=true;
     let first=0;
     if(params.get('ref')==='burst'&&spirit)first=refs.findIndex(r=>r.id==='impact-stills');

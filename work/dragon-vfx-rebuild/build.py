@@ -138,6 +138,12 @@ study_early = legacy("kame-study-procedural.mp4","早期 · 3D 试验场",
 study_previous = dict(legacy("kame-study.mp4","程序化 3D · 截图所示版",
                              "按同一时间对照此前的程序化材质。",128/30,30),
                       film="dragon-vfx/kame-study.mp4")
+arena_legacy = dict(legacy("kame.mp4","较早横版 · 网页试作",
+                            "同一舞台和出手相位，核对新旧两版的束身、冲圈、遮挡及收尾。",128/30,30),
+                    film="dragon-vfx/kame.mp4")
+arena_3d = dict(legacy("kame-source-materials.mp4","已确认的 3D 材质版",
+                       "按发射相位对齐。左侧使用固定横版机位、2D 角色与擂台，右侧保留已确认的 3D 参考场景。",128/30,30),
+                film="dragon-vfx/local/kame/kame-source-materials.mp4")
 unity_duration = 122/30
 unity_film = "dragon-vfx/local/kame/author-unity-demo.mp4"
 unity_original = dict(kame[0], note="公开教程含角色与演出机位。同步按首束、峰值与退场对齐。",
@@ -149,11 +155,13 @@ unity_web = dict(legacy("kame-study.mp4","程序化 WebGL · 完整场景",
 payload = {"actors":actors,
            "unityDemo":{"film":unity_film,"duration":unity_duration},
            "sources":{"spirit":spirit,"kame":kame,"kameStudy":[study_ref,study_previous,study_early],
-                      "kameUnity":[unity_original,unity_web]}}
+                      "kameUnity":[unity_original,unity_web],
+                      "kameArena":[arena_legacy,dict(kame[0], note="原视频 4.200–8.467 秒。按出束相位同步，参考光型和退场。")],
+                      "kameArena3d":arena_3d}}
 atlas = here/"spirit-assets/impact-v15.webp"
 atlas_url = copy(atlas,"impact-v15.webp") if atlas.is_file() else ""
 (dst/"data.js").write_text("window.DragonData="+json.dumps(payload,ensure_ascii=False,separators=(",",":"))+";\nwindow.DragonImpactAtlas="+json.dumps(atlas_url)+";",encoding="utf-8")
-for name in ("spirit.js","kame.js","kame-volume.js","kame-study-effects.js","kame-source-meshes.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
+for name in ("spirit.js","kame.js","kame-arena.js","kame-volume.js","kame-study-effects.js","kame-source-meshes.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
     copy(here/name,name)
 shutil.copy2(here/"preview.html",out/"dragon-vfx.html")
 shutil.copy2(work/"vfx-preview.html",out/"index.html")
