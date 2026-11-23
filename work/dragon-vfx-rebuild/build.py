@@ -135,7 +135,7 @@ payload = {"actors":actors,"sources":{"spirit":spirit,"kame":kame}}
 atlas = here/"spirit-assets/impact-v15.webp"
 atlas_url = copy(atlas,"impact-v15.webp") if atlas.is_file() else ""
 (dst/"data.js").write_text("window.DragonData="+json.dumps(payload,ensure_ascii=False,separators=(",",":"))+";\nwindow.DragonImpactAtlas="+json.dumps(atlas_url)+";",encoding="utf-8")
-for name in ("spirit.js","kame.js","kame-volume.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
+for name in ("spirit.js","kame.js","kame-volume.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
     copy(here/name,name)
 shutil.copy2(here/"preview.html",out/"dragon-vfx.html")
 shutil.copy2(work/"vfx-preview.html",out/"index.html")
