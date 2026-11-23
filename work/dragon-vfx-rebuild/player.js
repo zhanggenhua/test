@@ -6,12 +6,12 @@
   const key = params.get('fx') === 'kame' ? 'kame' : 'spirit';
   const spirit = key === 'spirit';
   const study = !spirit&&params.has('study');
-  const studyView = {camera:'reference'};
+  const studyView = {camera:'reference',hiddenLayer:params.get('hide-layer')};
   if(study){canvas.width=852;canvas.height=480;}
   const meshView=el('meshView'),meshContext=meshView.getContext('2d');
   const meshCamera={yaw:0,pitch:0,wire:false};
   const engine = study ? window.DragonBeamStudy : spirit ? window.DragonSpirit : window.DragonKame;
-  const refs = study ? DragonData.sources.kame.slice(0,1) : DragonData.sources[key], actors = {};
+  const refs = study ? DragonData.sources.kameStudy : DragonData.sources[key], actors = {};
   const title = spirit ? '元气弹' : '龟派气功';
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
   const time = t => t.toFixed(3)+' s';
@@ -152,7 +152,7 @@
     links.append(external('单独播放左侧完整演出','dragon-vfx/'+(study?'kame-study':key)+'.mp4'));
     links.append(external('查看本版特效源码','dragon-vfx/'+(study?'kame-study':key)+'.js'));
     if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
-    else links.append(external('查看束身与发射环网格源码','dragon-vfx/kame-volume.js'));
+    else links.append(external('查看束身与发射环网格源码',study?'dragon-vfx/kame-study-effects.js':'dragon-vfx/kame-volume.js'));
     if(!spirit&&index===0){
       links.append(external('作者原发教程', 'https://www.youtube.com/watch?v=TR1xM1HMNQ8'),
         external('作者 Unity 包 · 需解锁','https://www.patreon.com/hovl/posts/kamehameha-vfx-1-25583523'),
@@ -166,7 +166,7 @@
     el('back').textContent=aligned()?'新版上一帧':'上一帧';
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
-    el('newTitle').textContent=study?'独立 3D 试验场':spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
+    el('newTitle').textContent=study?'新版 · 独立 3D 场景':spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入头顶，双掌送球前压。命中时白纹卷向内核，碎石从壳外抛出。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spirit) {
       const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
@@ -179,8 +179,8 @@
       }
       el('newNote').append(' ',burst,' · ',shape);
     }
-    if(study)el('newNote').textContent='全幅 3D 场景。地面、人物替身、光束和余束共享透视相机与深度缓冲。';
-    el('refNote').textContent=study?'原视频 4.200–8.467 秒。左侧为源码核对前的试作，机位依据原片构图估计。':current.note;
+    if(study)el('newNote').textContent='亮束与黑层分别解体，橙光沿束身翻转。冲圈先熄，余丝继续前行。';
+    el('refNote').textContent=current.note;
     el('scrub').min=from();el('scrub').max=to();el('phases').replaceChildren();
     for(const m of engine.phases){const b=document.createElement('button');b.textContent=m.name;b.onclick=()=>seek(m.t);el('phases').append(b);}
     listCards();
@@ -215,7 +215,7 @@
       if(rev!==id)return;mediaReady=true;syncFilm(true);if(autoplay)await startWhenVisible(id);
     }catch(e){if(rev===id&&e.name!=='AbortError')el('notice').textContent='右侧视频载入失败。'+e.message;}
   }
-  el('studyCameraLabel').hidden=!study;el('sourceLabel').hidden=study;
+  el('studyCameraLabel').hidden=!study;
   el('studyCamera').onchange=()=>{studyView.camera=el('studyCamera').value;paint();};
   el('title').textContent=title+' · 原片对照';document.title=el('title').textContent;
   el('tab'+key).setAttribute('aria-current','page');

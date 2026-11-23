@@ -131,11 +131,15 @@ kame.append(legacy("kame-pixelfx.mp4","早期版 · pixelfx","保留早期版的
 kame.insert(1,dict(id="mesh-view",title="网页候选 · 3D 检查",
     note="这是网页候选的检查视图。两侧使用同一套网格、同一时刻与光效。右侧可旋转和显示线框，点「还原侧视」回到与左侧相同的透视侧视。",
     offset=0,start=0,end=128/30,fps=30,source="",cards=[]))
-payload = {"actors":actors,"sources":{"spirit":spirit,"kame":kame}}
+copy(here/"baseline/kame-study-procedural.mp4","legacy/kame-study-procedural.mp4")
+study_ref = dict(kame[0], note="原视频 4.200–8.467 秒。左侧以首束离手对齐，默认机位按原片构图拟合。")
+study_previous = legacy("kame-study-procedural.mp4","上一版 · 原 3D 试验场",
+                        "同一施放相位可对比旧版的束身、发射口与退场。",128/30,30)
+payload = {"actors":actors,"sources":{"spirit":spirit,"kame":kame,"kameStudy":[study_ref,study_previous]}}
 atlas = here/"spirit-assets/impact-v15.webp"
 atlas_url = copy(atlas,"impact-v15.webp") if atlas.is_file() else ""
 (dst/"data.js").write_text("window.DragonData="+json.dumps(payload,ensure_ascii=False,separators=(",",":"))+";\nwindow.DragonImpactAtlas="+json.dumps(atlas_url)+";",encoding="utf-8")
-for name in ("spirit.js","kame.js","kame-volume.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
+for name in ("spirit.js","kame.js","kame-volume.js","kame-study-effects.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
     copy(here/name,name)
 shutil.copy2(here/"preview.html",out/"dragon-vfx.html")
 shutil.copy2(work/"vfx-preview.html",out/"index.html")

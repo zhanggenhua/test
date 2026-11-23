@@ -325,23 +325,25 @@
   }
 
   let renderer;
-  function init(canvas=document.createElement('canvas'),floorFactory){
+  function init(canvas=document.createElement('canvas'),floorFactory,effectsFactory){
     const studio=!!floorFactory;
     if(!studio){canvas.width=width;canvas.height=height;}
     const w=canvas.width,h=canvas.height;
     const gl=canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false,preserveDrawingBuffer:true});
     if(!gl)return null;
-    const model=makeProgram(gl,vertices,fragments),blur=makeProgram(gl,screen,down),output=makeProgram(gl,screen,compose);
+    const model=effectsFactory?null:makeProgram(gl,vertices,fragments);
+    const blur=makeProgram(gl,screen,down),output=makeProgram(gl,screen,compose);
     const uniforms=(pg,names)=>Object.fromEntries(names.map(name=>[name,gl.getUniformLocation(pg,name)]));
-    const m=uniforms(model,['age','part','origin','angle','cameraDistance','lensFit','eye','worldView','emitter','studio','wire']);
+    const m=model&&uniforms(model,['age','part','origin','angle','cameraDistance','lensFit','eye','worldView','emitter','studio','wire']);
     const b=uniforms(blur,['src','size','texel','first']);
     const o=uniforms(output,['mainLayer','nearGlow','farGlow','outputSize','wire','studio']);
-    const surfaces=[
+    const surfaces=model?[
       makeSurface(gl,longitudinal,radial),makeSurface(gl,ribbonRows,ribbonSides),
       makeSurface(gl,sphereRows,sphereSides),makeSurface(gl,ringRows,ringSides),
-    ];
-    if(studio)surfaces.push(makeSurface(gl,96,8),makeSurface(gl,124,8),makeSurface(gl,14,8),makeSurface(gl,58,8));
+    ]:[];
+    if(studio&&!effectsFactory)surfaces.push(makeSurface(gl,96,8),makeSurface(gl,124,8),makeSurface(gl,14,8),makeSurface(gl,58,8));
     const floor=floorFactory?.(gl,makeProgram);
+    const studyEffects=effectsFactory?.(gl,makeProgram,makeSurface);
     const blank=gl.createVertexArray(),hdr=!!gl.getExtension('EXT_color_buffer_float');
     function target(w,h,depth=false){
       const fb=gl.createFramebuffer(),tex=gl.createTexture();
@@ -381,34 +383,38 @@
     return {canvas,get active(){return !gl.isContextLost();},draw(time,origin,view={}){
       if(gl.isContextLost())return null;
       const yaw=view.yaw??0,pitch=view.pitch??0,wire=!!view.wire;
-      const signature=[time,origin.x,origin.y,yaw,pitch,wire,view.camera??''].join('/');
+      const signature=[time,origin.x,origin.y,yaw,pitch,wire,view.camera??'',view.hiddenLayer??''].join('/');
       if(previous===signature)return canvas;
       previous=signature;
       bind(scene);
-      if(studio)gl.clearColor(.061,.083,.105,1.);else gl.clearColor(0,0,0,0);
+      if(studio)gl.clearColor(.125,.144,.178,1.);else gl.clearColor(0,0,0,0);
       gl.depthMask(true);
       gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
       gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
       if(studio){gl.disable(gl.BLEND);floor.draw(time,view);}
       gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
-      gl.useProgram(model);
-      gl.uniform1i(m.studio,+studio);
-      gl.uniform1f(m.age,time-2.4);gl.uniform2f(m.origin,origin.x,origin.y);
-      if(studio){
-        gl.uniformMatrix4fv(m.worldView,false,floor.matrix);
-        gl.uniform3fv(m.emitter,floor.anchor);
-        gl.uniform3fv(m.eye,floor.eye.map((value,i)=>value-floor.anchor[i]));
+      if(studyEffects){
+        studyEffects(time-2.4,floor,view.hiddenLayer);
       }else{
-        const azimuth=yaw*Math.PI/180,elevation=pitch*Math.PI/180;
-        const depth=Math.sin(azimuth)*Math.cos(elevation);
-        const distance=590+315*Math.max(0,-depth);
-        const steepness=Math.abs(Math.sin(azimuth)*Math.sin(elevation));
-        const fit=1/(1+Math.max(0,steepness-.16)*3.3+1.7*Math.max(0,-depth));
-        gl.uniform2f(m.angle,azimuth,elevation);
-        gl.uniform1f(m.cameraDistance,distance);gl.uniform1f(m.lensFit,fit);
-        gl.uniform3f(m.eye,-distance*depth,-distance*Math.sin(elevation),distance*Math.cos(azimuth)*Math.cos(elevation));
+        gl.useProgram(model);
+        gl.uniform1i(m.studio,+studio);
+        gl.uniform1f(m.age,time-2.4);gl.uniform2f(m.origin,origin.x,origin.y);
+        if(studio){
+          gl.uniformMatrix4fv(m.worldView,false,floor.matrix);
+          gl.uniform3fv(m.emitter,floor.anchor);
+          gl.uniform3fv(m.eye,floor.eye.map((value,i)=>value-floor.anchor[i]));
+        }else{
+          const azimuth=yaw*Math.PI/180,elevation=pitch*Math.PI/180;
+          const depth=Math.sin(azimuth)*Math.cos(elevation);
+          const distance=590+315*Math.max(0,-depth);
+          const steepness=Math.abs(Math.sin(azimuth)*Math.sin(elevation));
+          const fit=1/(1+Math.max(0,steepness-.16)*3.3+1.7*Math.max(0,-depth));
+          gl.uniform2f(m.angle,azimuth,elevation);
+          gl.uniform1f(m.cameraDistance,distance);gl.uniform1f(m.lensFit,fit);
+          gl.uniform3f(m.eye,-distance*depth,-distance*Math.sin(elevation),distance*Math.cos(azimuth)*Math.cos(elevation));
+        }
+        draws(false);if(wire)draws(true);
       }
-      draws(false);if(wire)draws(true);
       gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.bindVertexArray(blank);
       if(!wire){
         gl.useProgram(blur);let input=scene;
@@ -431,7 +437,7 @@
     return renderer;
   }
   window.DragonBeamVolume={
-    createStudy(canvas,floorFactory){return init(canvas,floorFactory);},
+    createStudy(canvas,floorFactory,effectsFactory){return init(canvas,floorFactory,effectsFactory);},
     draw(time,palm,view){return instance()?.draw(time,palm,view)??null;},
     get available(){return instance()?.active??false;},
     warm(){

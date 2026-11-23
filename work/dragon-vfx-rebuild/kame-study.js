@@ -7,11 +7,11 @@
   const lerp=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
   const smooth=(a,b,t)=>{const v=Math.min(1,Math.max(0,(t-a)/(b-a)));return v*v*(3-2*v);};
 
-  function perspective(eye,look){
+  function perspective(eye,look,fov,shift){
     const z=unit(subtract(eye,look)),x=unit(cross([0,-1,0],z)),y=cross(z,x);
     const view=[x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1];
-    const near=45,far=3700,f=1/Math.tan(38*Math.PI/360);
-    const project=[f/(852/480),0,0,0,0,f,0,0,0,0,-(far+near)/(far-near),-1,0,0,-2*far*near/(far-near),0];
+    const near=30,far=3700,f=1/Math.tan(fov*Math.PI/360);
+    const project=[f/(852/480),0,0,0,0,f,0,0,-shift[0],-shift[1],-(far+near)/(far-near),-1,0,0,-2*far*near/(far-near),0];
     const matrix=new Float32Array(16);
     for(let a=0;a<4;a++)for(let b=0;b<4;b++)for(let i=0;i<4;i++)matrix[a*4+b]+=project[i*4+b]*view[a*4+i];
     return matrix;
@@ -59,14 +59,15 @@
         vec2 edge=min(f,1.-f);
         vec2 w=fwidth(tile);
         float lines=min(smoothstep(0.,w.x*.84+.003,edge.x),smoothstep(0.,w.y*.84+.003,edge.y));
-        c*=mix(.44,.89+.22*hash(floor(tile)),lines);
+        float grit=hash(floor(place.xz*1.31));
+        c*=mix(.58,.94+.18*hash(floor(tile)),lines)*(.93+.12*grit);
         vec2 d=(place.xz-vec2(-61.,6.))/vec2(57.,37.);
         c*=1.-.57*exp(-dot(d,d));
       }
-      c+=vec3(.075,.22,.36)*(source+.32*spill)*(.54+.46*key);
+      c+=vec3(.11,.235,.39)*(source+.52*spill)*(.54+.46*key);
       color=vec4(c,1.);
     }`;
-  const plank=[[-900,80,-1100],[-900,80,850],[1800,80,850],[1800,80,-1100]];
+  const plank=[[-900,80,-1050],[-900,80,745],[1730,80,745],[1730,80,-1050]];
   function studio(gl,program){
     const pg=program(gl,vert,frag);
     const u=Object.fromEntries(['view','base','age','jointA','jointB','width','slab','emitter'].map(n=>[n,gl.getUniformLocation(pg,n)]));
@@ -88,18 +89,19 @@
     const block=mesh(faces.flatMap(([surface,n])=>[0,1,2,2,3,0].flatMap(i=>[...cube[surface[i]],...n])));
     const base=[.24,.32,.35],joint=[.34,.43,.46],pad=[.14,.22,.27];
     const cameraAngles={
-      reference:{eye:[565,-252,-540],look:[186,-42,0]},
-      side:{eye:[98,-31,-770],look:[98,8,0]},
+      reference:{eye:[565,-179,-540],look:[196,-50,0],fov:38,shift:[.040,.175]},
+      side:{eye:[268,-27,-980],look:[268,5,0],fov:38},
+      demo:{eye:[586.48,-279.00,-542.08],look:[-7.23,264.17,51.63],fov:60},
     };
     const out={matrix:null,eye:null,anchor:null,draw(time,view){
       const cam=cameraAngles[view.camera]||cameraAngles.reference;
       out.eye=cam.eye;
-      out.matrix=perspective(cam.eye,cam.look);
+      out.matrix=perspective(cam.eye,cam.look,cam.fov,cam.shift??[0,0]);
       const push=smooth(2.27,2.40,time)*(1.-smooth(4.13,4.26,time));
       out.anchor=lerp([-57,13,0],[-2,0,0],push);
       gl.useProgram(pg);gl.uniformMatrix4fv(u.view,false,out.matrix);gl.uniform1f(u.age,time-2.4);
       gl.uniform3fv(u.emitter,out.anchor);
-      gl.uniform1i(u.slab,1);gl.uniform3fv(u.base,[.106,.151,.176]);
+      gl.uniform1i(u.slab,1);gl.uniform3fv(u.base,[.205,.228,.266]);
       gl.bindVertexArray(floor.vao);gl.drawArrays(gl.TRIANGLES,0,floor.count);
       gl.uniform1i(u.slab,0);gl.bindVertexArray(block.vao);
       function segment(a,b,w,c){
@@ -134,7 +136,7 @@
       return Promise.resolve().then(()=>{
         if(renderer!==undefined)return;
         const canvas=document.createElement('canvas');canvas.width=1278;canvas.height=720;
-        renderer=window.DragonBeamVolume.createStudy(canvas,studio);
+        renderer=window.DragonBeamVolume.createStudy(canvas,studio,window.createDragonBeamStudyEffects);
         if(!renderer)throw Error('3D 试验场需要 WebGL 2');
         const warm=renderer.draw(2.767,{x:0,y:0},{camera:'reference'});
         const read=document.createElement('canvas');read.width=read.height=2;

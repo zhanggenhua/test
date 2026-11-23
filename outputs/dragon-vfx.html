@@ -13,7 +13,7 @@
 </head>
 <body><main>
 <header><h1 id="title">龙珠特效对照</h1><nav aria-label="特效"><a class="tab" id="tabspirit" href="?fx=spirit">元气弹</a><a class="tab" id="tabkame" href="?fx=kame">龟派气功</a></nav></header>
-<div class="tools"><label id="studyCameraLabel" hidden>左侧机位 <select id="studyCamera"><option value="reference">接近原片机位</option><option value="side">侧视检查</option></select></label><label id="sourceLabel">右侧参考<select id="sources"></select></label><label id="alignmentLabel" hidden>时间轴<select id="alignment"><option value="phases">按招式阶段对齐</option><option value="native">两侧各自原速</option></select></label></div>
+<div class="tools"><label id="studyCameraLabel" hidden>左侧机位 <select id="studyCamera"><option value="reference">按原片构图</option><option value="side">透视侧视</option><option value="demo">作者 Demo 相机参数</option></select></label><label id="sourceLabel">右侧参考<select id="sources"></select></label><label id="alignmentLabel" hidden>时间轴<select id="alignment"><option value="phases">按招式阶段对齐</option><option value="native">两侧各自原速</option></select></label></div>
 <div class="pair">
   <section class="panel"><div class="bar"><h2 id="newTitle">新版 · 整体擂台</h2><time id="newTime"></time></div><div class="media"><canvas id="arena" width="960" height="400" aria-label="新版完整擂台"></canvas></div><p class="foot" id="newNote"></p></section>
   <section class="panel"><div class="bar"><h2 id="refTitle">参考</h2><time id="refTime"></time></div><div class="media"><canvas id="meshView" width="960" height="400" aria-label="同一束光的三维检查" hidden></canvas><video id="film" muted playsinline preload="auto" aria-label="原片全幅"></video><img id="still" hidden style="width:100%;height:100%;object-fit:contain" alt="用户提供的爆发全幅原图"></div><p class="foot" id="refNote"></p><div class="mesh-controls" id="meshControls" hidden>
@@ -29,5 +29,5 @@
 <section class="source"><h3 id="galleryTitle">此次采用的原片全幅选帧</h3><div class="cards" id="gallery"></div><p id="links"></p></section>
 </main>
 <style>[hidden]{display:none!important}</style>
-<script src="dragon-vfx/data.js"></script><script src="dragon-vfx/spirit-volume.js"></script><script src="dragon-vfx/spirit-ejecta.js"></script><script src="dragon-vfx/spirit-impact-3d.js"></script><script src="dragon-vfx/spirit.js"></script><script src="dragon-vfx/kame-volume.js"></script><script src="dragon-vfx/kame-study.js"></script><script src="dragon-vfx/kame.js"></script><script src="dragon-vfx/player.js"></script>
+<script src="dragon-vfx/data.js"></script><script src="dragon-vfx/spirit-volume.js"></script><script src="dragon-vfx/spirit-ejecta.js"></script><script src="dragon-vfx/spirit-impact-3d.js"></script><script src="dragon-vfx/spirit.js"></script><script src="dragon-vfx/kame-volume.js"></script><script src="dragon-vfx/kame-study-effects.js"></script><script src="dragon-vfx/kame-study.js"></script><script src="dragon-vfx/kame.js"></script><script src="dragon-vfx/player.js"></script>
 </body></html>
