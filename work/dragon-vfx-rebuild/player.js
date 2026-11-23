@@ -6,12 +6,15 @@
   const key = params.get('fx') === 'kame' ? 'kame' : 'spirit';
   const spirit = key === 'spirit';
   const study = !spirit&&params.has('study');
+  const unityDemo = study&&params.has('unity-demo');
+  const unitySource = DragonData.unityDemo;
   const studyView = {camera:'reference',hiddenLayer:params.get('hide-layer')};
   if(study){canvas.width=852;canvas.height=480;}
   const meshView=el('meshView'),meshContext=meshView.getContext('2d');
   const meshCamera={yaw:0,pitch:0,wire:false};
   const engine = study ? window.DragonBeamStudy : spirit ? window.DragonSpirit : window.DragonKame;
-  const refs = study ? DragonData.sources.kameStudy : DragonData.sources[key], actors = {};
+  const refs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : DragonData.sources[key];
+  const actors = {};
   const title = spirit ? '元气弹' : '龟派气功';
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
   const time = t => t.toFixed(3)+' s';
@@ -30,7 +33,7 @@
       c.scale(role==='target'?-1:1,1);c.drawImage(frame,-75.6,-150.78,151.2,151.2);c.restore();
     }
   };
-  const assetReady = Promise.all(Object.entries(DragonData.actors).map(async ([k,src])=>{
+  const assetReady = unityDemo ? Promise.resolve() : Promise.all(Object.entries(DragonData.actors).map(async ([k,src])=>{
     const img=new Image();img.src=src;await img.decode();actors[k]=img;
   }));
   let current=refs[0],index=0,at=0;
@@ -38,7 +41,7 @@
   let loading=Promise.resolve(), mediaReady=false;
   let recording;
   let firstPaint=true;
-  const duration = () => engine.duration;
+  const duration = () => unityDemo ? unitySource.duration : engine.duration;
   const offset = () => current.offset;
   const refLength = () => current.end-current.start;
   const aligned = () => current.anchors && el('alignment').value==='phases';
@@ -55,15 +58,15 @@
   const from = () => Math.min(0,offset());
   const to = () => aligned()?duration():Math.max(duration(),offset()+refLength());
   const sceneTime = () => clamp(at,0,duration());
-  async function loadRecording(){
+  async function loadRecording(source, label){
     const video=document.createElement('video');
     video.playsInline=true;video.muted=true;video.preload='auto';
-    video.setAttribute('aria-label','元气弹完整擂台 · 三维渲染录像');
+    video.setAttribute('aria-label',label);
     const decoded=new Promise(resolve=>{
       video.addEventListener('loadeddata',()=>resolve(true),{once:true});
       video.addEventListener('error',()=>resolve(false),{once:true});
     });
-    let url='dragon-vfx/spirit.mp4';
+    let url=source;
     if(location.protocol!=='file:'){
       try{
         const response=await fetch(url);
@@ -149,10 +152,14 @@
     if(current.source)links.append(external('打开视频来源',current.source));
     if(current.full)links.append(external('查看完整原片 · 230 帧',current.full));
     if(current.film)links.append(external('单独播放右侧全幅片段',current.film));
-    links.append(external('单独播放左侧完整演出','dragon-vfx/'+(study?'kame-study':key)+'.mp4'));
-    links.append(external('查看本版特效源码','dragon-vfx/'+(study?'kame-study':key)+'.js'));
-    if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
-    else links.append(external('查看束身与发射环网格源码',study?'dragon-vfx/kame-study-effects.js':'dragon-vfx/kame-volume.js'));
+    if(unityDemo){
+      links.append(external('单独播放 Unity 全幅实录',unitySource.film));
+    }else{
+      links.append(external('单独播放左侧完整演出','dragon-vfx/'+(study?'kame-study':key)+'.mp4'));
+      links.append(external('查看本版特效源码','dragon-vfx/'+(study?'kame-study':key)+'.js'));
+      if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
+      else links.append(external('查看束身与发射环网格源码',study?'dragon-vfx/kame-study-effects.js':'dragon-vfx/kame-volume.js'));
+    }
     if(!spirit&&index===0){
       links.append(external('作者原发教程', 'https://www.youtube.com/watch?v=TR1xM1HMNQ8'),
         external('作者 Unity 包 · 需解锁','https://www.patreon.com/hovl/posts/kamehameha-vfx-1-25583523'),
@@ -166,7 +173,7 @@
     el('back').textContent=aligned()?'新版上一帧':'上一帧';
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
-    el('newTitle').textContent=study?'新版 · 独立 3D 场景':spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
+    el('newTitle').textContent=unityDemo?'作者 Unity 原场景 · 实录':study?'新版 · 独立 3D 场景':spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入头顶，双掌送球前压。命中时白纹卷向内核，碎石从壳外抛出。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spirit) {
       const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
@@ -180,9 +187,14 @@
       el('newNote').append(' ',burst,' · ',shape);
     }
     if(study)el('newNote').textContent='亮束与黑层分别解体，橙光沿束身翻转。冲圈先熄，余丝继续前行。';
+    if(unityDemo)el('newNote').textContent='Unity 2021.3 实际播放作者 Demo。原相机、Prefab、材质与 Bloom。';
     el('refNote').textContent=current.note;
     el('scrub').min=from();el('scrub').max=to();el('phases').replaceChildren();
-    for(const m of engine.phases){const b=document.createElement('button');b.textContent=m.name;b.onclick=()=>seek(m.t);el('phases').append(b);}
+    const phases=unityDemo?[
+      {t:0,name:'准备'},{t:30/30,name:'蓄力'},{t:58/30,name:'首束'},
+      {t:59/30,name:'展开'},{t:69/30,name:'冲圈'},{t:110/30,name:'残束'},{t:117/30,name:'退场'},
+    ]:engine.phases;
+    for(const m of phases){const b=document.createElement('button');b.textContent=m.name;b.onclick=()=>seek(m.t);el('phases').append(b);}
     listCards();
   }
   async function choose(i,autoplay=false,position){
@@ -215,7 +227,7 @@
       if(rev!==id)return;mediaReady=true;syncFilm(true);if(autoplay)await startWhenVisible(id);
     }catch(e){if(rev===id&&e.name!=='AbortError')el('notice').textContent='右侧视频载入失败。'+e.message;}
   }
-  el('studyCameraLabel').hidden=!study;
+  el('studyCameraLabel').hidden=!study||unityDemo;
   el('studyCamera').onchange=()=>{studyView.camera=el('studyCamera').value;paint();};
   el('title').textContent=title+' · 原片对照';document.title=el('title').textContent;
   el('tab'+key).setAttribute('aria-current','page');
@@ -250,8 +262,13 @@
   }
   el('back').onclick=()=>step(-1);el('forth').onclick=()=>step(1);
   const ready=(async()=>{
-    await Promise.all([assetReady,engine.ready]);
-    if(spirit&&!DragonImpact.realtime)await loadRecording();
+    if(unityDemo){
+      await loadRecording(unitySource.film,'作者 Unity 原场景 · 全幅录像');
+      if(!recording)throw Error('本机 Unity 实录未载入');
+    }else{
+      await Promise.all([assetReady,engine.ready]);
+      if(spirit&&!DragonImpact.realtime)await loadRecording('dragon-vfx/spirit.mp4','元气弹完整擂台 · 三维渲染录像');
+    }
     usable=true;
     let first=0;
     if(params.get('ref')==='burst'&&spirit)first=refs.findIndex(r=>r.id==='impact-stills');

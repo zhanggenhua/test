@@ -165,7 +165,22 @@
   }
 
   addEventListener('hashchange', showEffect);
-  showEffect();
+  async function start() {
+    const isLocalServer = ['127.0.0.1','localhost','[::1]'].includes(location.hostname);
+    const wantsUnity = location.hash === '#kame/unity';
+    if (!isLocalServer || !wantsUnity) showEffect();
+    if (!isLocalServer) return;
+    try {
+      const source = await fetch('dragon-vfx/local/kame/author-unity-demo.mp4', {method:'HEAD'});
+      if (source.ok) {
+        effects.get('kame').versions.push(['作者 Unity 原场景 · 实录对照',
+          'dragon-vfx.html?fx=kame&study=1&unity-demo=1', 'unity']);
+      }
+    } finally {
+      if (location.hash.startsWith('#kame')) showEffect();
+    }
+  }
+  start().catch(console.error);
 </script>
 </body>
 </html>

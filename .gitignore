@@ -5,3 +5,6 @@ __pycache__/
 *.egg-info/
 .env
 .env.*
+
+# User-supplied VFX source captures stay on this computer.
+/outputs/dragon-vfx/local/
