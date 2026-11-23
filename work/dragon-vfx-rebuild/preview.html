@@ -26,12 +26,18 @@
 .actions{display:flex;align-items:center;flex-wrap:wrap;gap:5px 7px}
 .actions button,.actions select{font-size:13px;padding:5px 9px}
 .media{aspect-ratio:var(--ratio,16/9)}
+.orbit{display:flex;flex-wrap:wrap;align-items:center;gap:5px 12px}.orbit label{display:flex;align-items:center;gap:6px}.orbit input{width:84px;accent-color:var(--mint)}.orbit output{min-width:32px;text-align:right;font-variant-numeric:tabular-nums}
 </style>
 <style>html.embedded header,html.embedded #tabspirit,html.embedded #tabkame{display:none}html.embedded main{padding:12px}</style><script>if(new URLSearchParams(location.search).has('embedded'))document.documentElement.classList.add('embedded');</script>
 </head>
 <body><main>
 <header><h1 id="title">龙珠特效对照</h1><nav aria-label="特效"><a class="tab" id="tabspirit" href="?fx=spirit">元气弹</a><a class="tab" id="tabkame" href="?fx=kame">龟派气功</a></nav></header>
-<div class="tools"><label id="studyCameraLabel" hidden>左侧机位 <select id="studyCamera"><option value="reference">按原片构图</option><option value="side">透视侧视</option><option value="demo">作者 Demo 相机参数</option></select></label><label id="sourceLabel">右侧参考<select id="sources"></select></label><label id="alignmentLabel" hidden>时间轴<select id="alignment"><option value="phases">按招式阶段对齐</option><option value="native">两侧各自原速</option></select></label></div>
+<div class="tools"><label id="studyCameraLabel" hidden>左侧机位 <select id="studyCamera"><option value="reference">按原片构图</option><option value="side">透视侧视</option><option value="demo">作者 Demo 相机参数</option></select></label><label id="sourceLabel">右侧参考<select id="sources"></select></label><label id="alignmentLabel" hidden>时间轴<select id="alignment"><option value="phases">按招式阶段对齐</option><option value="native">两侧各自原速</option></select></label>
+  <div class="orbit" id="spiritOrbit" hidden>
+    <label>环绕 <input type="range" id="spiritYaw" min="-180" max="180" value="0"><output id="spiritYawRead">0°</output></label>
+    <label>俯仰 <input type="range" id="spiritPitch" min="1" max="82" value="0"><output id="spiritPitchRead">0°</output></label>
+  </div>
+</div>
 <section class="transport" aria-label="同步播放">
   <div class="rail">
     <label for="scrub">同步进度</label><output id="clock" for="scrub"></output>
@@ -57,5 +63,5 @@
 <section class="source"><h3 id="galleryTitle">此次采用的原片全幅选帧</h3><div class="cards" id="gallery"></div><p id="links"></p></section>
 </main>
 <style>[hidden]{display:none!important}</style>
-<script src="dragon-vfx/data.js"></script><script src="dragon-vfx/spirit-volume.js"></script><script src="dragon-vfx/spirit-ejecta.js"></script><script src="dragon-vfx/spirit-impact-3d.js"></script><script src="dragon-vfx/spirit.js"></script><script src="dragon-vfx/kame-volume.js"></script><script src="dragon-vfx/kame-study-effects.js"></script><script src="dragon-vfx/kame-source-meshes.js"></script><script src="dragon-vfx/kame-study.js"></script><script src="dragon-vfx/kame.js"></script><script src="dragon-vfx/arena-stage.js"></script><script src="dragon-vfx/kame-arena.js"></script><script src="dragon-vfx/player.js"></script>
+<script src="dragon-vfx/data.js"></script><script src="dragon-vfx/spirit-volume.js"></script><script src="dragon-vfx/spirit-ejecta.js"></script><script src="dragon-vfx/spirit-impact-3d.js"></script><script src="dragon-vfx/spirit.js"></script><script src="dragon-vfx/spirit-study.js"></script><script src="dragon-vfx/kame-volume.js"></script><script src="dragon-vfx/kame-study-effects.js"></script><script src="dragon-vfx/kame-source-meshes.js"></script><script src="dragon-vfx/kame-study.js"></script><script src="dragon-vfx/kame.js"></script><script src="dragon-vfx/arena-stage.js"></script><script src="dragon-vfx/kame-arena.js"></script><script src="dragon-vfx/player.js"></script>
 </body></html>

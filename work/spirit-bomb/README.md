@@ -1,4 +1,18 @@
-# 元气弹 V17
+# 元气弹独立 3D 试验
+
+[统一预览的独立 3D 版本](../../outputs/index.html#spirit/study)在独立三维场景内播放举手、聚气、前送、飞行、触地、爆发和收势。默认机位依据原片网格的透视和角色站位估计。可切侧视、反向透视，或暂停后旋转、调整俯仰。擂台版留作历史对照。3D 的占位人、地面和体积按同一个透视相机与深度缓冲合成。
+
+| 阶段 | 原片全幅 | 独立 3D 全幅 | 采用的要素 |
+| --- | --- | --- | --- |
+| 初爆 | [3.700 秒](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-04-match-3.700.png) | [2.800 秒](../../outputs/dragon-vfx/spirit-study-impact.png) | 亮核瞬间扩张，压浪外翻，第一批离体电弧。 |
+| 持续 | [4.100 秒](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-05-match-4.100.png) | [3.200 秒](../../outputs/dragon-vfx/spirit-study-vortex.png) | 开口冲击浪的高背缘和低前缘、卷动的内层亮丝、向外抛的飞石。 |
+| 散开 | [5.000 秒](../dragon-vfx-rebuild/reference/spirit/cards/burst/burst-07.png) | [4.100 秒](../../outputs/dragon-vfx/spirit-study-collapse.png) | 亮核垮向地面，余能沿螺旋回卷，暗烟的足迹保持更久。 |
+
+气宗师片段提供爆发结构和时序，配色沿用元气弹。体积内核和贴地烟、旋流使用同一个射线积分通道。开口外浪是三维网格，电弧、碎石和地面反光单独渲染。空间构造和相机为目视重建。同步页的 3.190 秒对齐参考 4.100 秒，录像以 30 fps 取样。
+
+[完整 3D 录像](../../outputs/dragon-vfx/spirit-study.mp4) · [3D 场景源码](../dragon-vfx-rebuild/spirit-study.js) · [原片来源](https://www.bilibili.com/video/BV1Wu4y1u7wh/)
+
+## 元气弹 V17 横版存档
 
 [统一预览](../../outputs/index.html#spirit)的同步进度条在两幅画面上方。拖动会暂停并定位左右画面，方向键可以逐帧。右侧默认保留气宗师原片，可换成上一版 V16，按同一游戏视口和同一时码逐帧比较。
 
@@ -10,7 +24,7 @@
 
 ## 元气弹 V16 存档
 
-[统一预览](../../outputs/index.html#spirit)保持 960×400 的天下第一武道会擂台、既有站位与对照格。右侧默认播放用户指定的命中参考，可切到「上一版 · V15 元气弹」并按离手、首触、爆发对齐。
+[横版存档](../../outputs/index.html#spirit/arena)保持 960×400 的天下第一武道会擂台、既有站位与对照格。右侧默认播放用户指定的命中参考，可切到「上一版 · V15 元气弹」并按离手、首触、爆发对齐。
 
 | 全幅参考 | 使用范围 |
 | --- | --- |

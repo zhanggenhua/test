@@ -30,6 +30,15 @@
     vec3 shellPoint(vec3 n){
       float open=ease(.06,.52),land=ease(.82,1.29);
       float a=atan(n.z,n.x);
+      #ifdef STUDIO
+      float h=.5+.5*n.y;
+      float curve=.81+.22*sin(h*3.04)-.13*h*h;
+      float ripple=.040*sin(3.*a-5.*h+age*1.7)+.029*cos(5.*a+7.*h-age*2.1);
+      float radius=(1.10+.79*open+.16*land)*(curve+ripple);
+      float crest=1.53+.28*sin(a+.4)+.14*sin(2.*a-h*3.+age*.8);
+      float height=.027+h*mix(1.36,crest,open)*(1.-.75*land);
+      return vec3(cos(a)*radius,height,sin(a)*radius);
+      #else
       float deform=.010*sin(3.*a+5.*n.y+age*4.)+.007*cos(7.*a-n.y*8.-age*5.);
       float r=1.005+.675*open+.13*land+deform*open;
       vec3 p=n*r;
@@ -39,6 +48,7 @@
       // The rear-facing triangles fill the gap between the core and lip.
       if(layer==0)p.y=max(.010,p.y);
       return p;
+      #endif
     }
     void main(){
       surface=normalize(position);
@@ -111,6 +121,43 @@
       float widthNoise=.14*sin(3.*rotating+lat*6.)+.09*sin(5.*rotating-lat*11.);
       float bank=lat*1.74+a/TAU-.44*age+widthNoise+.135*(broad-.5);
       float curl=abscomb(bank);
+      #ifdef STUDIO
+      if(layer==0||layer==3){
+        float h=.5+.5*n.y,side=cos(a-.68+age*.64);
+        float ripple=.055*sin(3.*a+age*1.8)+.042*(broad-.5);
+        float sweep=smoothstep(.060+.12*h,.16+.20*h,age);
+        float collapse=smoothstep(.75,1.57,age);
+        float peak=exp(-pow((age-.29)/.15,2.));
+        float torn=smoothstep(.10,.50,grain+.26*cos(a*3.1-h*14.+age));
+        float web=1.-smoothstep(.22,.72,collapse*1.15+.23*torn);
+        float shoulder=.84+.076*sin(a+age*1.1)+ripple;
+        float crest=exp(-pow((h-shoulder)/(.032+.02*grain),2.));
+        float darkBody=smoothstep(.05,.24,h)*(1.-smoothstep(shoulder-.05,shoulder+.04,h));
+        float bandA=.24+.14*sin(a+.63-age*.55)+ripple;
+        float bandB=.62+.25*sin(a+1.2-age*.71)+ripple*.7;
+        float tracking=.26+.74*smoothstep(-.74,.75,cos(a*1.0+age*.85+.35));
+        float nearA=exp(-pow((h-bandA)/(.087+.039*grain),2.));
+        float nearB=exp(-pow((h-bandB)/(.069+.029*grain),2.))*tracking;
+        float filament=exp(-abscomb(h*11.5+.37*sin(a+age*.92)+.22*grain)*17.);
+        float outline=exp(-pow((h-bandA-.065)/.035,2.));
+        vec3 soot=mix(vec3(.019,.032,.054),vec3(.076,.103,.152),.27+.50*broad);
+        vec3 ash=mix(vec3(.048,.071,.111),vec3(.19,.235,.32),filament*.71+broad*.26);
+        vec3 edge=mix(vec3(.15,.34,.71),vec3(.39,.66,1.18),grain);
+        float cut=smoothstep(-.86,-.16,side+.20*(grain-.5));
+        if(layer==0){
+          float alpha=sweep*web*max(.83*darkBody,.85*crest);
+          vec3 rear=soot+ash*filament*.68+edge*crest*(.61+1.52*peak);
+          put(rear,alpha);
+        }else{
+          float nearMask=max(nearA*.96,nearB*cut*.86);
+          float upperLip=crest*(.12+.54*cut)*smoothstep(.47,.70,broad+.19*side)*(1.-collapse);
+          float alpha=sweep*web*max(nearMask,upperLip);
+          vec3 near=ash*(.72+.39*grain)+edge*(.81*outline+.93*upperLip)*(1.+peak*.7);
+          put(near,alpha*.90);
+        }
+        return;
+      }
+      #else
       if(layer==0||layer==3){
         if(age>=1.30)discard;
         // A pressure wave grows upward from the contact patch, along the
@@ -179,6 +226,8 @@
         put(shell,mask*sweep*(.72+.23*belt));return;
       }
 
+      #endif
+
       // The compressed incoming ball hands its light to the gas inside it.
       float handoff=smoothstep(.027,.14,age)*(1.-smoothstep(.095,.38,age));
       if(handoff<.005)discard;
@@ -194,8 +243,13 @@
     layout(location=0) in vec3 position;
     uniform mat4 vp;
     out vec3 proxy;
+    #ifdef STUDIO
+    const float extent=1.85;
+    #else
+    const float extent=1.48;
+    #endif
     void main(){
-      proxy=vec3(0.,.98,0.)+position*1.48;
+      proxy=vec3(0.,.98,0.)+position*extent;
       gl_Position=vp*vec4(proxy,1.);
     }`;
 
@@ -220,13 +274,48 @@
                  mix(mix(hash3(c+vec3(0,0,1)),hash3(c+vec3(1,0,1)),f.x),
                      mix(hash3(c+vec3(0,1,1)),hash3(c+1.),f.x),f.y),f.z);
     }
+    #ifdef STUDIO
+    const float extent=1.85;
+    vec4 groundVortex(vec3 p){
+      vec2 plane=p.xz-vec2(.04,-.02);
+      float r=length(plane)*.928,a=atan(plane.y,plane.x);
+      float swing=a-age*1.63-3.5*r;
+      vec3 flow=vec3(cos(swing)*r,p.y*1.9,sin(swing)*r);
+      float vapor=noise3(flow*5.8+vec3(.2,age*.71,.45));
+      float fleck=noise3(flow*15.1+vec3(.3,-age*1.68,.71));
+      float outflow=1.-smoothstep(1.08+.39*vapor,1.32+.41*vapor,r+.08*fleck);
+      float heat=abs(fract((a-3.8*r-age*1.65)*.47746+.26*vapor+.5)-.5);
+      float shoulder=exp(-heat*6.1),streak=exp(-heat*(9.+18.*fleck));
+      float upper=.16+.34*vapor+.25*smoothstep(.68,1.4,r);
+      float height=exp(-p.y*p.y/(upper*upper));
+      float core=1.-smoothstep(.80,1.30,r+.15*vapor);
+      float smoke=(.35+.65*smoothstep(.19,.81,vapor))*height;
+      float soot=(.62+1.10*smoothstep(.73,1.18,r))*smoke;
+      float gas=(soot+2.72*height*core*streak)*outflow*smoothstep(0.,.061,p.y);
+      float taper=smoothstep(.19,.71,fleck+.26*vapor);
+      vec3 light=vec3(.018,.030,.067)*(1.+vapor);
+      light+=vec3(.11,.30,.70)*core*shoulder*(.56+.85*vapor);
+      light+=vec3(.85,1.26,2.14)*core*streak*(.50+.88*taper);
+      return vec4(light,gas*(1.-smoothstep(1.61,2.19,age)));
+    }
+    #else
+    const float extent=1.48;
+    #endif
+
     // One sample lies inside the burst. Radial flow and extinction use
     // the same field on both sides of the rotating energy.
     vec4 medium(vec3 p,float life,float collapse){
+      #ifdef STUDIO
+      vec3 q=p-vec3(.024,1.11-.88*collapse,-.034);
+      q.yz=mat2(.987,-.16,.16,.987)*q.yz;
+      q.xz/=1.15-.35*collapse;
+      q.y/=1.02-.81*collapse;
+      #else
       vec3 q=p-vec3(.07,1.13-.79*collapse,-.04);
       q.yz=mat2(.95,-.31,.31,.95)*q.yz;
       q.xz/=1.-.32*collapse;
       q.y/=.98-.46*collapse;
+      #endif
       float r=length(q.xz),a=atan(q.z,q.x);
       float twist=a+q.y*1.05-age*3.8;
       vec3 drift=vec3(cos(twist)*r,q.y,sin(twist)*r);
@@ -235,11 +324,23 @@
       float shape=length(vec2(r*.92,q.y));
       float envelope=1.-smoothstep(.70,.99,shape+.16*(mass-.48));
       float baseFade=smoothstep(.0,.15,p.y);
+      #ifdef STUDIO
+      float folding=smoothstep(.33,.81,collapse);
+      vec4 groundGas=folding>.001?groundVortex(p):vec4(0.);
+      groundGas.a*=folding;
+      if(envelope*baseFade<.002)return groundGas;
+      #else
       if(envelope*baseFade<.002)return vec4(0.);
+      #endif
 
       float contraction=clamp(q.y+.30,0.,1.4);
+      #ifdef STUDIO
+      float radius=.78-.29*pow(abs(q.y+.06),1.47)+.10*(mass-.5);
+      float layer=exp(-pow((r-radius)/(.138-.029*contraction),2.));
+      #else
       float radius=.76-.19*contraction+.12*(mass-.5);
       float layer=exp(-pow((r-radius)/(.119-.028*contraction),2.));
+      #endif
       float spine=exp(-3.6*shape*shape)*(1.-.89*smoothstep(.05,.52,q.y));
       float axis=(q.y+.20*r+.07*sin(a+.7))*5.5+a/6.2831853-age*.93;
       float warp=.14*sin(2.*twist+5.7*q.y)+.22*(mass-.5)+.052*(fiber-.5);
@@ -259,12 +360,29 @@
       emission+=vec3(.51,.83,1.07)*layer*surge*(.47+.65*filament);
       emission+=vec3(2.20,2.77,3.31)*layer*band*(.43+.57*surge);
       emission+=vec3(3.05,3.47,3.84)*hotBands+vec3(1.22,1.46,1.63)*knot;
+      #ifdef STUDIO
+      emission*=.49+.27*pulse;
+      float helicalPhase=(q.y+.16*r)*6.1+a/6.2831853-age*1.04+.15*mass;
+      float sheet=exp(-abs(fract(helicalPhase+.5)-.5)*13.);
+      emission+=vec3(1.28,1.65,2.05)*sheet*layer*(.48+.52*surge);
+      float unwound=(q.y+.12*r)*9.1+a/6.2831853-age*1.23+.14*mass;
+      float threads=exp(-abs(fract(unwound+.5)-.5)*(16.+10.*fiber));
+      float whiteArc=smoothstep(-.64,.88,cos(twist-.8+q.y*1.15));
+      float wake=(.16+.84*smoothstep(.10,.77,fiber))*layer;
+      emission+=vec3(1.63,1.91,2.29)*threads*wake*(.35+.65*whiteArc);
+      emission+=vec3(.37,.56,.91)*filament*layer;
+      float settle=smoothstep(.59,.94,collapse);
+      emission=mix(emission,emission*vec3(.34,.47,.81),settle);
+      float upperGas=density*(1.-folding),sigma=upperGas+groundGas.a;
+      return vec4((emission*upperGas+groundGas.rgb*groundGas.a)/max(.00001,sigma),sigma);
+      #else
       return vec4(emission,density);
+      #endif
     }
 
     void main(){
       vec3 ray=normalize(proxy-eye),delta=eye-vec3(0.,.98,0.);
-      float b=dot(delta,ray),h=b*b-dot(delta,delta)+1.48*1.48;
+      float b=dot(delta,ray),h=b*b-dot(delta,delta)+extent*extent;
       if(h<=0.)discard;
       vec2 span=vec2(max(0.,-b-sqrt(h)),-b+sqrt(h));
       if(ray.y<-.0001)span.y=min(span.y,-eye.y/ray.y);
@@ -278,9 +396,18 @@
         }
       }
       if(span.y<=span.x)discard;
+      #ifdef STUDIO
+      float life=smoothstep(.058,.32,age)*(1.-smoothstep(1.04,2.06,age));
+      float collapse=smoothstep(.87,1.80,age);
+      #else
       float life=smoothstep(.058,.32,age)*(1.-smoothstep(.83,1.34,age));
       float collapse=smoothstep(.79,1.37,age);
+      #endif
+      #ifdef STUDIO
+      const int samples=69;
+      #else
       const int samples=52;
+      #endif
       float stride=(span.y-span.x)/float(samples);
       vec3 accumulated=vec3(0.);
       float transmission=1.;
@@ -295,28 +422,28 @@
       color=vec4(accumulated,1.-transmission);
     }`;
 
-  window.SpiritVolumeBuild=(gl,geom)=>{
-    const material=geom.program(vertex,fragment);
+  window.SpiritVolumeBuild=(gl,geom,studio=false)=>{
+    const variant=source=>studio?source.replace('#version 300 es\n','#version 300 es\n#define STUDIO\n'):source;
+    const material=geom.program(variant(vertex),variant(fragment));
     const layer=gl.getUniformLocation(material,'layer');
-    const volume=geom.program(volumeVertex,volumeFragment);
+    const volume=geom.program(variant(volumeVertex),variant(volumeFragment));
     const clipOpaque=gl.getUniformLocation(volume,'clipOpaque');
     const opaqueDepth=gl.getUniformLocation(volume,'opaqueDepth');
     return function render(age,depth){
-      if(age<=.001||age>=1.63)return;
+      if(age<=.001||age>=(studio?2.19:1.63))return;
       geom.uniforms(material,age);
       gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
       gl.enable(gl.BLEND);gl.blendEquation(gl.FUNC_ADD);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       gl.enable(gl.CULL_FACE);gl.frontFace(gl.CCW);
-      if(age>.91){
+      if(age>.91&&age<1.63){
         gl.cullFace(gl.BACK);gl.depthMask(false);
         gl.uniform1i(layer,4);geom.draw(geom.sphere);
-        if(age>=1.46){gl.depthMask(true);gl.bindVertexArray(null);return;}
       }
       gl.depthMask(false);gl.cullFace(gl.FRONT);
-      gl.uniform1i(layer,0);geom.draw(geom.sphere);
+      if(age<(studio?1.57:1.46)){gl.uniform1i(layer,0);geom.draw(geom.sphere);}
       gl.cullFace(gl.BACK);
       if(age<.38){gl.uniform1i(layer,1);geom.draw(geom.sphere);}
-      if(age>.058&&age<1.34){
+      if(age>.058&&age<(studio?2.19:1.34)){
         // The proxy only bounds screen coverage. Truncate the ray at the
         // copied opaque depth, so visible energy in front of a sprite survives.
         gl.disable(gl.DEPTH_TEST);
@@ -330,7 +457,7 @@
         geom.uniforms(material,age);
       }
       gl.depthMask(true);
-      gl.uniform1i(layer,3);geom.draw(geom.sphere);
+      if(age<(studio?1.57:1.46)){gl.uniform1i(layer,3);geom.draw(geom.sphere);}
       gl.bindVertexArray(null);
     };
   };

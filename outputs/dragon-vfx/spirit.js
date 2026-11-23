@@ -20,14 +20,14 @@
     uniform float phase;
     uniform vec4 inlets[3];
     uniform mat4 vp;
-    uniform vec3 center, radii;
+    uniform vec3 center, radii, haloRight, haloDown;
     out vec3 sphereNormal;
     out vec2 glowPoint;
     void main() {
       if(layer==0){
         vec2 v=vec2((gl_VertexID<<1)&2,gl_VertexID&2);
         glowPoint=(v*2.-1.)*1.65;
-        gl_Position=vp*vec4(center+vec3(glowPoint*radii.xy,0.),1.);
+        gl_Position=vp*vec4(center+haloRight*glowPoint.x*radii.x+haloDown*glowPoint.y*radii.y,1.);
         sphereNormal=vec3(0,0,1);return;
       }
       sphereNormal=objectPosition;glowPoint=vec2(0.);
@@ -228,7 +228,7 @@
   }
   function worldOrb(gl,makeProgram,sphere){
     const pg=makeProgram(gl,vertex,fragment);
-    const names=['vp','center','radii','layer','phase','inlets[0]','momentum','energy'];
+    const names=['vp','center','radii','haloRight','haloDown','layer','phase','inlets[0]','momentum','energy'];
     const u=Object.fromEntries(names.map(name=>[name,gl.getUniformLocation(pg,name)]));
     const halo=gl.createVertexArray();
     return function(time,ball,stage){
@@ -237,6 +237,7 @@
       gl.uniformMatrix4fv(u.vp,false,stage.matrix);
       gl.uniform3f(u.center,ball.x,ball.y,0);
       gl.uniform3f(u.radii,ball.rx,ball.ry,ball.r);
+      gl.uniform3fv(u.haloRight,stage.right??[1,0,0]);gl.uniform3fv(u.haloDown,stage.down??[0,1,0]);
       gl.uniform1f(u.phase,(time%4)*TAU/4);
       gl.uniform4fv(u['inlets[0]'],captured(time));
       gl.uniform3f(u.momentum,...ball.direction,ball.flow);
@@ -385,7 +386,13 @@
           const before=points[Math.max(0,i-1)],after=points[Math.min(points.length-1,i+1)];
           const dx=after[0]-before[0],dy=after[1]-before[1],length=Math.max(.01,Math.hypot(dx,dy));
           const t=i/(points.length-1),w=width*(.11+.89*Math.sin(Math.PI*t)**.72)*(.30+.70*t);
-          return [-1,1].map(edge=>[p[0]-dy/length*w*edge,p[1]+dx/length*w*edge,p[2],t,edge,visibility]);
+          let normal=[-dy/length,dx/length,0];
+          if(stage.study){
+            const dz=after[2]-before[2],ex=stage.eye[0]-p[0],ey=stage.eye[1]-p[1],ez=stage.eye[2]-p[2];
+            const cross=[dy*ez-dz*ey,dz*ex-dx*ez,dx*ey-dy*ex], magnitude=Math.hypot(...cross);
+            if(magnitude>.001)normal=cross.map(v=>v/magnitude);
+          }
+          return [-1,1].map(edge=>[...p.map((coord,j)=>coord+normal[j]*w*edge),t,edge,visibility]);
         });
         for(let i=1;i<strips.length;i++){
           const [a,c]=strips[i-1],[b,d]=strips[i];
@@ -444,7 +451,7 @@
     };
   }
 
-  function worldEffects(gl,makeProgram){
+  function worldEffects(gl,makeProgram,study=false){
     const sphere=sphereGeometry(gl),vp=new Float32Array(16);
     const vertexUniforms=new Map(),eye=[0,0,0];
     const geometry={
@@ -458,12 +465,12 @@
       },
     };
     const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram);
-    const renderVolume=SpiritVolumeBuild(gl,geometry),renderEjecta=SpiritEjectaBuild(gl,geometry);
+    const renderVolume=SpiritVolumeBuild(gl,geometry,study),renderEjecta=SpiritEjectaBuild(gl,geometry);
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
       const {clock,ball,matrix}=stage,age=clock-contact;
       renderOrb(clock,ball,stage);
       renderFlow(clock,stage);
-      if(age<0||age>1.67)return;
+      if(age<0||age>(study?2.23:1.67))return;
       // Impact meshes use sphere units around local (0,1,0). Transform them into the arena.
       for(let row=0;row<4;row++){
         vp[row]=matrix[row]*ball.rx;
@@ -492,7 +499,9 @@
   }
   let ready,renderer;
   window.DragonSpirit={
-    duration,phases,get realtime(){return renderer?.active??false;},
+    duration,phases,sample:state,
+    buildStudyEffects:(gl,program)=>worldEffects(gl,program,true),
+    get realtime(){return renderer?.active??false;},
     draw(ctx,t,scene){
       if(!renderer){scene.stage(ctx);return;}
       const layer=renderer.draw(t,{x:scene.casterX,y:scene.ground},{scene});
@@ -501,7 +510,7 @@
     get ready(){
       return ready??=Promise.resolve().then(()=>{
         const canvas=document.createElement('canvas');canvas.width=960;canvas.height=400;
-        renderer=DragonBeamVolume.createStudy(canvas,(gl,program)=>createDragonArenaStage(gl,program,arenaFrame),worldEffects,true);
+        renderer=DragonBeamVolume.createStudy(canvas,(gl,program)=>createDragonArenaStage(gl,program,arenaFrame),(gl,program)=>worldEffects(gl,program),true);
       });
     },
   };
