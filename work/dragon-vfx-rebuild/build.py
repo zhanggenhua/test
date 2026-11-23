@@ -133,24 +133,27 @@ kame.insert(1,dict(id="mesh-view",title="网页候选 · 3D 检查",
     offset=0,start=0,end=128/30,fps=30,source="",cards=[]))
 copy(here/"baseline/kame-study-procedural.mp4","legacy/kame-study-procedural.mp4")
 study_ref = dict(kame[0], note="原视频 4.200–8.467 秒。左侧以首束离手对齐，默认机位按原片构图拟合。")
-study_previous = legacy("kame-study-procedural.mp4","上一版 · 原 3D 试验场",
-                        "同一施放相位可对比旧版的束身、发射口与退场。",128/30,30)
+study_early = legacy("kame-study-procedural.mp4","早期 · 3D 试验场",
+                     "同一施放相位可对比最初试作的束身与发射口。",128/30,30)
+study_previous = dict(legacy("kame-study.mp4","程序化 3D · 截图所示版",
+                             "按同一时间对照此前的程序化材质。",128/30,30),
+                      film="dragon-vfx/kame-study.mp4")
 unity_duration = 122/30
 unity_film = "dragon-vfx/local/kame/author-unity-demo.mp4"
 unity_original = dict(kame[0], note="公开教程含角色与演出机位。同步按首束、峰值与退场对齐。",
                       anchors=[[0,4.2],[58/30,6.6],[69/30,6.967],[110/30,8.333],[unity_duration,8.467]])
-unity_web = dict(legacy("kame-study.mp4","WebGL 重做版 · 完整场景",
+unity_web = dict(legacy("kame-study.mp4","程序化 WebGL · 完整场景",
                        "沿用相同演出阶段，比较网页重做与 Unity 原 Prefab 的光型、分层和收束。",128/30,30),
                  film="dragon-vfx/kame-study.mp4",
                  anchors=[[0,0],[58/30,72/30],[69/30,83/30],[110/30,124/30],[unity_duration,128/30]])
 payload = {"actors":actors,
            "unityDemo":{"film":unity_film,"duration":unity_duration},
-           "sources":{"spirit":spirit,"kame":kame,"kameStudy":[study_ref,study_previous],
+           "sources":{"spirit":spirit,"kame":kame,"kameStudy":[study_ref,study_previous,study_early],
                       "kameUnity":[unity_original,unity_web]}}
 atlas = here/"spirit-assets/impact-v15.webp"
 atlas_url = copy(atlas,"impact-v15.webp") if atlas.is_file() else ""
 (dst/"data.js").write_text("window.DragonData="+json.dumps(payload,ensure_ascii=False,separators=(",",":"))+";\nwindow.DragonImpactAtlas="+json.dumps(atlas_url)+";",encoding="utf-8")
-for name in ("spirit.js","kame.js","kame-volume.js","kame-study-effects.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
+for name in ("spirit.js","kame.js","kame-volume.js","kame-study-effects.js","kame-source-meshes.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
     copy(here/name,name)
 shutil.copy2(here/"preview.html",out/"dragon-vfx.html")
 shutil.copy2(work/"vfx-preview.html",out/"index.html")

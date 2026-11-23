@@ -155,10 +155,11 @@
     if(unityDemo){
       links.append(external('单独播放 Unity 全幅实录',unitySource.film));
     }else{
-      links.append(external('单独播放左侧完整演出','dragon-vfx/'+(study?'kame-study':key)+'.mp4'));
+      const clip=engine.sourceMaterials?'dragon-vfx/local/kame/kame-source-materials.mp4':'dragon-vfx/'+(study?'kame-study':key)+'.mp4';
+      links.append(external('单独播放左侧完整演出',clip));
       links.append(external('查看本版特效源码','dragon-vfx/'+(study?'kame-study':key)+'.js'));
       if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
-      else links.append(external('查看束身与发射环网格源码',study?'dragon-vfx/kame-study-effects.js':'dragon-vfx/kame-volume.js'));
+      else links.append(external('查看束身与发射环网格源码',study?(engine.sourceMaterials?'dragon-vfx/kame-source-meshes.js':'dragon-vfx/kame-study-effects.js'):'dragon-vfx/kame-volume.js'));
     }
     if(!spirit&&index===0){
       links.append(external('作者原发教程', 'https://www.youtube.com/watch?v=TR1xM1HMNQ8'),
@@ -173,7 +174,7 @@
     el('back').textContent=aligned()?'新版上一帧':'上一帧';
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
-    el('newTitle').textContent=unityDemo?'作者 Unity 原场景 · 实录':study?'新版 · 独立 3D 场景':spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
+    el('newTitle').textContent=unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入头顶，双掌送球前压。命中时白纹卷向内核，碎石从壳外抛出。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spirit) {
       const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
@@ -186,7 +187,9 @@
       }
       el('newNote').append(' ',burst,' · ',shape);
     }
-    if(study)el('newNote').textContent='亮束与黑层分别解体，橙光沿束身翻转。冲圈先熄，余丝继续前行。';
+    if(study)el('newNote').textContent=engine.sourceMaterials
+      ?'由 Unity 采样的粒子网格驱动。网页实时计算原贴图、裁剪、混合和辉光。'
+      :'亮束与黑层分别解体，橙光沿束身翻转。冲圈先熄，余丝继续前行。';
     if(unityDemo)el('newNote').textContent='Unity 2021.3 实际播放作者 Demo。原相机、Prefab、材质与 Bloom。';
     el('refNote').textContent=current.note;
     el('scrub').min=from();el('scrub').max=to();el('phases').replaceChildren();

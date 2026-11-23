@@ -124,7 +124,7 @@
     return out;
   }
 
-  let renderer;
+  let renderer, sourceMaterials=false;
   const duration=128/30;
   window.DragonBeamStudy={
     duration,
@@ -132,11 +132,15 @@
       {t:0,name:'准备'},{t:.633,name:'汇入掌心'},{t:2.233,name:'前送'},{t:2.4,name:'第一股离手'},
       {t:2.433,name:'展开'},{t:2.767,name:'缠束与冲圈'},{t:3.167,name:'持续'},{t:4.133,name:'残束'},{t:4.2,name:'退场'},
     ],
+    get sourceMaterials(){return sourceMaterials;},
     get ready(){
-      return Promise.resolve().then(()=>{
+      return Promise.resolve().then(async()=>{
         if(renderer!==undefined)return;
         const canvas=document.createElement('canvas');canvas.width=1278;canvas.height=720;
-        renderer=window.DragonBeamVolume.createStudy(canvas,studio,window.createDragonBeamStudyEffects);
+        const wantsSource=!new URLSearchParams(location.search).has('procedural-study');
+        const createSource=wantsSource?await window.loadDragonSourceMeshes():null;
+        sourceMaterials=!!createSource;
+        renderer=window.DragonBeamVolume.createStudy(canvas,studio,createSource??window.createDragonBeamStudyEffects,sourceMaterials);
         if(!renderer)throw Error('3D 试验场需要 WebGL 2');
         const warm=renderer.draw(2.767,{x:0,y:0},{camera:'reference'});
         const read=document.createElement('canvas');read.width=read.height=2;

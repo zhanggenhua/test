@@ -5,18 +5,21 @@ const base='http://127.0.0.1:8819/dragon-vfx.html?paused=1&fx=';
 const takes={
   spirit:{url:'spirit',fps:30,marks:{15:'intake',53:'formed',61:'release',72:'flight',86:'first-contact',88:'contact',92:'pressure',104:'peak',96:'impact',107:'shell',123:'wake'}},
   kame:{url:'kame',fps:30,marks:{19:'gather',71:'prelaunch',72:'launch',73:'extension',83:'beam',124:'tail'}},
-  'kame-study':{url:'kame&study=1',fps:30,marks:{53:'gather',72:'launch',73:'extension',83:'beam',95:'sustain',122:'drain',124:'tail'}}
+  'kame-study':{url:'kame&study=1&procedural-study=1',fps:30,marks:{53:'gather',72:'launch',73:'extension',83:'beam',95:'sustain',122:'drain',124:'tail'}},
+  'kame-source-materials':{url:'kame&study=1',fps:30,local:true,marks:{61:'gather',72:'launch',73:'extension',83:'beam',124:'tail'}}
 };
 (async()=>{
   const browser=await chromium.launch({headless:true,executablePath: process.env.VFX_CHROME || undefined, args: process.platform === 'win32' ? ['--use-gl=angle', '--use-angle=d3d11'] : ['--enable-unsafe-swiftshader']});
   try {
     for(const [name,take] of Object.entries(takes)){
-      if(process.argv[2] && process.argv[2]!==name)continue;
+      if(process.argv[2] ? process.argv[2]!==name : take.local)continue;
       const page=await browser.newPage({reducedMotion:'reduce'}),errors=[];
       page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
       await page.goto(base+take.url);await page.evaluate(()=>DragonPreview.ready);
       const length=await page.evaluate(()=>DragonPreview.duration);
-      const file=path.join(output,name+'.mp4');
+      if(take.local&&!await page.evaluate(()=>DragonBeamStudy.sourceMaterials))throw Error('缺少 Unity 原材质数据');
+      const destination=take.local?path.join(output,'local/kame'):output;
+      const file=path.join(destination,name+'.mp4');
       const ff=spawn('ffmpeg',['-v','error','-y','-f','image2pipe','-framerate',String(take.fps),'-vcodec','png','-i','pipe:0',
         '-an','-c:v','libx264','-crf','15','-preset','fast','-pix_fmt','yuv420p','-movflags','+faststart',file],{stdio:['pipe','ignore','inherit']});
       const complete=once(ff,'close');
@@ -26,7 +29,7 @@ const takes={
           DragonPreview.seek(t);return document.getElementById('arena').toDataURL('image/png').split(',')[1];
         },i/take.fps);
         const png=Buffer.from(raw,'base64');
-        if(take.marks[i])fs.writeFileSync(path.join(output,name+'-'+take.marks[i]+'.png'),png);
+        if(take.marks[i])fs.writeFileSync(path.join(destination,name+'-'+take.marks[i]+'.png'),png);
         if(!ff.stdin.write(png))await once(ff.stdin,'drain');
       }
       ff.stdin.end();const [code]=await complete;

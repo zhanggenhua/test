@@ -286,6 +286,58 @@
       color=vec4(clamp(light,vec3(0.),vec3(alpha)),alpha);
     }`;
 
+  const sourceBloom=`#version 300 es
+    precision highp float;
+    precision highp int;
+    uniform int pass;
+    uniform sampler2D source, detail;
+    uniform vec2 destinationSize;
+    uniform float scale;
+    out vec4 result;
+    vec3 median(vec3 a,vec3 b,vec3 c){return clamp(a,min(b,c),max(b,c));}
+    float brightest(vec3 c){return max(c.r,max(c.g,c.b));}
+    vec3 linearize(vec3 c){
+      return max(c,0.)*(.012522878+c*(.682171111+.305306011*c));
+    }
+    vec3 tent(vec2 uv,vec2 texel){
+      vec3 blur=vec3(0.);
+      for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){
+        vec2 d=vec2(float(x),float(y));
+        blur+=texture(source,uv+d*texel).rgb*float((2-abs(x))*(2-abs(y)));
+      }
+      return blur/16.;
+    }
+    void main(){
+      vec2 uv=gl_FragCoord.xy/destinationSize;
+      vec2 texel=1./vec2(textureSize(source,0));
+      vec3 color;
+      if(pass==0){
+        vec2 p=uv-.5*texel;
+        vec2 dx=vec2(texel.x,0.),dy=vec2(0.,texel.y);
+        vec3 lateral=median(texture(source,p).rgb,texture(source,p+dx).rgb,texture(source,p-dx).rgb);
+        vec3 light=linearize(median(lateral,texture(source,p+dy).rgb,texture(source,p-dy).rgb));
+        const float threshold=1.24,knee=threshold*.5;
+        float level=brightest(light);
+        float bend=clamp(level-threshold+knee,0.,2.*knee);
+        color=light*max(bend*bend/(4.*knee),level-threshold)/max(level,.0001);
+      }else if(pass<3){
+        color=vec3(0.);
+        float total=0.;
+        for(int y=-1;y<=1;y+=2)for(int x=-1;x<=1;x+=2){
+          vec3 light=texture(source,uv+texel*vec2(float(x),float(y))).rgb;
+          float weight=pass==1?1./(1.+brightest(light)):1.;
+          color+=light*weight;
+          total+=weight;
+        }
+        color/=total;
+      }else{
+        vec3 glow=tent(uv,texel*scale);
+        vec3 base=texture(detail,uv).rgb;
+        color=pass==3?base+glow:pow(clamp(linearize(base)+.5*glow,0.,1.),vec3(1./2.4))*1.055-.055;
+      }
+      result=vec4(max(color,0.),1.);
+    }`;
+
   function makeProgram(gl,v,f){
     const pg=gl.createProgram();
     for(const [kind,source] of [[gl.VERTEX_SHADER,v],[gl.FRAGMENT_SHADER,f]]){
@@ -325,7 +377,7 @@
   }
 
   let renderer;
-  function init(canvas=document.createElement('canvas'),floorFactory,effectsFactory){
+  function init(canvas=document.createElement('canvas'),floorFactory,effectsFactory,sourceMaterials=false){
     const studio=!!floorFactory;
     if(!studio){canvas.width=width;canvas.height=height;}
     const w=canvas.width,h=canvas.height;
@@ -361,10 +413,58 @@
       return {fb,tex,w,h};
     }
     const scene=target(w,h,true),pyramid=[2,4,12].map(size=>target(Math.round(w/size),Math.round(h/size)));
+    let opaqueDepth;
+    if(sourceMaterials){
+      const fb=gl.createFramebuffer(),tex=gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D,tex);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.DEPTH_COMPONENT24,w,h,0,gl.DEPTH_COMPONENT,gl.UNSIGNED_INT,null);
+      for(const param of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,param,gl.NEAREST);
+      gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.TEXTURE_2D,tex,0);
+      gl.drawBuffers([gl.NONE]);
+      gl.readBuffer(gl.NONE);
+      if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE)throw Error('场景深度帧缓冲无法初始化');
+      opaqueDepth={fb,tex};
+    }
     gl.useProgram(blur);gl.uniform1i(b.src,0);
     gl.useProgram(output);gl.uniform1i(o.mainLayer,0);gl.uniform1i(o.nearGlow,1);gl.uniform1i(o.farGlow,2);gl.uniform2f(o.outputSize,w,h);gl.uniform1i(o.studio,+studio);
     function sample(i,t){gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,t.tex);}
     function bind(t){gl.bindFramebuffer(gl.FRAMEBUFFER,t?.fb??null);gl.viewport(0,0,t?.w??w,t?.h??h);}
+    const renderSourceBloom = sourceMaterials ? prepareSourceBloom() : null;
+    function prepareSourceBloom(){
+      const program=makeProgram(gl,screen,sourceBloom);
+      const u=uniforms(program,['source','detail','pass','destinationSize','scale']);
+      let bw=Math.floor(w/2),bh=Math.floor(h/2);
+      const precision=Math.log2(bh)-4;
+      const levels=Math.max(1,Math.floor(precision));
+      const scale=.5+precision-Math.floor(precision);
+      const prefilter=target(bw,bh),downsample=[],upsample=[];
+      for(let i=0;i<levels;i++){
+        bw=Math.max(1,Math.floor(bw/2));bh=Math.max(1,Math.floor(bh/2));
+        downsample.push(target(bw,bh));
+        if(i<levels-1)upsample.push(target(bw,bh));
+      }
+      gl.useProgram(program);
+      gl.uniform1i(u.source,0);gl.uniform1i(u.detail,1);gl.uniform1f(u.scale,scale);
+      function pass(mode,input,destination,detail){
+        bind(destination);sample(0,input);
+        if(detail)sample(1,detail);
+        gl.uniform1i(u.pass,mode);
+        gl.uniform2f(u.destinationSize,destination?.w??w,destination?.h??h);
+        gl.drawArrays(gl.TRIANGLES,0,3);
+      }
+      return ()=>{
+        gl.useProgram(program);
+        pass(0,scene,prefilter);
+        let input=prefilter;
+        downsample.forEach((dst,i)=>{pass(i===0?1:2,input,dst);input=dst;});
+        for(let i=upsample.length-1;i>=0;i--){
+          pass(3,input,upsample[i],downsample[i]);
+          input=upsample[i];
+        }
+        pass(4,input,null,scene);
+      };
+    }
     function draws(edges){
       gl.uniform1i(m.wire,+edges);
       surfaces.forEach(({vao,faces,edges:lines},part)=>{
@@ -392,9 +492,15 @@
       gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
       gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
       if(studio){gl.disable(gl.BLEND);floor.draw(time,view);}
+      if(opaqueDepth){
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER,scene.fb);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER,opaqueDepth.fb);
+        gl.blitFramebuffer(0,0,w,h,0,0,w,h,gl.DEPTH_BUFFER_BIT,gl.NEAREST);
+        gl.bindFramebuffer(gl.FRAMEBUFFER,scene.fb);
+      }
       gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       if(studyEffects){
-        studyEffects(time-2.4,floor,view.hiddenLayer);
+        studyEffects(time-2.4,floor,view.hiddenLayer,opaqueDepth?.tex);
       }else{
         gl.useProgram(model);
         gl.uniform1i(m.studio,+studio);
@@ -416,6 +522,7 @@
         draws(false);if(wire)draws(true);
       }
       gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.bindVertexArray(blank);
+      if(renderSourceBloom){renderSourceBloom();return canvas;}
       if(!wire){
         gl.useProgram(blur);let input=scene;
         for(const dst of pyramid){
@@ -437,7 +544,7 @@
     return renderer;
   }
   window.DragonBeamVolume={
-    createStudy(canvas,floorFactory,effectsFactory){return init(canvas,floorFactory,effectsFactory);},
+    createStudy(canvas,floorFactory,effectsFactory,sourceMaterials){return init(canvas,floorFactory,effectsFactory,sourceMaterials);},
     draw(time,palm,view){return instance()?.draw(time,palm,view)??null;},
     get available(){return instance()?.active??false;},
     warm(){
