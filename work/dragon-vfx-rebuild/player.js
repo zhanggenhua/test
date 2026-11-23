@@ -180,7 +180,7 @@
       el('newNote').append(' ',burst,' · ',shape);
     }
     if(study)el('newNote').textContent='全幅 3D 场景。地面、人物替身、光束和余束共享透视相机与深度缓冲。';
-    el('refNote').textContent=study?'原视频 4.200–8.467 秒。左侧按同阶段对照，试验相机依据原片构图估计。':current.note;
+    el('refNote').textContent=study?'原视频 4.200–8.467 秒。左侧为源码核对前的试作，机位依据原片构图估计。':current.note;
     el('scrub').min=from();el('scrub').max=to();el('phases').replaceChildren();
     for(const m of engine.phases){const b=document.createElement('button');b.textContent=m.name;b.onclick=()=>seek(m.t);el('phases').append(b);}
     listCards();

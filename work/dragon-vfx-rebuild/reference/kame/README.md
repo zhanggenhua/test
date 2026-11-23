@@ -1,8 +1,19 @@
-# 龟波气功原视频与对照
+# 龟波气功原视频、作者场景与对照
 
 [莉莉丝授权转载](https://www.bilibili.com/video/BV194411r7Te/)的简介标注作者 ErbGameArt，工程链接指向[作者的 Unity Asset Store 发布者主页](https://assetstore.unity.com/publishers/28391)。[作者原发教程](https://www.youtube.com/watch?v=TR1xM1HMNQ8)在 Hovl Studio 频道，本地原视频节选取自 B 站转载的 4.200–8.467 秒，128 帧、30 fps。截图和时码见 [manifest.json](manifest.json)。
 
-2026-11-23 核对作者发布页，[Kamehameha.unitypackage](https://www.patreon.com/hovl/posts/kamehameha-vfx-1-25583523)与[贴图、模型和着色器包](https://www.patreon.com/hovl/posts/only-textures-25713270)均显示需解锁。项目当前有视频和选帧。网页试作是依据视频自建的 WebGL 网格和材质，作者的 Unity 包尚未取得或导入验证。
+## 作者包核对
+
+2026-11-23 收到用户提供的 `Kamehameha.unitypackage`，SHA-256 为 `85e9ca9330813538f4cdfce60105e7ffa362826fe9fea0e3f242d3a89702fd9e`。包内有 `Assets/Kamehameha/Demo scenes/Demo.unity`、对应的 `Prefabs/Kamehameha.prefab`、4 个 FBX 和 3 个 shader。随包 Demo 由相机、地面、灯光和特效组成，原视频里的悟空和演出镜头属于视频参考。网页候选早于这次源码核对。 [作者发布页](https://www.patreon.com/hovl/posts/kamehameha-vfx-1-25583523)
+
+- **相机和后处理**。Demo 存的是透视相机，垂直 FOV 60°，位置约为 `(5.421, 3.790, 7.865)`，欧拉角提示为 `(32.9°, -135°, 0°)`，HDR 开启。场景将 Prefab 根放在 `(0, 0, 2)`。`CC.asset` 启用 Bloom，强度 0.5、阈值 1.1、半径 4。场景行为和配置文件两个脚本 GUID 都与官方 Post Processing Stack v1.0.4 对上。 [官方依赖版本](https://github.com/Unity-Technologies/PostProcessing/releases/tag/1.0.4)
+- **发射结构**。Prefab 有 14 个粒子系统，其中 6 个按网格渲染。亮束 `KameCore` 和黑层 `KameSmoke` 使用同一 `KameCone2.fbx` 网格的两个实例，材质分别为 `TwoSides15` 和 `TwoSides16`。黑层的粒子起始色为黑。两者尺寸、噪声速率、色彩和 Fresnel 设置独立，寿命 2 秒，均在 1.97 秒发射。材质的双面 shader 用主贴图和粒子色给发光，用滚动噪声、遮罩和 Custom1.x 寿命曲线做裁剪。曲线后半程把可见区域撕开，单靠整束透明度淡出会保留过多完整轮廓。 [原视频 6.967 秒](cards/kame-209.png)
+- **橙光和冲圈**。`KameTrails` 在 1.97 秒发出独立的橙色加色网格粒子，使用 `KameCone.fbx` 和 `TrailPart4cg`，粒子寿命 1.7 秒。`BackWaves` 和 `BackWaves2` 同用 `HalfSphere4.fbx`，分别给加色和透明材质，后者从 1.97 秒每 0.2 秒发一次，共 7 次。两组弧面有不同的尺寸和寿命。 [原视频 6.633 秒](cards/kame-199.png)
+- **接缝和残束**。`Core` 在循环第 0 秒发出并存活 2 秒，1.97 秒起束，`EndCore`、`MuzzleFlash` 和 `CoreTrails` 在 2 秒接上。速度为 55 单位/秒的拉伸粒子 `CoreTrails` 连发 120 次，间隔 0.01 秒，每颗约 0.3 秒，并单独走 Custom Data 裁剪。原片收尾还可见向前的细丝。上一版网页同相位仍留着整体宽束，应分开驱动粗束解体和细丝运动。 [原视频 8.333 秒](cards/kame-250.png)
+
+以上是对场景、Prefab、材质和 shader 的静态核对。Prefab 时间从每次 4 秒循环的起点计算。原视频与网页的时码见下表。Unity 2019.4、2021.3 和团结 2022.3 的批处理均停在许可证校验，尚无作者场景的引擎出图。源阶段先以公开全幅视频作画面对照，复现验收时还需用 Demo 实测各层的渲染、裁剪和合成。
+
+## 原片与现有网页试作
 
 在网页统一总览选「原视频对照 · 束身关键帧」，右侧播放原教程片段。选择「同角度 3D 检查」时，左右显示同一份网页候选，右侧可旋转。
 
@@ -17,6 +28,6 @@
 
 ## 独立 3D 试验场
 
-[统一总览中的 3D 试验场](../../../../outputs/index.html#kame/study)使用视频节选作右侧参考。左侧地面、透明能量和占位人物使用同一个 WebGL 2 深度缓冲。场景角度按原片的地平线、出射点和束轴估计，可切侧视检查。作者原工程的镜头参数未取得。
+[统一总览中的 3D 试验场](../../../../outputs/index.html#kame/study)使用视频节选作右侧参考。左侧地面、透明能量和占位人物使用同一个 WebGL 2 深度缓冲。现有网页机位来自原片画面估算，可切侧视检查。作者 Demo 相机的实拍效果需另行验证。
 
 试验场按 6.600、6.633、6.967 和 8.333 秒设计首束空间分叉、实体展开、发射口与缠绕、飞离口环的余束。尾段新增独立的发光网格。全段 128 帧，30 fps。源码见 [试验场](../../kame-study.js) 和 [束身渲染器](../../kame-volume.js)。

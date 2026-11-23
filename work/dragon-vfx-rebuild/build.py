@@ -101,7 +101,7 @@ if burst_clip.is_file():
 
 km = json.loads((refs/"kame/manifest.json").read_text(encoding="utf-8"))
 kame_part = dict(km["parts"][0], source=km["source"])
-kame = [film("kame",kame_part,"原视频 · ErbGameArt 教程","右侧为莉莉丝授权转载中 4.200 至 8.467 秒的原视频节选。左侧是网页试作，按首束离手同步。作者 Unity 包目前未取得。",0)]
+kame = [film("kame",kame_part,"原视频 · ErbGameArt 教程","右侧为莉莉丝授权转载中 4.200 至 8.467 秒的原视频。左侧是源码核对前的网页试作，按首束离手同步。",0)]
 
 def legacy(filename, title, note, length, fps):
     return dict(title=title,note=note,offset=0,start=0,end=length,fps=fps,source="",cards=[],film="dragon-vfx/legacy/"+filename)
