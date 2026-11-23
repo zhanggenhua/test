@@ -1,0 +1,34 @@
+{
+  "source": "https://www.bilibili.com/video/BV1Uj421d71t",
+  "title": "【元气弹特效素材】_来了来了",
+  "uploader": "KK_憨小二",
+  "description": "最近很多人问我要这个元气弹的特效效果，这不就来了吗...................",
+  "partCount": 1,
+  "parts": [
+    {
+      "part": 1,
+      "sourceStart": 0.0,
+      "sourceEndExclusive": 4.0,
+      "videoDuration": 3.999,
+      "containerDuration": 4.095667,
+      "fps": 24.0,
+      "frameCount": 96,
+      "width": 1920,
+      "height": 1080,
+      "clip": "clips/sphere-full-0-4s.mp4",
+      "cards": [
+        { "label": "片段起始：球体已完整出现", "sourceTime": 0.0, "pts": 0.0, "file": "cards/sphere-000.png" },
+        { "label": "内层动纹与外晕", "sourceTime": 0.5, "pts": 0.5, "file": "cards/sphere-012.png" },
+        { "label": "持续球体状态", "sourceTime": 1.0, "pts": 1.0, "file": "cards/sphere-024.png" },
+        { "label": "中心白青高亮与环形边缘", "sourceTime": 1.5, "pts": 1.5, "file": "cards/sphere-036.png" },
+        { "label": "球体内部旋动纹理", "sourceTime": 2.0, "pts": 2.0, "file": "cards/sphere-048.png" },
+        { "label": "持续球体状态", "sourceTime": 2.5, "pts": 2.5, "file": "cards/sphere-060.png" },
+        { "label": "持续球体状态", "sourceTime": 3.0, "pts": 3.0, "file": "cards/sphere-072.png" },
+        { "label": "持续球体状态", "sourceTime": 3.5, "pts": 3.5, "file": "cards/sphere-084.png" },
+        { "label": "视频末帧：仍维持球体", "sourceTime": 3.958, "pts": 3.958, "file": "cards/sphere-095.png" }
+      ],
+      "visualEvidence": "全片为同一纯黑背景、固定居中的蓝白/青色高亮球体；中心与内部呈白色流纹，外缘有亮青色轮廓、细线环和柔和外晕。内部动纹轻微变化，球体直径变化不明显。片头已成球，片尾仍为球体。",
+      "limitations": "本P没有可见的聚气成球、投掷/推进、命中、破裂/爆发或场景遮挡阶段；只能用于孤立能量球外观、色彩、发光边缘和轻微内部动纹参考。"
+    }
+  ]
+}

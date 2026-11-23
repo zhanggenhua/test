@@ -1,0 +1,11 @@
+{
+  "name": "vfx-web-tests",
+  "private": true,
+  "scripts": {
+    "bake:impact": "node work/dragon-vfx-rebuild/bake-impact.cjs",
+    "export:dragon": "node work/dragon-vfx-rebuild/export.cjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.65.1"
+  }
+}

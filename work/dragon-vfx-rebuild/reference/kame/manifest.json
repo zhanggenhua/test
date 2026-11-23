@@ -1,0 +1,177 @@
+{
+  "source": "https://www.bilibili.com/video/BV194411r7Te/",
+  "title": "Unity 龟派气功特效教程",
+  "uploader": "莉莉丝官方账号（授权转载）",
+  "author": "ErbGameArt / Hovl Studio",
+  "original": "https://www.youtube.com/watch?v=TR1xM1HMNQ8",
+  "description": "转载说明署名 ErbGameArt；作者将本段标为 Unity 3D Particle System 教学，原效果制于 Unity 2018.1。",
+  "partCount": 1,
+  "parts": [
+    {
+      "part": 1,
+      "sourceStart": 4.2,
+      "sourceEndExclusive": 8.467,
+      "sourceFirstFrame": 126,
+      "sourceLastFrame": 253,
+      "fps": 30,
+      "timeBase": "1/16000",
+      "frameCount": 128,
+      "width": 852,
+      "height": 480,
+      "videoDuration": 4.266666666666667,
+      "clip": "clips/hovl-kame-cycle.mp4",
+      "cards": [
+        {
+          "label": "上轮束身退净，人物再次预备",
+          "sourceTime": 4.2,
+          "pts": 4.2,
+          "ptsTicks": 67200,
+          "sourceFrame": 126,
+          "localFrame": 0,
+          "file": "cards/kame-126.png"
+        },
+        {
+          "label": "掌心蓝白点与向心粒子，脚下有断续气圈",
+          "sourceTime": 4.833,
+          "pts": 4.833,
+          "ptsTicks": 77328,
+          "sourceFrame": 145,
+          "localFrame": 19,
+          "file": "cards/kame-145.png"
+        },
+        {
+          "label": "蓄力峰值，宽光楔与短流星汇向手心",
+          "sourceTime": 5.967,
+          "pts": 5.967,
+          "ptsTicks": 95472,
+          "sourceFrame": 179,
+          "localFrame": 53,
+          "file": "cards/kame-179.png"
+        },
+        {
+          "label": "周围粒子消退，收紧为掌内白蓝光团",
+          "sourceTime": 6.433,
+          "pts": 6.433,
+          "ptsTicks": 102928,
+          "sourceFrame": 193,
+          "localFrame": 67,
+          "file": "cards/kame-193.png"
+        },
+        {
+          "label": "前送最后一帧，仍未出现横贯光束",
+          "sourceTime": 6.567,
+          "pts": 6.567,
+          "ptsTicks": 105072,
+          "sourceFrame": 197,
+          "localFrame": 71,
+          "file": "cards/kame-197.png"
+        },
+        {
+          "label": "第一股尖束刚离掌，蓝白线与橙丝并发",
+          "sourceTime": 6.6,
+          "pts": 6.6,
+          "ptsTicks": 105600,
+          "sourceFrame": 198,
+          "localFrame": 72,
+          "file": "cards/kame-198.png"
+        },
+        {
+          "label": "下一帧束身穿出右边画幅",
+          "sourceTime": 6.633,
+          "pts": 6.633,
+          "ptsTicks": 106128,
+          "sourceFrame": 199,
+          "localFrame": 73,
+          "file": "cards/kame-199.png"
+        },
+        {
+          "label": "发射口多层弧面、蓝白流纹、墨色缺口与橙色环绕",
+          "sourceTime": 6.967,
+          "pts": 6.967,
+          "ptsTicks": 111472,
+          "sourceFrame": 209,
+          "localFrame": 83,
+          "file": "cards/kame-209.png"
+        },
+        {
+          "label": "持续过程中，束身分色块与橙丝持续前移",
+          "sourceTime": 7.367,
+          "pts": 7.367,
+          "ptsTicks": 117872,
+          "sourceFrame": 221,
+          "localFrame": 95,
+          "file": "cards/kame-221.png"
+        },
+        {
+          "label": "近端冲圈和橙丝先减弱，蓝白残束仍向前",
+          "sourceTime": 8.267,
+          "pts": 8.267,
+          "ptsTicks": 132272,
+          "sourceFrame": 248,
+          "localFrame": 122,
+          "file": "cards/kame-248.png"
+        },
+        {
+          "label": "掌前主体退去，前方可见分岔长丝",
+          "sourceTime": 8.333,
+          "pts": 8.333,
+          "ptsTicks": 133328,
+          "sourceFrame": 250,
+          "localFrame": 124,
+          "file": "cards/kame-250.png"
+        },
+        {
+          "label": "原镜余波结束，角色重新清楚可见",
+          "sourceTime": 8.4,
+          "pts": 8.4,
+          "ptsTicks": 134400,
+          "sourceFrame": 252,
+          "localFrame": 126,
+          "file": "cards/kame-252.png"
+        }
+      ],
+      "visualEvidence": "连续第二次演示从上轮光束消退后到这一发散去。原片为 Unity 摄像机中的粒子特效，双掌前送后，细尖束在相邻两帧越过镜头右侧。持续时，蓝白亮层与墨色负形在前进，暖橙卷线时隐时现。多道蓝白弧集中在发射处。",
+      "limitations": "公开匿名流原始像素 852×480。主镜头斜着朝景深发射，第 221 帧附近开始有原作者评论贴纸；无落点和对手。网页补了横版受击反应与横向透射。",
+      "phaseAnchors": [
+        [
+          0.0,
+          4.2
+        ],
+        [
+          0.633,
+          4.833
+        ],
+        [
+          2.233,
+          6.433
+        ],
+        [
+          2.4,
+          6.6
+        ],
+        [
+          2.767,
+          6.967
+        ],
+        [
+          4.133,
+          8.333
+        ],
+        [
+          4.2,
+          8.4
+        ]
+      ]
+    }
+  ],
+  "packageAccess": {
+    "pinnedReply": "https://www.bilibili.com/video/BV194411r7Te/#reply2104675670",
+    "full": "https://www.patreon.com/hovl/posts/kamehameha-vfx-1-25583523",
+    "fullFilename": "Kamehameha.unitypackage",
+    "materialOnly": "https://www.patreon.com/hovl/posts/only-textures-25713270",
+    "materialFilename": "Kamehameha shaders+models+textures.unitypackage",
+    "access": "两帖分别需符合条件的会员资格或单帖购买，公开页分别标价 USD 3。未购买、未下载原工程，未发现作者提供的免费完整工程公开仓库。",
+    "searchScope": "转载简介、该投稿的公开置顶评论、原作者 YouTube 简介、Patreon 原帖和作者网站、GitHub 的 ErbGameArt/Hovl 与 Kamehameha 组合仓库检索。"
+  },
+  "method": "公开录屏按原生帧抽取，作为目视设计参考。候选实时计算，无参考图上传给生成工具。领域和游戏项目没有参与本次演出。"
+}

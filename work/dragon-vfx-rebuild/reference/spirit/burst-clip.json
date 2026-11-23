@@ -1,0 +1,29 @@
+{
+  "source": "https://www.bilibili.com/video/BV1Wu4y1u7wh/",
+  "title": "【游戏特效】失落的方舟，气宗师一觉大招，元气弹！",
+  "clip": "clips/lostark-qizong-spirit-bomb.mp4",
+  "sourceMedia": "clips/lostark-qizong-spirit-bomb-source-hevc.mp4",
+  "sourceStart": 0.0,
+  "sourceEnd": 7.666,
+  "fps": 30.0,
+  "timeBase": "1/16000",
+  "dimensions": [1920, 996],
+  "frameCount": 230,
+  "continuity": "单一录屏画面、同一俯视网格机位，未见剪切。特效有明显分段：约0.767s出现第一轮蓝白冲击/地面波，约3.0s画面短暂清空，约3.5s球体重新入画，3.700s与4.100s分别精确匹配用户两张截图，随后球体短暂维持亮峰并塌缩成蓝紫旋涡与黑烟，片尾消散。",
+  "notes": "B站页信息与本地全幅源片核对：UP主永远的孤月，短视频标题为气宗师一觉大招元气弹。忽略截图上的播放器UI、顶部账号水印和提示框，并按画面宽高比映射到源分辨率后，逐帧扫过230帧：burst-04.png 最相似源帧为索引111 / 3.700s（480×249灰度图相关系数0.962）；burst-05.png 最相似源帧为索引123 / 4.100s（相关系数0.874）。播放器显示的00:04和00:05是取整读数，精确图像匹配分别落在3.700和4.100s。截图左下‘即将播放’出现的《最后的龟派气功！》是下一条推荐标题，不是当前片名。引用时按该片游戏特效展示处理，不当作龙珠官方游戏实机。原下载流保存在sourceMedia（HEVC）；clip为H.264兼容副本，230帧和原始显示时间戳顺序保留。帧PTS间隔为33/34ms交替；最后显示帧7.633s，视频流时长7.666s。水印为源片组成部分。",
+  "anchor": 3.7,
+  "cards": [
+    { "file": "cards/burst/burst-01.png", "sourceTime": 0.0, "label": "开场角色与空场，爆发前" },
+    { "file": "cards/burst/burst-02.png", "sourceTime": 0.767, "label": "第一轮蓝白星状冲击初现" },
+    { "file": "cards/burst/burst-03.png", "sourceTime": 1.5, "label": "大范围蓝白贴地冲击浪覆盖画面" },
+    { "file": "cards/burst/burst-04.png", "sourceTime": 3.0, "label": "第一轮浪退去后的短暂空场" },
+    { "file": "cards/burst/burst-05.png", "sourceTime": 3.5, "label": "右上方出现悬空蓝白球体" },
+    { "file": "cards/burst/user-burst-04-match-3.700.png", "sourceTime": 3.7, "sourceFrame": 111, "label": "用户截图 burst-04 最相似原帧；灰度相关系数0.962" },
+    { "file": "cards/burst/user-burst-05-match-4.100.png", "sourceTime": 4.1, "sourceFrame": 123, "label": "用户截图 burst-05 最相似原帧；灰度相关系数0.874" },
+    { "file": "cards/burst/burst-06.png", "sourceTime": 4.0, "label": "两张截图之间：大球白芯、蓝白环壳与飞散碎片仍处亮峰" },
+    { "file": "cards/burst/burst-07.png", "sourceTime": 5.0, "label": "亮球塌暗，转成蓝紫旋涡与黑烟" },
+    { "file": "cards/burst/burst-08.png", "sourceTime": 6.0, "label": "残余旋涡和烟团继续收缩" },
+    { "file": "cards/burst/burst-09.png", "sourceTime": 7.0, "label": "尾段仅剩地面和角色，主效果已退场" },
+    { "file": "cards/burst/burst-10.png", "sourceTime": 7.633, "label": "片尾最后显示帧" }
+  ]
+}

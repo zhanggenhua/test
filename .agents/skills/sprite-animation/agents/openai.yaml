@@ -1,0 +1,4 @@
+interface:
+  display_name: "完整人物精灵动画"
+  short_description: "逐姿势重绘完整人物，统一像素规格，通过后台 CLI 导出精灵动画与 GIF"
+  default_prompt: "用 $sprite-animation 为这个角色制作动作动画，逐姿势重绘完整人物，后台导出正常和慢放 GIF。"

@@ -1,0 +1,36 @@
+[
+  {
+    "source": "https://www.bilibili.com/video/BV11s411M7oV/?t=60",
+    "title": "《龙珠斗士Z》常态悟空 LV3 Super Spirit Bomb 实机投出与命中",
+    "clip": "clips/dbfz-base-goku-lv3-throw-impact.mp4",
+    "sourceStart": 60.121,
+    "sourceEnd": 64.988,
+    "fps": 30.0,
+    "cuts": [
+      { "sourceTime": 60.288, "description": "明显切镜：悟空近景推送转为宽景；宽景中元气弹开始进入战斗画面。" }
+    ],
+    "notes": "源段 [60.121,64.988)，保留投出到命中峰值前后的连续时间；640×360全幅，导出约30fps。60.221s悟空向前下方推送，60.454s宽景首次清楚看到巨球压入画面；63.954s出现竖直白青冲击柱，64.688s高亮爆面覆盖目标，64.954s仍是光与碎屑余波。60.288s近景转宽景是段内明显剪切；此后到片段结束维持同一宽景。此常态悟空 LV3 机位从未露出球体完整外轮廓。",
+    "cards": [
+      { "file": "cards/action/base-goku-release-60.221.png", "sourceTime": 60.221, "label": "悟空双掌前推，投出动作" },
+      { "file": "cards/action/base-goku-orb-visible-60.454.png", "sourceTime": 60.454, "label": "宽景中元气弹首次清楚入画" },
+      { "file": "cards/action/base-goku-columns-63.954.png", "sourceTime": 63.954, "label": "冲击阶段的竖直白青光柱" },
+      { "file": "cards/action/base-goku-blast-64.688.png", "sourceTime": 64.688, "label": "高亮爆面和目标遮挡" },
+      { "file": "cards/action/base-goku-aftershock-64.954.png", "sourceTime": 64.954, "label": "爆面后的光和碎屑余波" }
+    ]
+  },
+  {
+    "source": "work/spirit-bomb/reference/kid-buu.mp4（本地旧参考录像；原上传页未核实）",
+    "title": "《龙珠斗士Z》超赛悟空对小布欧 Dramatic Finish：球体触地轮廓",
+    "clip": "clips/dbfz-finish-orb-178.5-179.mp4",
+    "sourceStart": 178.5,
+    "sourceEnd": 179.0,
+    "fps": 24.0,
+    "cuts": [
+      { "sourceTime": 179.0, "description": "短片结束点；接着切入强白闪/后续演出，因此在该切点前截断。" }
+    ],
+    "notes": "从已验证的旧 177–181s 节选进一步截出 [178.500,179.000)，12帧，1280×720全幅。此不同版本的剧情终结在触地瞬间可见蓝白球壳的大部分、绕球亮带和地表冲击环；画面下缘仍被人物/光遮挡。只补足球体触地形状，不代表常态悟空 LV3 的投出动作；旧录像上传来源未核实。全幅卡片已与原 kid-buu.mp4 在178.667s做逐像素相同核验。",
+    "cards": [
+      { "file": "cards/action/kid-buu-finish-orb-178.667.png", "sourceTime": 178.667, "label": "触地时球壳、绕球亮带与贴地冲击环" }
+    ]
+  }
+]

@@ -1,0 +1,2546 @@
+{
+  "effect_count": 244,
+  "cases": 317,
+  "frames": 1083,
+  "identical_frames": 1021,
+  "acted_cases": 73,
+  "effect_frames_with_differences_over_one": 0,
+  "details": [
+    {
+      "effect": "arcane/arcane-beam",
+      "acted": false,
+      "frames": 36,
+      "identical_frames": 33,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/arcane-beam",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/arcane-missiles",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/arcane-missiles",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 1,
+      "max_color_pixels_over_one": 5,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/arcane-orb",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/blink-in",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/blink-in",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/blink-out",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/blink-out",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/magic-circle-cast",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/mana-burst",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/portal",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/rune-circle",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/spell-charge",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/spell-charge",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/star-fall",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "arcane/time-stop",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/bat",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/bird",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/butterfly",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/eyeball",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/fish-school",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/flying-skull",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/frog",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/ghost",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/jellyfish",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/slime",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/snake",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "critters/wisp",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/barrel-explosion",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/big-explosion",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/cartoon-pow",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/dirt-explosion",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/firework-burst",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/firework-rocket",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/grenade",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/implosion",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/nuke",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/plasma-explosion",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/small-explosion",
+      "acted": false,
+      "frames": 36,
+      "identical_frames": 35,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "explosions/smoke-bomb",
+      "acted": false,
+      "frames": 36,
+      "identical_frames": 29,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/brazier",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/campfire",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/candle",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/fire-breath",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/fire-ring",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/fire-ring",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/fire-tornado",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/fireball",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/flame-pillar",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/flamethrower",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/meteor",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/spirit-flame",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "fire/torch",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/blessing",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/blessing",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/divine-shield",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 0,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/divine-shield",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 0,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/feather-burst",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/halo",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/halo",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/heal-aoe",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/heal",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/heal",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/holy-pillar",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/resurrection",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/resurrection",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/smite",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "holy/sunburst",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/blizzard-vortex",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 1,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/freeze",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/freeze",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/frost-breath",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 0,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/frost-nova",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/frost-nova",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/ice-crystal",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/ice-lance",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 1,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/ice-shatter",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/ice-spikes",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/icicle-fall",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ice/snowflake-burst",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/blunt-hit",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 1,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/bullet-impact",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/crit-hit",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/ground-slam",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/heavy-landing",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/heavy-landing",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/hit-flash",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/hit-flash",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/hit-spark",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/impact-frame",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/parry",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/ricochet",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/shield-block",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "impacts/shield-block",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/ball-lightning",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/chain-lightning",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/chain-lightning",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 8,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/charge-up",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/charge-up",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/electrified",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/electrified",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/lightning-strike",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/plasma-ball",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/spark-arc",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/storm-cloud",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/tesla-coil",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/thunderclap",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/thunderclap",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "lightning/zap-hit",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/claw-swipe",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/claw-swipe",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 3,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/dagger-flurry",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/dagger-flurry",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/double-slash",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/double-slash",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/hammer-smash",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/hammer-smash",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/heavy-cleave",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/heavy-cleave",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 2,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/scythe-reap",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/scythe-reap",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/spear-sweep",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/spear-sweep",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/spin-slash",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/spin-slash",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/sword-slash",
+      "acted": false,
+      "frames": 36,
+      "identical_frames": 36,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/sword-slash",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 1,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/thrust",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/thrust",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 1,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/uppercut",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/uppercut",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/whip-crack",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "melee/whip-crack",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 2,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/arrow-shot",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/arrow-shot",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/dash-strike",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/dash-strike",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/earth-stomp",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/earth-stomp",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/fireball-throw",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/fireball-throw",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/ground-pound",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/ground-pound",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/holy-smite",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/holy-smite",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/ice-lance-throw",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/ice-lance-throw",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/lightning-call",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/lightning-call",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/meteor-call",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/meteor-call",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/pistol-shots",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/pistol-shots",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/rocket-launcher",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/rocket-launcher",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/sword-combo",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "moves/sword-combo",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/acid-splash",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/boulder",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/earth-spike",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/healing-bloom",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/leaf-storm",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/leaf-storm",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/poison-cloud",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 1,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/quake",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/root-snare",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/root-snare",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/spore-burst",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/thorns",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/tornado",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/toxic-puddle",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "nature/vine-whip",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/chest-open",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/coin-spin",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/collect-burst",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/crystal-shard",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/gem-spin",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/heart-pickup",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/key-glint",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/loot-beam",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/potion",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/power-star",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "pickups/xp-orb",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/arrow",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/bullet-tracer",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/cannonball",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/energy-disc",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/flare",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/homing-missile",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/laser-bolt",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/magic-missile",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/muzzle-pistol",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/muzzle-shotgun",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/muzzle-smg",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/plasma-shot",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "projectiles/rocket",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/emp-blast",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/energy-core",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/force-field",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 0,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/force-field",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 0,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/glitch",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/glitch",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/hologram",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/jetpack",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/laser-grid",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/scanner",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/scanner",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/teleporter-pad",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 0,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/tractor-beam",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/warp-in",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/warp-in",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/warp-out",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "scifi/warp-out",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/black-hole",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/curse",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/curse",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/dark-explosion",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/eclipse",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/grasping-hands",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/hex-sigil",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/life-steal",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/life-steal",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/necro-skulls",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/shadow-flames",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/shadow-tendrils",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/soul-drain",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "shadow/void-orb",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/coin-drop",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/disintegrate",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/disintegrate",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/dissolve-burn",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/dissolve-burn",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/egg-hatch",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/poof",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/respawn-beam",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/respawn-beam",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/shatter-death",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/shatter-death",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/soul-rise",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/soul-rise",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/spawn-portal",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "spawn/summon-rise",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/bleeding",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/bleeding",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/burning",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/burning",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/charmed",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/charmed",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/confused",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/confused",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/cursed",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/cursed",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/frozen",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/frozen",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/haste",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/haste",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 1,
+      "max_color_pixels_over_one": 1,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/petrified",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/petrified",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/poisoned",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/poisoned",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/rage",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/rage",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/sleep",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/sleep",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/slowed",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/slowed",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/stunned",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "status/stunned",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/blinds",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/burn-away",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/crt-off",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/diamond-wipe",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/glitch-wipe",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/iris",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/pixel-dissolve",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/shatter-wipe",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/slash-wipe",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "transitions/star-iris",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/achievement",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/coin-collect",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/combo-counter",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/confetti",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/countdown",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/crit-number",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/damage-number",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/exclamation",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/exclamation",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/health-bar-hit",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/heart-lost",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/level-up",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/level-up",
+      "acted": true,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "ui/quest-complete",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/bubbles",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/drip",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/fountain",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/geyser",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/rain-splash",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 0,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/ripples",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/splash",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/water-jet",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/water-orb",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/waterfall",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 1,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/wave-crash",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 2,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "water/whirlpool",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/aurora",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/blizzard",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/cherry-blossoms",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/clouds",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/falling-leaves",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/fireflies",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/fog",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/god-rays",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/rain",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/shooting-stars",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/snow",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    },
+    {
+      "effect": "weather/storm",
+      "acted": false,
+      "frames": 3,
+      "identical_frames": 3,
+      "max_color_pixels_over_one": 0,
+      "max_light_pixels_over_one": 0
+    }
+  ]
+}

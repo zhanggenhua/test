@@ -1,0 +1,9 @@
+{
+  "note": "《斗士Z》剧情终结给出了同一招式的触地远景，可以看见绕球亮带和贴地冲击环。《龙珠Z》动画远景补足白核、圆肩、离体电光和地面遮挡。常态悟空 LV3 实机决定光柱、前缘、撕裂与余波的时序。背侧体积和内部能量传播按这些观察推定。",
+  "cards": [
+    {"file":"fighterz-finish-contact-wide.png","label":"《斗士Z》剧情终结 · 本地录像 2:58.667 · 球壳、热带与贴地冲击环（点看同段）","source":"spirit-bomb-reference/fighterz-finish-177-181.mp4"},
+    {"file":"anime-20m23-wide.png","label":"《龙珠Z》20:23.000 · 亮核轮廓与离体电弧","source":"https://www.bilibili.com/video/BV1ACvYejEEA/?t=1223"},
+    {"file":"anime-20m29-ejecta.png","label":"《龙珠Z》20:29.000 · 掀起的地面物遮住下缘","source":"https://www.bilibili.com/video/BV1ACvYejEEA/?t=1229"},
+    {"file":"anime-20m30-5-wake.png","label":"《龙珠Z》20:30.500 · 远处亮体与地面扰动的纵深","source":"https://www.bilibili.com/video/BV1ACvYejEEA/?t=1230.5"}
+  ]
+}

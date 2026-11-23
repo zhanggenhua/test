@@ -1,0 +1,4 @@
+interface:
+  display_name: "游戏特效制作"
+  short_description: "查找并验证特效来源，制作和对比可交付的独立游戏特效"
+  default_prompt: "使用 $game-vfx 搜索可用素材和工具，制作或评估这项 2D 游戏特效。"

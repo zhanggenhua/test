@@ -1,0 +1,119 @@
+# 元气弹 V11
+
+默认在 960×400 擂台显示整团元气弹爆炸。球离手后镜头拉远，到触地时站定。舞台、双方角色与特效共用同一套镜头变换，命中点始终贴着擂台。第二个视角用常态悟空实机的覆盖范围看同一个体积，便于逐帧核对。同步页可并排看原片、两种 V11 投影和 V10。切换攻击距离只改变命中位置。
+
+| 来源与时间 | 实际用于重构的部分 |
+| --- | --- |
+| 《龙珠斗士Z》常态悟空 LV3，63.788–64.954 秒 | 暗场、细光柱、蓝色前缘斜推、峰值前景飞石、光膜裂开、横向余波。这个机位始终没有露出命中亮体的完整边界。[同版实机](https://www.bilibili.com/video/BV11s411M7oV/?t=63) |
+| 《斗士Z》超赛悟空对小布欧剧情终结，本地录像 178.667 秒 | 同游戏另一段演出。第 4288 帧（从零计）可见触地亮体的顶肩、左右外缘、绕球热带与近地冲击环；下侧一部分被人物、光与碎石遮住。时间码对应本地 24 fps 录像，网页提供其中 177–181 秒的无声全幅节选。[原帧](reference/wide/fighterz-finish-contact-wide.png) · [节选](reference/wide/fighterz-finish-177-181.mp4) |
+| 《龙珠Z》布欧篇，20:23.000 | 同一招式在另一段演出里的远景。地貌后面有宽圆肩、白热核与窄青边，离体电弧越过上缘。地貌遮住底部。[全幅选帧](reference/wide/anime-20m23-wide.png) |
+| 同一动画，20:29.000、20:30.500 | 亮体下缘被掀起物遮挡，随后更远的俯看镜头揭示地面的纵深。横版复用了前后层次，收尾的横向青白光带取自格斗实机。[近地遮挡](reference/wide/anime-20m29-ejecta.png) · [地面纵深](reference/wide/anime-20m30-5-wake.png) |
+
+这些图片均用于目视拆解。三维模型的背侧、内部密度流动、破口深度以及完整投影尺寸，是横版适配的推测。WebGL 2 在同一体积里累积发光与遮挡。触地后，蓝白弧先从近侧卷过球体右下缘；等球壳裂开，第二道冲击沿擂台地面散开。壳层、电弧、碎石与两次地面冲击共享命中时钟。在无 WebGL 2 的环境，播放器用相同模型、相同两种投影烘焙出的透明序列。可用 `python volume-blast/bake.py` 从正式着色器重建序列，再用 `python build.py` 生成独立网页。
+
+## 元气弹 V10 存档
+
+实机 64.188–64.588 秒的镜头只拍到了大爆面的一角。V9 在目标脚下补出了平底、穹顶和右侧回落端。那三条轮廓没有来自原帧。V10 用固定横版全景重做这个阶段，保留施法者作为尺度参照。比较页左侧是原片，另外三格是 V10、V9 F 与 V9 E。
+
+| 实机帧与时间 | 实际可定位的前缘和遮挡 |
+| --- | --- |
+| 222 · 64.188 秒 | 同一段弧线从下边框的中部偏右延伸到右边框下部，左侧可见悟空。 |
+| 226 · 64.321 秒 | 右边的交点上移，下边的交点左移。镜头内仍只看到一段弧。 |
+| 234 · 64.588 秒 | 左缘从下边偏左通到上边中部附近。右侧、下方和上方都有青白亮面延伸出画，飞石以深色剪影从面前穿过。 |
+| 237–240 · 64.688–64.788 秒 | 波面内部先出现不规则的大缺口，背景与人物陆续露出，残光仍横跨右边框。 |
+
+上述原帧用于目视观察，保留原始 640×360 画幅。原片切镜，擂台候选固定在 960×400。画外范围属于横版演出的构图选择，这几帧只能约束局部弧度、覆盖和时序。[实机视频](https://www.bilibili.com/video/BV11s411M7oV/?t=64)
+
+## 元气弹 V9 存档
+
+网页使用 960×400 的固定擂台。同一时钟播放举手、聚气、投出、命中和收势，全程 4.26 秒。全景对比中的 D 沿用 V8 的爆炸，E 使用实时体积，F 使用透明图集。三版共用角色、场景、球体、距离和相位映射。选择“原片与三种方案同步”可按原片逐帧前后步进，也可直接打开 `spirit-bomb-v9.html?view=compare`。
+
+实机参考为《龙珠斗士Z》常态悟空的同一段录像。实机的摄影机会跟拍并切镜，擂台候选保留双方站位。下列全幅帧用于目视观察，候选的贴图与材质均由程序生成。[实机录像 1:03 起](https://www.bilibili.com/video/BV11s411M7oV/?t=63)
+
+| 实机帧 | 视频时间 | 命中演出 |
+| --- | --- | --- |
+| 210 | 63.788 秒 | 球压低后，暗场中先能看见飞石和碎光。 |
+| 216 | 63.988 秒 | 几束稀疏的竖光先起，地面尚能辨认。 |
+| 226 | 64.321 秒 | 青白前缘从地面斜着推高。 |
+| 234 | 64.588 秒 | 白热爆面遮住大片场地，前景岩块仍有清晰剪影。 |
+| 237、245 | 64.688、64.954 秒 | 破口露出背景，随后余光分成横向掠过的条带。 |
+
+E 在 WebGL 2 中沿视线采样爆面密度，将入射侧的高亮遮挡、向外扩张的孔洞与独立运动的碎石分开。Sol 退回了第一版透光过多的爆面和第二版连续深蓝描边。第三版已通过原片同阶段的全景验收，候选前缘更偏上涌，原片更斜。[Jonathan Swardson 的体积爆炸拆解](https://www.jd.swardson.com/projects/raymarched-explosion.html)
+
+F 采用预渲染图集，基线通过 pixelfx 上游实际导出。来源与重建方法见 [图集记录](impact-flipbook/README.md)。[Drawcall 的 VFX skill](https://github.com/drawcall-ai/game-skills/blob/fbd8ab99de342bf33f2693162b2abee3b6f9f72b/skills/vfx/SKILL.md) · [pixelfx 的等离子爆炸](https://github.com/patch-gg/pixelfx/blob/5294518ce7c72e48b6100a744596e0acf57f2826/src/fx/explosions/plasma-explosion.js)
+
+Sol 退回了悬空的首版和形似护盾的第二版。第三版使用 43 张按擂台原尺度烘焙的透明帧。原片 226–234 帧的前缘从低位斜升，237–245 帧的破口透出背景，随后低空余带扫出。F 的相位与方向最接近这段实机，因此设为默认。E 的近景飞石和亮面内的明暗层次更强。F 和 E 都可在同一个网页单独看完整擂台。
+
+## 元气弹 V8 存档
+
+预览从完整擂台原速播放。D 是新版，C 是体积球方案，A 是旧版。三个候选共用 3.70 秒播放时钟，D 将两人的间距扩大 70 个画布像素、落脚下移 31 像素，以容纳头顶聚气与向下压进的轨迹。投出约在 1.72 秒，球缘首次接触约在 2.44 秒。切到“原片与三种方案同步”可按实机源帧步进。
+
+D 的 WebGL 2 材质分别控制白核、半透蓝壳和外缘断开的光束。汇入、人物整身姿势、地面反光、球缘接触和场景受光由时间轴驱动。[元气弹密度分布研究](https://gamescience.jp/2006/Paper/Sakai_2006.pdf#page=24) · [元气弹聚气实作](https://osamarehman96.github.io/Portfolio/SpiritBomb.html) · [投射体材质与流光教程](https://ashif.artstation.com/projects/L4QnvR)
+
+Sol 第一轮从完整录像退回了命中段。第二轮核对全程 22 张取样和关键帧，球缘压住目标、同一处光向地面展开、竖光和贴地余波先后退去，目标留在击退位置，完整擂台演出通过。原片的摄影机变化更大，候选光柱轮廓较规整。
+
+## 元气弹 V7 存档
+
+打开特效预览总览的元气弹。默认停在用户指定的《龙珠斗士Z》61.921 秒原帧，A、B、C 使用同一球径和相机投影。「等大小球体近景」按实机原始时间源播放，「完整擂台」保留候选 2.660 秒的招式时间、角色比例、出手与命中位置。原片是另一台跟拍镜头，等大小近景用于比对球体结构。
+
+| 球体方案 | WebGL 2 实现 | Sol 验收 |
+| --- | --- | --- |
+| A · V6 基线 | 单表面着色、中心亮斑和实体形长尾。 | 白芯与壳内空间分层不足，作为旧版对照。 |
+| B · 三维壳层 | 解析球面前后交点、分别滚动的光纹、独立白核。 | 轮廓清晰，内部波纹较强，保留为备选。 |
+| C · 体积采样 | 球体内进行 18 步射线积分，积累发光与透射，叠加宽窄不同的光束和前壳青色碎带。三种模式共用球体位置和持续时长。 | 第三轮通过指定飞行帧和同步对照。原片光束对比更强，C 白芯更圆，右下折光较规则。 |
+
+实机 61.821 秒（帧 151）的亮芯上侧有青色带，61.921 秒（帧 154）带子扫过芯体，62.088 秒（帧 159）球芯向右下，碎带落至芯体下缘。三张全幅图来自同一 [实机视频](https://www.bilibili.com/video/BV11s411M7oV/?t=61)。选帧用于目视验收，网页实时出图。参考制作讲解见 [Rinban 球面与 Billboard 对照](https://rinbanacademy.artstation.com/projects/qJgm2D)、[CGHOW 球面和独立内核](https://ashif.artstation.com/projects/8BX2yE) 和 [Scratchapixel 体积步进](https://www.scratchapixel.com/lessons/3d-basic-rendering/volume-rendering-for-developers/ray-marching-algorithm.html)。
+
+## 元气弹 V6
+
+默认左侧播放《龙珠斗士Z》实机，右侧是 2.660 秒的横版候选。飞行、接触闪、竖向爆发、横向光浪可直接定位，并按实机时间戳逐帧。V5 的《龙珠Z》动画原片仍可在左侧选择。
+
+| 目视核对 | 用在 V6 的依据 |
+| --- | --- |
+| [《龙珠斗士Z》实机 1:00–1:05](https://www.bilibili.com/video/BV11s411M7oV/?t=60) | 白核和青蓝球壳压向下方。近地命中先竖起白青光带，再在低处横向散开。采用这套命中顺序。全幅选帧见下表。 |
+| [《龙珠 超宇宙2》P9 0:13–0:17](https://www.bilibili.com/video/BV1GG4y1q7HR/?p=9&t=12) | 普通超级元气弹在青白球光内连击，退光时目标仍可读。 |
+| [《龙珠Z 卡卡罗特》P103 2:39–2:42.5](https://www.bilibili.com/video/BV15i4y1j7wN/?p=103&t=159) | 剧情终结仍以大球、白核和绕球光弧为主，局部扬尘压在下层。 |
+| [《龙珠 电光炸裂！ZERO》短片](https://tenor.com/view/goku-sparking-zero-dragon-ball-spirit-bomb-dragonball-gif-10969869256234629916) | 短片供球壳流光参考，覆盖到蓄力。 |
+
+飞行尾迹从同一颗球当前位置及前一时刻的轨迹取样，球缘接触时在接触点依次绘制闪点、上冲的亮核、碎光和低位冲击波。制作参考为 [Epic 粒子拖尾](https://dev.epicgames.com/documentation/fortnite/creating-fireworks-3-building-the-firework-trail-in-unreal-editor-for-fortnite)、[Niagara 位置与碰撞事件](https://dev.epicgames.com/documentation/en-us/unreal-engine/events-and-event-handlers-in-niagara-effects-for-unreal-engine) 和 [Riot 游戏特效教程](https://www.riotgames.com/en/artedu/visual-effects)。本预览用 WebGL 2 绘制球体，Canvas 按轨迹绘制拖尾与接触特效。
+
+## V5 对照存档
+
+从特效预览总览打开元气弹。左侧默认是《龙珠Z》小布欧战的原声剪辑，12:35–20:43 连着涵盖献气、聚气、投出、对抗和退光。选时间点可把两侧定位到对应阶段，播放时各走各自的时间轴。右侧「从头播放全程」可播放完整 3.840 秒试片。也可切换《龙珠斗士Z》实机、V2 Canvas 或项目通用能量球。实机对照按招式阶段同步，按原始时间戳逐帧。八张实机 PNG 保留参考流的完整 640×360 画面。
+
+| V5 采用的动画帧 | 可见依据 |
+| --- | --- |
+| [13:30 举臂聚气](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=810) | 悟空的双臂伸向上方，人物与远处地形之间有向上的白色光迹。 |
+| [16:13.1 双掌投出](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=973.1) | 双掌向前下方推，下一镜头切到球向地面压下。 |
+| [16:20 球体触地](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=980) | 触地后白核和青色球缘仍在，地表滚起浅色尘团。 |
+| [16:23.5 抵住球体](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=983.5) | 脚部后移压着碎石，暗色碎屑沿地面飞出。 |
+| [20:07 再次推进](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=1207) | 发力之后球光占满画面，角色远景继续向前推。 |
+| [20:18 吞没](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=1218) | 青白光包住目标，目标轮廓逐渐溶在亮面中。 |
+| [20:23 膨胀](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=1223) | 远景仍看得见整颗圆形白核，以及薄青色球缘。 |
+| [20:27 白闪](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=1227) | 高亮扩至全幅。 |
+| [20:32 散光与尘浪](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=1232) | 白光沿地表铺开，低处有浅色扬尘和暗色碎屑。 |
+| [20:35 尘浪翻起](https://player.bilibili.com/player.html?bvid=BV1ACvYejEEA&autoplay=0&t=1235) | 光退下后，大块浅烟分层翻起。 |
+
+这些是目视参考，来自同一个可播放的[原声剪辑](https://www.bilibili.com/video/BV1ACvYejEEA/?t=755)。片源去掉了部分原剧对话。补充 [Tenor 小布欧与球体同框短片](https://tenor.com/view/kid-buu-vs-genki-dama-gif-14836941062265987440) 和 [Tenor 投出短片](https://tenor.com/view/goku-kid-buu-dragon-ball-son-goku-majin-buu-gif-3748533250566339010)，后者来自《龙珠 DAIMA》的回顾。
+
+| 对象 | 来源与驱动 |
+| --- | --- |
+| 项目实际动画 | 技能 140。项目的 `yuanqidan` 是 4 张 SpriteFrames 姿势，源帧权重 1.0、1.3、3.0、1.5，动画基速 10 fps，名义时长 0.68 秒。项目 VFX 延时 0.23 秒调用 `Spirit`，由通用 `orb` 序列帧、0.32 秒飞行 Tween 和 `hit` 序列帧表现。秒数均乘项目演出速度系数。 |
+| 参考游戏动画 | 《龙珠斗士Z》常态悟空实机，瑟菲羅斯的 DLC 实机录像，57.221–65.388 秒。连续取样 246 张，30 fps，640×360。原游戏角色与特效的驱动方式从录像无法判定。[实机原片](https://www.bilibili.com/video/BV11s411M7oV/?t=57) |
+| 参考特效素材 | 用上游 Patch pixelfx 工具在独立目录渲染 `spell-charge`、`arcane-orb`、`magic-missile` 和 `crit-hit`，分别核对内收粒子、亮芯球壳、尾迹和先闪后散的形态。实机帧用于目视拆解，候选没有调用图像生成工具。[Patch pixelfx](https://github.com/patch-gg/pixelfx) |
+| V5 候选 | 3.840 秒的固定横版镜头。将施法者与对手的标准锚点调整到 362、598，落脚深度为 287，保留整身姿势 PNG。WebGL 2 绘制同一颗球从触地、相持到膨胀变亮，Canvas 绘制角色遮挡、贴地碎屑和短白闪。原片的长相持压缩为约半秒。 |
+| V4 候选 | 2.620 秒，WebGL 2 Shader 绘制球体和命中光团，Canvas 绘制角色、汇入光路和前景粒子。沿用此前的角色整身帧。光点从低处与两侧沿曲线汇入，进入球壳后驱动球径和球缘亮度。保留横版固定镜头。|
+| V2 候选 | 2.620 秒的 Canvas 程序特效。人物以火柴人悟空 V4 超赛原画为造型母版。待机、起手、前压、推掌和回架势复用 V4 的全身 PNG。举臂过渡和托球为直接绘制的两张完整彩稿，使用 57.488 和 58.354 秒的实机姿势；对手使用 V4 常态原画。0.94 秒切入推掌，1.51 秒首次接触。项目通用球模式复用原 `orb` 和 `hit` 贴图，按候选阶段对齐。 |
+
+| 全幅帧 | 实机时间 | 采用要素 |
+| --- | --- | --- |
+| `00-lift.png` | 57.488 秒 | 手臂上举的姿势与托举轮廓 |
+| `00-intake.png` | 58.288 秒 | 切到全身后，青白光路贯穿人物周围并连到球缘 |
+| `01-gather.png` | 58.354 秒 | 持续汇入的长光路、白色内核与青蓝球缘。球体被画面上沿截断 |
+| `02-release.png` | 60.221 秒 | 双掌先前压，再让球向前移动 |
+| `03-flight.png` | 60.821 秒 | 球体保持大轮廓，朝靶位低处下压 |
+| `04-contact.png` | 63.954 秒 | 低位先出现上冲的青白光柱 |
+| `05-burst.png` | 64.488 秒 | 光壳扩张并抛出碎石 |
+| `06-recovery.png` | 64.921 秒 | 光团分成外扩的横向气浪和亮屑 |
+
+已验收实机步进、慢放、正反向、近远距离、未命中、透明底和独立特效记录归零。

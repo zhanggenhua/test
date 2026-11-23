@@ -1,0 +1,4 @@
+interface:
+  display_name: "Windows Encoding Safe Read"
+  short_description: "Read Windows files without PowerShell mojibake traps"
+  default_prompt: "When inspecting files or logs on Windows, verify encoding-aware content before drawing conclusions."
