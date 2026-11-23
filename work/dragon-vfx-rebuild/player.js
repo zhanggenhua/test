@@ -5,6 +5,8 @@
   const params = new URLSearchParams(location.search);
   const key = params.get('fx') === 'kame' ? 'kame' : 'spirit';
   const spirit = key === 'spirit';
+  const meshView=el('meshView'),meshContext=meshView.getContext('2d');
+  const meshCamera={yaw:0,pitch:0,wire:false};
   const engine = spirit ? window.DragonSpirit : window.DragonKame;
   const refs = DragonData.sources[key], actors = {};
   const title = spirit ? '元气弹' : '龟派气功';
@@ -37,6 +39,7 @@
   const offset = () => current.offset;
   const refLength = () => current.end-current.start;
   const aligned = () => current.anchors && el('alignment').value==='phases';
+  const inspecting = () => current.id==='mesh-view';
   function referenceClock(){
     if(!aligned())return {local:at-offset(),slope:1};
     const points=current.anchors;
@@ -82,7 +85,10 @@
     const r=clamp(local,0,refLength()-1/current.fps);
     el('newTime').textContent=time(t)+(at>duration()?' · 末帧':'');
     el('refTime').textContent=time(current.start+Math.max(0,r))+(local<0?' · 首帧':local>=refLength()?' · 末帧':'');
-    if(!current.film){
+    if(inspecting()){
+      if(DragonBeamVolume.available)engine.draw(meshContext,t,scene,meshCamera);
+      el('refTime').textContent=time(t)+' · '+(meshCamera.yaw===0&&meshCamera.pitch===0?'固定侧视':'检查机位');
+    }else if(!current.film){
       const still=current.cards.filter(card=>at>=card.phase).at(-1)||current.cards[0];
       if(el('still').getAttribute('src')!==still.file)el('still').src=still.file;
       el('refTime').textContent='源帧 · '+time(still.time);
@@ -143,6 +149,7 @@
     links.append(external('单独播放左侧完整演出','dragon-vfx/'+key+'.mp4'));
     links.append(external('查看本版特效源码','dragon-vfx/'+key+'.js'));
     if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
+    else links.append(external('查看束身与发射环网格源码','dragon-vfx/kame-volume.js'));
     if(!spirit&&index===0){
       links.append(external('作者教程', 'https://www.youtube.com/watch?v=TR1xM1HMNQ8'),
         external('完整 Unity 包 · 付费','https://www.patreon.com/hovl/posts/kamehameha-vfx-1-25583523'),
@@ -174,12 +181,14 @@
     for(const m of engine.phases){const b=document.createElement('button');b.textContent=m.name;b.onclick=()=>seek(m.t);el('phases').append(b);}
     listCards();
   }
-  async function choose(i,autoplay=false){
+  async function choose(i,autoplay=false,position){
     pause();const id=++rev;mediaReady=false;
     controller?.abort();controller=new AbortController();
     index=i;current=refs[i];
-    film.hidden=!current.film;el('still').hidden=!!current.film;
-    at=from();controls();paint();el('notice').textContent='';
+    const meshAvailable=inspecting()&&DragonBeamVolume.available;
+    film.hidden=!current.film;el('still').hidden=!!current.film||inspecting();
+    meshView.hidden=!meshAvailable;el('meshControls').hidden=!meshAvailable;
+    at=position===undefined?from():clamp(position,from(),to());controls();paint();el('notice').textContent=inspecting()&&!meshAvailable?'此设备无法启用 WebGL 2，左侧使用 Canvas 回退，右侧三维检查暂不可用。':'';
     if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl='';}
     if(!current.film){film.removeAttribute('src');film.load();mediaReady=true;if(autoplay)await startWhenVisible(id);return;}
     try{
@@ -205,7 +214,26 @@
   el('title').textContent=title+' · 原片对照';document.title=el('title').textContent;
   el('tab'+key).setAttribute('aria-current','page');
   refs.forEach((r,i)=>el('sources').add(new Option(r.title,i)));
-  el('sources').onchange=()=>{loading=choose(Number(el('sources').value),playing);};
+  el('sources').onchange=()=>{loading=choose(Number(el('sources').value),playing,at);};
+  function changeMeshView(){
+    meshCamera.yaw=Number(el('meshYaw').value);
+    meshCamera.pitch=Number(el('meshPitch').value);
+    meshCamera.wire=el('meshWire').checked;
+    el('meshYawRead').textContent=meshCamera.yaw+'°';
+    el('meshPitchRead').textContent=meshCamera.pitch+'°';
+    paint();
+  }
+  for(const key of ['meshYaw','meshPitch','meshWire'])el(key).oninput=changeMeshView;
+  el('meshReset').onclick=()=>{
+    el('meshYaw').value=el('meshPitch').value='0';
+    el('meshWire').checked=false;
+    changeMeshView();
+  };
+  el('meshAngled').onclick=()=>{
+    el('meshYaw').value='55';
+    el('meshPitch').value='-13';
+    changeMeshView();
+  };
   el('alignment').onchange=()=>{const was=playing;pause();controls();seek(clamp(at,from(),to()));if(was)play();};
   el('play').onclick=()=>{if(playing)pause();else play();};
   el('replay').onclick=()=>{seek(from());play();};
@@ -224,6 +252,7 @@
     if(params.get('ref')==='hit'&&spirit)first=refs.findIndex(r=>r.id==='impact-film');
     if(params.get('ref')==='anime'&&spirit)first=refs.findIndex(r=>r.title.startsWith('动画造型'));
     if(params.get('ref')==='shape'&&spirit)first=refs.findIndex(r=>r.title.startsWith('球体造型'));
+    if(params.get('ref')==='3d'&&!spirit)first=refs.findIndex(r=>r.id==='mesh-view');
     if(params.get('ref')==='previous')first=refs.findIndex(r=>r.title.startsWith('上一版'));
     const requested=params.has('at')?Number(params.get('at')):NaN;
     loading=choose(Math.max(0,first),!Number.isFinite(requested)&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&params.get('paused')!=='1');

@@ -67,6 +67,7 @@
         ['分层特效 V5', 'kame-vfx-v5.gif'],
         ['CC0 素材对照', 'kame-free-vfx-comparison.gif'],
         ['早期试片对照', 'kame-vfx-comparison.gif'],
+        ['同角度 3D 检查', 'dragon-vfx.html?fx=kame&ref=3d&at=2.767', '3d'],
       ]],
     ]],
     ['剑系', [
@@ -131,7 +132,9 @@
     }
     if (!effects.has(key)) key = 'spirit';
     const {name, versions} = effects.get(key);
-    const index = Math.max(0, Math.min(versions.length-1, Number.parseInt(rawVersion,10) || 0));
+    const named = rawVersion&&versions.findIndex(([, ,id])=>id===rawVersion);
+    const requested = named>=0?named:Number.parseInt(rawVersion,10)||0;
+    const index = Math.max(0, Math.min(versions.length-1, requested));
     const [label, url] = versions[index];
     title.textContent = name;
     document.title = name + ' · 特效预览';

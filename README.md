@@ -14,6 +14,8 @@
 
 选题先看[特效制作清单](outputs/vfx-worklist.md)，里面有现行招式编号、已有效果和下一项制作要求。
 
+龟波气功可切到[同角度 3D 检查](outputs/index.html#kame/3d)。左右共用束身、缠绕带、发射口和冲圈网格，以及同一演出时间。右侧可选择环绕角或查看实际网格的线框。点击「还原侧视」回到左侧的投影。
+
 ## 在新电脑继续制作
 
 直接修改 `work/dragon-vfx-rebuild` 中的源文件。重建龙珠预览需要 Python、Pillow 及 FFmpeg。以下命令从仓库根目录执行。Windows 可用 `py -3` 代替 `python`。

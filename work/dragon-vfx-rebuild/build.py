@@ -101,7 +101,7 @@ if burst_clip.is_file():
 
 km = json.loads((refs/"kame/manifest.json").read_text(encoding="utf-8"))
 kame_part = dict(km["parts"][0], source=km["source"])
-kame = [film("kame",kame_part,"Hovl Studio · Unity 教程","按首束离手对齐。左侧用固定侧视和掌心高度投影，束身前后层在同一截面绕行。右侧保留原片机位，供对照亮核、束壳和流动。",0)]
+kame = [film("kame",kame_part,"Hovl Studio · Unity 教程","按首束离手对齐。左侧以固定侧视渲染束身、缠绕带、发射口和冲圈网格。右侧原片供对照姿势、材质和时序，也可切到同角度 3D 检查。",0)]
 
 def legacy(filename, title, note, length, fps):
     return dict(title=title,note=note,offset=0,start=0,end=length,fps=fps,source="",cards=[],film="dragon-vfx/legacy/"+filename)
@@ -117,18 +117,23 @@ spirit.append(legacy("spirit-v11.mp4","V11 · 全幅擂台","从两版起手同�
 previous = dst/"legacy/kame-pixelfx.mp4"
 subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-ignore_loop","1","-i",str(out/"kame-pixelfx-vfx-preview.gif"),
                 "-vf","pad=ceil(iw/2)*2:ceil(ih/2)*2","-fps_mode","vfr","-c:v","libx264","-pix_fmt","yuv420p","-movflags","+faststart",str(previous)], check=True)
+copy(here/"baseline/kame-analytic-side.mp4","legacy/kame-analytic-side.mp4")
 copy(here/"baseline/kame-oblique.mp4","legacy/kame-oblique.mp4")
 copy(here/"baseline/kame-hovl-v1.mp4","legacy/kame-hovl-v1.mp4")
 copy(here/"baseline/kame-hovl-v2.mp4","legacy/kame-hovl-v2.mp4")
-kame.append(legacy("kame-oblique.mp4","上一版 · 斜视投影","同一擂台和出手阶段，对照束轴、束宽、发射口和能量绕行。",128/30,30))
+kame.append(legacy("kame-analytic-side.mp4","上一版 · 截面 shader","同一侧视、同一时间轴，右侧是几何改造前的实时结果录像。",128/30,30))
+kame.append(legacy("kame-oblique.mp4","历史版 · 斜视投影","同一擂台和出手阶段，对照束轴、束宽、发射口和能量绕行。",128/30,30))
 kame.append(legacy("kame-hovl-v2.mp4","初期重构 · 首束与束身上缘","同一时轴比较首束橙丝和上缘撕开的负形。",128/30,30))
 kame.append(legacy("kame-hovl-v1.mp4","第一版 · 同擂台束身","同一角色、镜头和时轴，比较发射口白热面积、束身轮廓和近远段宽度。",128/30,30))
 kame.append(legacy("kame-pixelfx.mp4","早期版 · pixelfx","保留早期版的完整画幅与原生节奏。",1.48,100/7))
+kame.insert(1,dict(id="mesh-view",title="同角度 3D 检查",
+    note="两侧使用同一套网格、同一时刻与光效。右侧可旋转和显示线框，点「还原侧视」回到与左侧相同的正交投影。",
+    offset=0,start=0,end=128/30,fps=30,source="",cards=[]))
 payload = {"actors":actors,"sources":{"spirit":spirit,"kame":kame}}
 atlas = here/"spirit-assets/impact-v15.webp"
 atlas_url = copy(atlas,"impact-v15.webp") if atlas.is_file() else ""
 (dst/"data.js").write_text("window.DragonData="+json.dumps(payload,ensure_ascii=False,separators=(",",":"))+";\nwindow.DragonImpactAtlas="+json.dumps(atlas_url)+";",encoding="utf-8")
-for name in ("spirit.js","kame.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
+for name in ("spirit.js","kame.js","kame-volume.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
     copy(here/name,name)
 shutil.copy2(here/"preview.html",out/"dragon-vfx.html")
 shutil.copy2(work/"vfx-preview.html",out/"index.html")
