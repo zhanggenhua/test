@@ -5,7 +5,7 @@ const fs=require('node:fs'),path=require('node:path');
   const browser=await chromium.launch({executablePath: process.env.VFX_CHROME || undefined, args: process.platform === 'win32' ? ['--use-gl=angle', '--use-angle=d3d11'] : ['--enable-unsafe-swiftshader']});
   try{
     const page=await browser.newPage({reducedMotion:'reduce'});
-    await page.goto('http://127.0.0.1:8819/dragon-vfx.html?fx=spirit&paused=1');await page.evaluate(()=>DragonPreview.ready);
+    await page.goto('http://127.0.0.1:8819/dragon-vfx.html?fx=spirit&paused=1&bake-impact=1');await page.evaluate(()=>Promise.all([DragonPreview.ready,DragonImpact.ready]));
     const uri=await page.evaluate(()=>{
       const atlas=document.createElement('canvas'),frames=Math.ceil(DragonImpact.duration*30);
       const {tileWidth,tileHeight}=DragonImpact;

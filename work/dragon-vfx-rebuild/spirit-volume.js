@@ -249,11 +249,12 @@
       // The incoming turquoise orb initially has no hole or mature shell.
       float inlet=noise3(n*3.3+vec3(.2,age*2.,.4));
       float flare=smoothstep(.35,.91,1.-length(n-vec3(.14,.25,.89))*.79);
-      vec3 initial=mix(vec3(.075,.48,.79),vec3(.45,.85,1.02),.62*inlet+.37*fres);
-      initial+=vec3(.63,.75,.78)*flare*(.6+.4*inlet);
-      float takeover=smoothstep(.018,.23,age);
+      vec3 initial=mix(vec3(.43,.86,.97),vec3(.66,.95,1.04),.59*inlet+.38*fres);
+      initial+=vec3(.36,.40,.39)*flare*(.58+.42*inlet);
+      float takeover=smoothstep(.027,.185,age);
       if(takeover<.005)discard;
-      put(mix(initial,body,smoothstep(.038,.30,age)),takeover);
+      float fromContact=.050*max(0.,dot(n,normalize(vec3(.89,-.38,.24))));
+      put(mix(initial,body,smoothstep(.082,.31,age+fromContact)),takeover);
     }`;
 
   function makeRibbons(gl){

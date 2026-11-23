@@ -181,10 +181,10 @@
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
     el('newTitle').textContent=arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
-    el('newNote').textContent=spirit?'光流汇入头顶，双掌送球前压。命中时白纹卷向内核，碎石从壳外抛出。':'掌心聚气、出束、持续喷射、断流消散。';
+    el('newNote').textContent=spirit?'光流沿固定路径入球。双掌送出后球径稳定，命中后沿同一球心压入并破裂。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spirit) {
       const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
-      const burst=external('对照命中原图 · 4.100 秒','?fx=spirit&ref=burst&at=3.55');
+      const burst=external('对照命中原图 · 4.100 秒','?fx=spirit&ref=burst&at=3.19');
       if(params.has('embedded')){
         for(const link of [burst,shape]){
           link.removeAttribute('target');
@@ -276,7 +276,7 @@
       if(!recording)throw Error('本机 Unity 实录未载入');
     }else{
       await Promise.all([assetReady,engine.ready]);
-      if(spirit&&!DragonImpact.realtime)await loadRecording('dragon-vfx/spirit.mp4','元气弹完整擂台 · 三维渲染录像');
+      if(spirit&&!engine.realtime)await loadRecording('dragon-vfx/spirit.mp4','元气弹完整擂台 · 三维渲染录像');
     }
     if(arena&&engine.sourceMaterials){
       const comparison=DragonData.sources.kameArena3d;

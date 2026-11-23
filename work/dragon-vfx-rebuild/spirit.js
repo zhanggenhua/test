@@ -1,11 +1,11 @@
 (() => {
   'use strict';
   const TAU = 2 * Math.PI;
-  const release = 2.02, contact = 2.86, duration = 4.80;
+  const swing = 1.57, release = 2.0, contact = 2.50, duration = 4.80;
   const phases = [
-    {t:0, name:'举手'}, {t:.48, name:'四周汇气'}, {t:1.62, name:'托球前送'},
-    {t:release, name:'双掌投出'}, {t:contact, name:'球沿触敌'}, {t:3.15, name:'球体压入'},
-    {t:3.45, name:'爆发峰值'}, {t:3.55, name:'冲击面破开'}, {t:4.09, name:'飞石回落'}, {t:4.53, name:'收势'},
+    {t:0, name:'举手'}, {t:.48, name:'四周汇气'}, {t:1.67, name:'托球前送'},
+    {t:release, name:'双掌投出'}, {t:2.23, name:'飞行'}, {t:contact, name:'球沿触敌'}, {t:2.66, name:'球体压入'},
+    {t:2.88, name:'爆发峰值'}, {t:3.16, name:'冲击面破开'}, {t:3.73, name:'飞石回落'}, {t:4.53, name:'收势'},
   ];
   const clamp = n => Math.max(0, Math.min(1, n));
   const ramp = (a,b,t) => { const q=clamp((t-a)/(b-a)); return q*q*(3-2*q); };
@@ -19,13 +19,18 @@
     uniform highp int layer;
     uniform float phase;
     uniform vec4 inlets[3];
+    uniform mat4 vp;
+    uniform vec3 center, radii;
     out vec3 sphereNormal;
+    out vec2 glowPoint;
     void main() {
       if(layer==0){
         vec2 v=vec2((gl_VertexID<<1)&2,gl_VertexID&2);
-        gl_Position=vec4(v*2.-1.,0,1);sphereNormal=vec3(0,0,1);return;
+        glowPoint=(v*2.-1.)*1.65;
+        gl_Position=vp*vec4(center+vec3(glowPoint*radii.xy,0.),1.);
+        sphereNormal=vec3(0,0,1);return;
       }
-      sphereNormal=objectPosition;
+      sphereNormal=objectPosition;glowPoint=vec2(0.);
       vec2 planar=objectPosition.xy*vec2(1.,-1.);
       vec2 unit=normalize(planar+vec2(.000001,0.));
       float angle=atan(unit.y,unit.x);
@@ -37,14 +42,17 @@
         wave+=.058*column*sin(3.14159*age)*inlet.w*cos(age*5.3);
       }
       vec3 surface=objectPosition*(1.+wave*smoothstep(.60,.97,length(planar)));
-      gl_Position=vec4(surface.xy/1.65,-surface.z*.48,1.);
+      gl_Position=vp*vec4(center+surface*vec3(radii.x,-radii.y,-radii.z),1.);
     }`;
   const fragment = `#version 300 es
     precision highp float;
     uniform float phase;
     uniform highp int layer;
     uniform vec4 inlets[3];
+    uniform vec3 momentum;
+    uniform float energy;
     in vec3 sphereNormal;
+    in vec2 glowPoint;
     out vec4 color;
     mat2 turn(float a){float c=cos(a),s=sin(a);return mat2(c,s,-s,c);}
     float hash3(vec3 p){
@@ -76,7 +84,7 @@
     }
     void main(){
       vec3 normal=normalize(sphereNormal);
-      vec2 p=layer==0 ? (gl_FragCoord.xy/480.*2.-1.)*vec2(1.65,-1.65)
+      vec2 p=layer==0 ? glowPoint
                       : normal.xy*vec2(1.,-1.);
       float r=length(p),ang=atan(p.y,p.x+.00001);
       vec2 unit=p/max(r,.00001);
@@ -114,11 +122,16 @@
         }
         float glow=clamp(.77*halo+.22*shafts+filmy,0.,1.)*(1.-smoothstep(1.40,1.65,r));
         vec3 haze=mix(vec3(.012,.55,.83),vec3(.66,1.,1.),clamp(.45*halo+filmy+.14*shafts,0.,1.));
-        color=vec4(haze*glow,glow);return;
+        color=vec4(haze*glow*.72*energy,glow*.52*energy);return;
       }
       // Soft clouds and short brushes share a depth-warped domain, while
       // each hot cluster has its own position, direction, width and reach.
+      vec2 heading=momentum.xy;
+      float flow=momentum.z;
+      float slip=dot(p,heading);
       vec2 q=p+.046*(vec2(warp,noise(vec3(p*6.1-.27*tick,.9*beat)))-.5);
+      // The inner filaments shear back along the launch vector.
+      q+=heading*flow*(.09+.14*slip)*(1.-smoothstep(.55,1.,r));
       float drift=smoothstep(.29,.98,phase/6.2831853);
       vec2 focus=vec2(.04-.20*drift,.075+.068*sin(phase*.75));
       vec2 disk=q-focus;
@@ -158,6 +171,9 @@
       density+=plume*(.19*smoothstep(.35,.75,broad)+.58*smoothstep(.46,.77,grain)
         *smoothstep(.24,.69,broken));
       float central=1.-smoothstep(.39,.85,r+.13*(warp-.48)+.04*sin(3.*ang+phase));
+      float streaking=exp(-abs(dot(p,vec2(-heading.y,heading.x)))*10.)
+        *smoothstep(-.84,-.24,slip)*(1.-smoothstep(.28,.72,slip));
+      density+=streaking*.32*flow*(.65+.35*grain);
       vec3 body=mix(vec3(.565,.953,.978),vec3(.785,.889,.982),central);
       body+=vec3(.075,.036,.015)*(warp-.5);
       body-=vec3(.042,.034,.015)*central*smoothstep(.48,.75,grain)*(1.-smoothstep(.33,.60,broken));
@@ -186,11 +202,9 @@
       float sparkle=noise(vec3(unit*45.,.62*tick));
       float rim=exp(-abs(r-.987)*mix(60.,132.,sparkle));
       body=mix(body,vec3(.94,1.,1.),rim*(.67+.33*sparkle));
-      color=vec4(body,1.);
+      color=vec4(body*(1.+.115*density)*energy,energy);
     }`;
 
-  let orbSurface, orbGL, phaseLocation, inletLocation, layerLocation;
-  let haloVAO,sphereVAO,indexCount,lastMaterialTime=-1;
   function sphereGeometry(gl){
     const rings=48,slices=96,vertices=[],indices=[];
     for(let row=0;row<=rings;row++){
@@ -212,34 +226,34 @@
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),gl.STATIC_DRAW);
     return {vao,count:indices.length};
   }
-  function renderOrbSurface(time){
-    const gl=orbGL;gl.uniform1f(phaseLocation,time*TAU/4);
-    gl.uniform4fv(inletLocation,captured(time));gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-    gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.bindVertexArray(haloVAO);
-    gl.uniform1i(layerLocation,0);gl.drawArrays(gl.TRIANGLES,0,3);
-    gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
-    gl.bindVertexArray(sphereVAO);gl.uniform1i(layerLocation,1);
-    gl.drawElements(gl.TRIANGLES,indexCount,gl.UNSIGNED_SHORT,0);
-    lastMaterialTime=time;
-  }
-  function initializeOrb() {
-    orbSurface=document.createElement('canvas');
-    orbSurface.width=orbSurface.height=480;
-    const gl=orbSurface.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:true,
-      depth:true,stencil:false,preserveDrawingBuffer:true});
-    if(!gl) return;
-    const program=gl.createProgram();
-    for(const [type,text] of [[gl.VERTEX_SHADER,vertex],[gl.FRAGMENT_SHADER,fragment]]) {
-      const shader=gl.createShader(type);gl.shaderSource(shader,text);gl.compileShader(shader);
-      if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)) throw Error(gl.getShaderInfoLog(shader));
-      gl.attachShader(program,shader);gl.deleteShader(shader);
-    }
-    gl.linkProgram(program);
-    if(!gl.getProgramParameter(program,gl.LINK_STATUS)) throw Error(gl.getProgramInfoLog(program));
-    gl.useProgram(program);haloVAO=gl.createVertexArray();
-    const mesh=sphereGeometry(gl);sphereVAO=mesh.vao;indexCount=mesh.count;
-    layerLocation=gl.getUniformLocation(program,'layer');
-    phaseLocation=gl.getUniformLocation(program,'phase');inletLocation=gl.getUniformLocation(program,'inlets[0]');orbGL=gl;
+  function worldOrb(gl,makeProgram,sphere){
+    const pg=makeProgram(gl,vertex,fragment);
+    const names=['vp','center','radii','layer','phase','inlets[0]','momentum','energy'];
+    const u=Object.fromEntries(names.map(name=>[name,gl.getUniformLocation(pg,name)]));
+    const halo=gl.createVertexArray();
+    return function(time,ball,stage){
+      if(ball.glow<=.001)return;
+      gl.useProgram(pg);
+      gl.uniformMatrix4fv(u.vp,false,stage.matrix);
+      gl.uniform3f(u.center,ball.x,ball.y,0);
+      gl.uniform3f(u.radii,ball.rx,ball.ry,ball.r);
+      gl.uniform1f(u.phase,(time%4)*TAU/4);
+      gl.uniform4fv(u['inlets[0]'],captured(time));
+      gl.uniform3f(u.momentum,...ball.direction,ball.flow);
+      gl.uniform1f(u.energy,ball.glow);
+
+      gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+      gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+      gl.disable(gl.CULL_FACE);gl.depthMask(false);
+      gl.bindVertexArray(halo);
+      gl.uniform1i(u.layer,0);gl.drawArrays(gl.TRIANGLES,0,3);
+
+      gl.enable(gl.CULL_FACE);gl.frontFace(gl.CCW);gl.cullFace(gl.BACK);
+      gl.depthMask(ball.glow>=.995);
+      gl.bindVertexArray(sphere.vao);gl.uniform1i(u.layer,1);
+      gl.drawElements(gl.TRIANGLES,sphere.count,gl.UNSIGNED_SHORT,0);
+      gl.depthMask(true);
+    };
   }
 
   // Each group starts in a distinct part of the arena. Its last segment and
@@ -248,7 +262,7 @@
     [75,207,2.74,47],[866,148,.22,-48],[170,322,2.40,80],
     [724,314,.54,69],[200,65,3.32,-42],[559,58,-.32,-37]
   ];
-  const arrivals=[.42,.53,.62,.69,.78,.86,.96,1.025,1.105,1.18,1.27,1.37,1.48,1.56,1.64];
+  const arrivals=[.31,.43,.51,.59,.67,.76,.86,.93,1.01,1.10,1.20,1.28,1.36,1.43,1.48];
   const packets=arrivals.map((at,i)=>{
     const [x,y,angle,arc]=sources[(i%6+Math.floor(i/6)*2)%6];
     return {x:x+(random(i+10)-.5)*49,y:y+(random(i+17)-.5)*35,
@@ -257,118 +271,80 @@
   });
   const totalMass=packets.reduce((n,p)=>n+p.mass,0);
   const captureDuration=.285;
-  // The slope at each event belongs to both neighbouring spans. Ball
-  // position and velocity therefore have a single value at release/contact.
-  function hermite(from,to,v0,v1,span,q) {
-    const q2=q*q,q3=q2*q;
-    return (2*q3-3*q2+1)*from+(q3-2*q2+q)*span*v0+
-      (3*q2-2*q3)*to+(q3-q2)*span*v1;
+  // The planted push and the free flight meet with the same velocity.
+  function push(from,to,v,span,q) {
+    return mix(from,to,q*q*(3-2*q))+v*span*q*q*(q-1);
   }
-  function tangent(a,b) { return a*b<=0?0:2*a*b/(a+b); }
-  function settle(age,travel,velocity) {
-    const k=6.8;
-    return travel*(1-Math.exp(-k*age)*(1+(k-velocity/travel)*age));
+  function integrateBrake(speed,age,tau){
+    return -speed*tau*Math.expm1(-age/tau);
   }
-  const swing=1.605;
   function state(t,x,tx,ground) {
-    const gap=tx-x, heldRadius=Math.min(85,Math.max(33,gap*.34));
-    const radius=Math.min(113,Math.max(40,gap*.356));
-    const hitX=tx-29.82,hitY=ground-101.85,endY=ground-radius-13;
+    const gap=tx-x, radius=Math.min(87,Math.max(38,gap*.30));
+    const heldX=x+2, heldY=ground-123-radius;
+    const handX=x+61,handY=ground-71;
+    const castX=Math.min(x+67,tx-radius-40);
+    const castY=handY-Math.sqrt(Math.max(1,radius*radius-(castX-handX)**2));
+    const hitX=tx-30, hitY=ground-64;
+    const endY=ground-radius-7;
     const endX=hitX-Math.sqrt(Math.max(1,radius*radius-(hitY-endY)**2));
-    const startX=x+2,castX=Math.max(startX,Math.min(x+58,mix(startX,endX,.51)));
-    const startY=ground-121-Math.sqrt(Math.max(1,heldRadius*heldRadius-19*19));
-    const palmOffset=castX-(x+53);
-    const castY=ground-72-Math.sqrt(Math.max(1,heldRadius*heldRadius-palmOffset*palmOffset));
-    const swingSpan=release-swing,flightSpan=contact-release;
-    const flightVX=(endX-castX)/flightSpan,flightVY=(endY-castY)/flightSpan;
-    const releaseVX=tangent((castX-startX)/swingSpan,flightVX);
-    const releaseVY=tangent((castY-startY)/swingSpan,flightVY);
-    const hitVX=1.25*flightVX,hitVY=1.29*flightVY;
-    let cx,cy,r,rx,ry,glow;
-    if(t<release){
-      const mass=packets.reduce((sum,p)=>sum+p.mass*ramp(p.at-.018,p.at+.12,t),0)/totalMass;
-      r=4+(heldRadius-4)*Math.sqrt(mass);
-      const gatherY=ground-121-Math.sqrt(Math.max(1,r*r-Math.min(19,r*.23)**2));
-      const u=clamp((t-swing)/swingSpan);
-      cx=hermite(startX,castX,0,releaseVX,swingSpan,u);
-      cy=gatherY+hermite(0,castY-startY,0,releaseVY,swingSpan,u);
-      glow=ramp(.26,.47,t);
-    } else if(t<contact){
-      const u=(t-release)/flightSpan;
-      cx=hermite(castX,endX,releaseVX,hitVX,flightSpan,u);
-      cy=hermite(castY,endY,releaseVY,hitVY,flightSpan,u);
-      r=mix(heldRadius,radius,ramp(0,1,u));glow=1;
-    } else {
+    const flightSpan=contact-release,pushSpan=release-swing;
+    const vx=(endX-castX)/flightSpan,vy=(endY-castY)/flightSpan;
+    const gravity=.34*vy/flightSpan;
+    const launchVY=vy-.5*gravity*flightSpan;
+    const hitVY=launchVY+gravity*flightSpan;
+    let cx,cy,r=radius,rx,ry,glow,flow=0;
+    if(t<swing){
+      const mass=packets.reduce((sum,p)=>sum+p.mass*ramp(p.at,p.at+.084,t),0)/totalMass;
+      r=5+(radius-5)*Math.cbrt(mass);
+      cx=heldX;
+      cy=ground-123-r;
+      glow=ramp(.15,.37,t);
+    }else if(t<release){
+      const q=(t-swing)/pushSpan;
+      cx=push(heldX,castX,vx,pushSpan,q);
+      cy=push(heldY,castY,launchVY,pushSpan,q);
+      glow=1;
+      flow=.36*ramp(.1,1,q);
+    }else if(t<contact){
+      const dt=t-release;
+      cx=castX+vx*dt;
+      cy=castY+dt*(launchVY+.5*gravity*dt);
+      glow=1;
+      flow=mix(.36,1,ramp(0,.14,dt));
+    }else{
       const age=t-contact;
-      const depthX=Math.min(80,Math.max(32,gap*.248)),depthY=Math.min(32,radius*.30);
-      cx=endX+settle(age,depthX,hitVX);cy=endY+settle(age,depthY,hitVY);
-      const compression=1-Math.exp(-8.6*age)*(1+8.6*age);
-      r=radius;rx=r*(1.-.085*compression);ry=r*(1.-.108*compression);
-      glow=(1.-.13*ramp(.11,.20,age))*(1.-ramp(.235,.445,age));
+      const drop=(ground-radius-endY)+2.3;
+      cx=endX+integrateBrake(vx,age,.177);
+      cy=endY+integrateBrake(hitVY,age,drop/hitVY);
+      const crush=ramp(.015,.145,age)*(1-.70*ramp(.16,.29,age));
+      rx=radius*(1-.065*crush);ry=radius*(1-.038*crush);
+      glow=1-ramp(.047,.215,age);
+      flow=Math.exp(-age/.09);
     }
-    return {x:cx,y:cy,r,rx:rx??r,ry:ry??r,glow,hitX,hitY};
+    const directionLength=Math.hypot(vx,vy);
+    return {x:cx,y:cy,r,rx:rx??r,ry:ry??r,glow,hitX,hitY,flow,
+            direction:[vx/directionLength,vy/directionLength]};
   }
 
-  function shine(ctx,x,y,r,color,aspect=1) {
-    if(r<=0) return;
-    ctx.save();ctx.translate(x,y);ctx.scale(1,aspect);
-    const radial=ctx.createRadialGradient(0,0,0,0,0,r);
-    radial.addColorStop(0,color); radial.addColorStop(1,'rgba(72,202,255,0)');
-    ctx.fillStyle=radial;ctx.fillRect(-r,-r,r*2,r*2);ctx.restore();
+  function intakePaths(x,tx,ground){
+    return packets.map((p,i)=>{
+      const shell=state(p.at,x,tx,ground);
+      const depth=.62*(2*random(i+29)-1),plane=Math.sqrt(1-depth*depth);
+      const nx=plane*Math.cos(p.angle),ny=plane*Math.sin(p.angle);
+      const end=[shell.x+shell.r*nx,shell.y+shell.r*ny,shell.r*depth];
+      const startZ=175*(2*random(i+73)-1);
+      const dx=end[0]-p.x,dy=end[1]-p.y,length=Math.max(1,Math.hypot(dx,dy));
+      const control1=[p.x+.28*dx-dy/length*p.arc,p.y+.28*dy+dx/length*p.arc,mix(startZ,end[2],.38)];
+      const reach=Math.min(94,.33*length);
+      const control2=[end[0]+nx*reach,end[1]+ny*reach,end[2]+depth*reach];
+      return {...p,start:[p.x,p.y,startZ],end,control1,control2};
+    });
   }
-  function pathPoint(p,orb,q) {
-    const entryX=orb.x+orb.r*Math.cos(p.angle),entryY=orb.y+orb.r*Math.sin(p.angle);
-    const dx=entryX-p.x,dy=entryY-p.y,length=Math.max(1,Math.hypot(dx,dy));
-    const nx=-dy/length,ny=dx/length;
-    const u=q*(.42+.58*q), bend=p.arc*Math.sin(Math.PI*u)+
-      12*Math.sin(2*Math.PI*u+p.seed*2)*Math.sin(Math.PI*u);
-    return [p.x+dx*u+nx*bend,p.y+dy*u+ny*bend];
+  function pathPoint(p,q){
+    const u=q*(.61+.39*q),v=1-u;
+    return p.start.map((start,i)=>v*v*v*start+3*v*v*u*p.control1[i]+3*v*u*u*p.control2[i]+u*u*u*p.end[i]);
   }
-  function drawIntake(ctx,t,orb) {
-    if(t<.03 || t>1.72)return;
-    ctx.save();
-    for(const p of packets){
-      const u=(t-p.at)/p.travel+1;
-      if(u<=0||u>1.065)continue;
-      const head=Math.min(1,u),tail=Math.max(0,head-(.26+.10*p.mass)*(1-ramp(1,1.065,u)));
-      if(head<=tail+.002)continue;
-      const knots=[];
-      for(let i=0;i<=12;i++)knots.push(pathPoint(p,orb,mix(tail,head,i/12)));
-      const first=knots[0],last=knots[12];
-      const tint=ctx.createLinearGradient(...first,...last);
-      tint.addColorStop(0,'#49c9ff00');tint.addColorStop(.33,'#4bb9ff90');
-      tint.addColorStop(.74,'#7bdfffed');tint.addColorStop(.94,'#f6ffff');tint.addColorStop(1,'#aaffff');
-      const opacity=ramp(0,.20,u)*(1-ramp(1.002,1.065,u));
-      ctx.globalAlpha=opacity;ctx.fillStyle=tint;
-      // Ribbon width tapers separately at the two ends, leaving a broad
-      // luminous shoulder and a fine crest which can be read at game scale.
-      const left=[],right=[];
-      for(let i=0;i<=12;i++){
-        const q=i/12,prev=knots[Math.max(0,i-1)],next=knots[Math.min(12,i+1)];
-        const dx=next[0]-prev[0],dy=next[1]-prev[1],norm=Math.max(.001,Math.hypot(dx,dy));
-        const w=(3.9+2.45*p.mass)*Math.sin(Math.PI*q)**.75*(.22+.98*q);
-        left.push([knots[i][0]-dy/norm*w,knots[i][1]+dx/norm*w]);
-        right.push([knots[i][0]+dy/norm*w*.62,knots[i][1]-dx/norm*w*.62]);
-      }
-      ctx.beginPath();ctx.moveTo(...left[0]);for(const xy of left.slice(1))ctx.lineTo(...xy);
-      for(let i=12;i>=0;i--)ctx.lineTo(...right[i]);ctx.closePath();ctx.fill();
-      const trace=ctx.createLinearGradient(...first,...last);
-      trace.addColorStop(0,'#f3ffff00');trace.addColorStop(.63,'#e5ffff75');trace.addColorStop(1,'#ffffff');
-      ctx.lineWidth=1.6+.47*p.mass;ctx.strokeStyle=trace;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(...first);
-      for(const xy of knots.slice(1))ctx.lineTo(...xy);ctx.stroke();
-      if(p.mass>1.02){
-        ctx.globalAlpha=.72*opacity;ctx.lineWidth=1.35+.5*p.mass;ctx.beginPath();ctx.moveTo(...first);
-        for(let i=1;i<=12;i++){
-          const q=i/12,splay=(5+3*p.mass)*Math.sin(Math.PI*q)*Math.sin(4.1*q+p.seed*6+.7*t);
-          ctx.lineTo(knots[i][0]+splay*.35,knots[i][1]+splay);
-        }
-        ctx.stroke();
-      }
-      ctx.globalAlpha=opacity;
-      shine(ctx,last[0],last[1],9+p.mass*3.3,'#c7ffffb9');
-    }
-    ctx.restore();
-  }
+
   function captured(t) {
     const data=new Float32Array(12);
     let at=0;
@@ -379,157 +355,154 @@
     }
     return data;
   }
-  function paintOrb(ctx,t,b) {
-    if(b.glow<=0) return;
-    if(!orbSurface) initializeOrb();
-    const time=t%4;
-    ctx.save();ctx.globalAlpha*=b.glow;
-    if(orbGL && !orbGL.isContextLost()) {
-      if(time!==lastMaterialTime)renderOrbSurface(time);
-      const w=b.rx*1.65,h=b.ry*1.65;
-      ctx.drawImage(orbSurface,b.x-w,b.y-h,2*w,2*h);
-    } else {
-      const ph=time*TAU/4, drift=ramp(.29,.98,time/4);
-      ctx.translate(b.x,b.y);ctx.scale(b.rx,b.ry);
-      const halo=ctx.createRadialGradient(0,0,.96,0,0,1.46);
-      for(const [pos,col] of [[0,'#dcffff'],[.09,'#8bffffcf'],[.25,'#44daff7f'],[.53,'#259cde30'],[1,'#1685ae00']])
-        halo.addColorStop(pos,col);
-      ctx.fillStyle=halo;ctx.fillRect(-1.46,-1.46,2.92,2.92);
-      const g=ctx.createRadialGradient(-.025,.045,.1,0,0,1.01);
-      g.addColorStop(0,'#cde6fc');g.addColorStop(.48,'#c8e5fc');
-      g.addColorStop(.82,'#a6f6fb');g.addColorStop(.965,'#93f5f9');g.addColorStop(1,'#e2ffff');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,1,0,TAU);ctx.fill();
-      const clusters=[
-        [.35-.54*drift,.10+.07*Math.sin(ph),.39+.68*drift,.91],
-        [-.015-.19*drift,.38,1.71,.83],[-.31-.10*drift,-.065+.18*drift,3.42,.61+.23*drift],
-        [.07+.05*Math.sin(ph),-.24,-1.29,.39]
-      ];
-      for(let i=0;i<clusters.length;i++){
-        const [x,y,az,energy]=clusters[i];
-        const bloom=ctx.createRadialGradient(x,y,0,x,y,.27);
-        bloom.addColorStop(0,'rgba(255,255,255,'+energy+')');bloom.addColorStop(.5,'rgba(255,255,255,'+energy*.44+')');
-        bloom.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=bloom;
-        ctx.fillRect(x-.27,y-.27,.54,.54);
-        for(let j=0;j<12;j++){
-          const id=i*23+j,theta=az+(j-5.4)*.186+(random(id+1)-.5)*.24+.11*Math.sin(ph+j);
-          const len=.14+.24*random(id+8),wid=.012+.032*random(id+2),bend=(random(id+15)-.38)*.14;
-          ctx.save();ctx.translate(x+.023*Math.cos(theta),y+.023*Math.sin(theta));ctx.rotate(theta);
-          const paint=ctx.createLinearGradient(0,0,len,0);
-          paint.addColorStop(0,'rgba(255,255,255,'+energy*.48+')');
-          paint.addColorStop(.52,'rgba(255,255,255,'+energy*.42+')');paint.addColorStop(1,'rgba(255,255,255,0)');
-          ctx.fillStyle=paint;ctx.beginPath();ctx.moveTo(-.06,0);
-          ctx.bezierCurveTo(.22*len,-wid,len*.68,bend-wid,len,bend*1.16);
-          ctx.bezierCurveTo(len*.60,bend+wid*.49,len*.19,wid,-.06,0);ctx.fill();ctx.restore();
+  function worldFlow(gl,makeProgram){
+    const pg=makeProgram(gl,`#version 300 es
+      layout(location=0) in vec3 point;
+      layout(location=1) in vec3 profile;
+      uniform mat4 vp;
+      out vec3 field;
+      void main(){field=profile;gl_Position=vp*vec4(point,1.);}`,
+    `#version 300 es
+      precision highp float;
+      in vec3 field;
+      out vec4 light;
+      void main(){
+        float core=exp(-5.8*field.y*field.y);
+        float tail=smoothstep(0.,.31,field.x);
+        float amount=field.z*tail*(1.-smoothstep(.72,1.,abs(field.y)));
+        light=vec4(mix(vec3(.14,.82,1.18),vec3(1.05,1.46,1.58),core*field.x)*amount,amount);
+      }`);
+    const vp=gl.getUniformLocation(pg,'vp'),vao=gl.createVertexArray(),buffer=gl.createBuffer();
+    gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,24,0);
+    gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,24,12);
+    let paths=[],key='';
+    return function(time,stage){
+      const {casterX:x,targetX:tx,ground}=stage.scene;
+      const b=stage.ball,data=[];
+      function ribbon(points,width,visibility){
+        const strips=points.map((p,i)=>{
+          const before=points[Math.max(0,i-1)],after=points[Math.min(points.length-1,i+1)];
+          const dx=after[0]-before[0],dy=after[1]-before[1],length=Math.max(.01,Math.hypot(dx,dy));
+          const t=i/(points.length-1),w=width*(.11+.89*Math.sin(Math.PI*t)**.72)*(.30+.70*t);
+          return [-1,1].map(edge=>[p[0]-dy/length*w*edge,p[1]+dx/length*w*edge,p[2],t,edge,visibility]);
+        });
+        for(let i=1;i<strips.length;i++){
+          const [a,c]=strips[i-1],[b,d]=strips[i];
+          data.push(...a,...b,...c,...c,...b,...d);
         }
       }
-      const centerX=.04-.20*drift,centerY=.075+.068*Math.sin(ph*.75);
-      for(let i=0;i<98;i++){
-        const az=TAU*random(i+73), inner=.13+.29*random(i+18), outer=inner+.09+.25*random(i+67);
-        const bend=.13*Math.sin(ph+i)+.20*(random(i+49)-.5),w=.005+.013*random(i+38);
-        ctx.save();ctx.translate(centerX,centerY);ctx.rotate(az);
-        const paint=ctx.createLinearGradient(inner,0,outer,0);
-        paint.addColorStop(0,'#eff7ff00');paint.addColorStop(.42,'rgba(255,255,255,'+(.19+.28*random(i+7))+')');
-        paint.addColorStop(1,'#eff7ff00');ctx.fillStyle=paint;ctx.beginPath();ctx.moveTo(inner,0);
-        ctx.bezierCurveTo(inner+.07,-w,outer-.10,bend*.4,outer,bend);
-        ctx.bezierCurveTo(outer-.105,bend*.4+w,inner+.065,w,inner,0);ctx.fill();ctx.restore();
-      }
-      for(let i=0;i<12;i++){
-        const a=i*.91+ph*.19, off=(random(i+27)-.5)*.50, start=-.14+2.4*random(i+33);
-        ctx.beginPath();ctx.lineWidth=.005+.008*random(i+5);ctx.strokeStyle='rgba(235,255,255,'+(.19+.22*random(i+2))+')';
-        for(let j=0;j<=48;j++){
-          const k=start+(1.65+1.35*random(i+19))*j/48;
-          const side=off+.42*Math.sin(k+.7*i)+.135*Math.sin(k*5.+i+ph);
-          const u=1.026*Math.cos(k),v=side*Math.sin(k);
-          const x=u*Math.cos(a)-v*Math.sin(a),y=u*Math.sin(a)+v*Math.cos(a);
-          if(j)ctx.lineTo(x,y);else ctx.moveTo(x,y);
+      if(time<swing){
+        const current=[x,tx,ground].join('/');
+        if(current!==key){paths=intakePaths(x,tx,ground);key=current;}
+        for(const p of paths){
+          const phase=(time-p.at)/p.travel+1;
+          if(phase<=0||phase>=1.065)continue;
+          const head=Math.min(1,phase);
+          const tail=Math.max(0,head-(.26+.10*p.mass)*(1-ramp(1,1.065,phase)));
+          if(head<=tail+.002)continue;
+          const points=Array.from({length:13},(_,i)=>pathPoint(p,mix(tail,head,i/12)));
+          const visibility=ramp(0,.18,phase)*(1-ramp(1.002,1.065,phase));
+          ribbon(points,2.9+1.6*p.mass,visibility);
         }
-        ctx.stroke();
       }
-      const responses=captured(t);
-      for(let i=0;i<responses.length;i+=4){
-        const u=responses[i+2],power=responses[i+3]*Math.sin(u*Math.PI);
-        if(power<=0)continue;
-        const dist=1.-.62*u,cx=responses[i]*dist,cy=responses[i+1]*dist;
-        const local=ctx.createRadialGradient(cx,cy,0,cx,cy,.28);
-        local.addColorStop(0,'rgba(255,255,255,'+Math.min(.82,power)+')');local.addColorStop(1,'#cfffff00');
-        ctx.fillStyle=local;ctx.fillRect(cx-.28,cy-.28,.56,.56);
+      const wake=ramp(release-.015,release+.09,time)*(1-ramp(contact-.04,contact+.13,time));
+      if(wake>.002){
+        const [ux,uy]=b.direction;
+        for(let i=0;i<9;i++){
+          const side=2*random(i+17)-1,delay=.036+.104*random(i+62);
+          const z=(2*random(i+5)-1)*.49,across=.84*side;
+          const back=Math.sqrt(Math.max(.05,1-across*across-z*z));
+          const points=Array.from({length:9},(_,j)=>{
+            const u=j/8,old=state(time-delay*(1-u),x,tx,ground);
+            const extra=(1-u)*(9+24*random(i+19));
+            return [old.x-old.r*(ux*back+uy*across)-ux*extra,
+                    old.y-old.r*(uy*back-ux*across)-uy*extra,old.r*z];
+          });
+          ribbon(points,1.35+1.35*random(i+6),wake*(.39+.48*random(i+74)));
+        }
       }
-      ctx.lineWidth=.012;ctx.strokeStyle='#e6ffffe6';ctx.beginPath();ctx.arc(0,0,.982,0,TAU);ctx.stroke();
-      for(let i=0;i<17;i++){
-        const a=TAU*random(i+28)+.125*Math.sin(i+ph);
-        ctx.beginPath();ctx.strokeStyle='rgba(170,253,255,'+(.33+.30*random(i+12))+')';
-        ctx.lineWidth=.006+.005*random(i+8);ctx.ellipse(0,0,1.012+.052*random(i+4),.987+.049*random(i+32),a,a,a+.18+.84*random(i+5));ctx.stroke();
+      const age=time-contact;
+      if(age>=0&&age<.145){
+        const gain=(.53+.47*ramp(0,.025,age))*(1-ramp(.038,.145,age));
+        for(let i=0;i<5;i++){
+          const turn=-.92+i*.45, length=(15+20*random(i+33))*(.61+4*age);
+          const points=Array.from({length:7},(_,j)=>{
+            const u=j/6;
+            return [b.hitX+length*u*Math.cos(turn),b.hitY+length*u*Math.sin(turn),-4-i*4];
+          });
+          ribbon(points,2.3,gain);
+        }
       }
-    }
-    ctx.restore();
+      if(!data.length)return;
+      gl.useProgram(pg);gl.uniformMatrix4fv(vp,false,stage.matrix);
+      gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.depthMask(false);
+      gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.ONE,gl.ONE,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+      gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STREAM_DRAW);
+      gl.drawArrays(gl.TRIANGLES,0,data.length/6);gl.depthMask(true);
+    };
   }
 
-  function palmContact(ctx,t,origin,ground,pose,orb) {
-    const power=ramp(1.970,2.015,t)*(1-ramp(2.14,2.25,t));
-    if(!power)return;
-    const palms=pose==='drive'?[[50.8,-71.2],[52.1,-55.6]]:[[60.0,-76.4],[61.3,-60.8]];
-    ctx.save();ctx.globalAlpha=power;
-    for(const [ox,oy] of palms){
-      const x=origin+ox,y=ground+oy,dx=x-orb.x,dy=y-orb.y;
-      const ratio=Math.hypot(dx/orb.rx,dy/orb.ry);
-      if(ratio<.96)continue;
-      const ex=orb.x+dx/ratio,ey=orb.y+dy/ratio,d=Math.hypot(ex-x,ey-y);
-      if(d>30)continue;
-      shine(ctx,x,y,6.3,'#a4ffffcb');
-      if(d<1.2)continue;
-      const shear=ctx.createLinearGradient(x,y,ex,ey);
-      shear.addColorStop(0,'#edffffea');shear.addColorStop(.40,'#8ce7ffc7');shear.addColorStop(1,'#c0ffff28');
-      ctx.fillStyle=shear;ctx.beginPath();ctx.moveTo(x-1.2,y);
-      ctx.quadraticCurveTo(x+(ex-x)*.62-2,y+(ey-y)*.46,ex-3.5,ey-1.2);
-      ctx.quadraticCurveTo(ex,ey+1.4,x+1.2,y+.6);ctx.fill();
-    }
-    ctx.restore();
+  function worldEffects(gl,makeProgram){
+    const sphere=sphereGeometry(gl),vp=new Float32Array(16);
+    const vertexUniforms=new Map(),eye=[0,0,0];
+    const geometry={
+      program:(v,f)=>makeProgram(gl,v,f),sphere,
+      draw(mesh){gl.bindVertexArray(mesh.vao);gl.drawElements(gl.TRIANGLES,mesh.count,mesh.type??gl.UNSIGNED_SHORT,0);},
+      uniforms(program,age){
+        let u=vertexUniforms.get(program);
+        if(!u){u=['vp','age','eye'].map(name=>gl.getUniformLocation(program,name));vertexUniforms.set(program,u);}
+        gl.useProgram(program);
+        gl.uniformMatrix4fv(u[0],false,vp);gl.uniform1f(u[1],age);gl.uniform3fv(u[2],eye);
+      },
+    };
+    const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram);
+    const renderVolume=SpiritVolumeBuild(gl,geometry),renderEjecta=SpiritEjectaBuild(gl,geometry);
+    return (_age,stage)=>{
+      const {clock,ball,matrix}=stage,age=clock-contact;
+      renderOrb(clock,ball,stage);
+      renderFlow(clock,stage);
+      if(age<0||age>1.67)return;
+      // Impact meshes use sphere units around local (0,1,0). Transform them into the arena.
+      for(let row=0;row<4;row++){
+        vp[row]=matrix[row]*ball.rx;
+        vp[4+row]=-matrix[4+row]*ball.ry;
+        vp[8+row]=-matrix[8+row]*ball.r;
+        vp[12+row]=matrix[row]*ball.x+matrix[4+row]*(ball.y+ball.ry)+matrix[12+row];
+      }
+      eye[0]=(stage.eye[0]-ball.x)/ball.rx;
+      eye[1]=1+(ball.y-stage.eye[1])/ball.ry;
+      eye[2]=-stage.eye[2]/ball.r;
+      geometry.groundFront=-stage.frontZ/ball.r;
+      renderEjecta(age,'stones');renderEjecta(age,'floor');renderEjecta(age,'back');
+      renderVolume(age);renderEjecta(age,'front');
+    };
   }
-  function impact(ctx,t,tx,ground,b) {
-    window.DragonImpact.draw(ctx,t-contact,tx,ground,b);
-  }
-  function draw(ctx,t,scene) {
-    const x=scene.casterX??390, tx=scene.targetX??680, ground=scene.ground??318;
-    const b=state(t,x,tx,ground), age=t-contact;
-    ctx.save();
-    scene.stage(ctx);
-    const dim=ramp(.18,.83,t)*(1-ramp(contact+.79,contact+1.56,t));
-    ctx.fillStyle='rgba(10,16,47,'+((.32+.14*ramp(0,.16,age))*dim)+')';ctx.fillRect(0,0,960,400);
-    if(b.glow>0) {
-      ctx.save();ctx.globalAlpha=.20*b.glow;shine(ctx,b.x,ground+2,b.r*2.07,'#9affff',.19);ctx.restore();
-    }
-    drawIntake(ctx,t,b);
-    const pose=t<.13?'idle':t<.28?'raise':t<1.80?'lift':t<1.970?'raise':
-      t<2.117?'drive':t<2.53?'throw':t<2.625?'drive':t<contact+.89?'recover':'idle';
-    // Rear shoe centers measured on row 712 of the approved 720px frames.
+
+  function arenaFrame(clock,scene){
+    const age=clock-contact;
+    const casterPose=clock<.13?'idle':clock<.28?'raise':clock<1.86?'lift':
+      clock<1.97?'drive':clock<2.23?'throw':clock<contact+1.24?'recover':'idle';
     const footOffset={idle:0,raise:1.45,lift:1.45,drive:1.78,throw:3.78,recover:.1};
-    const recoil=10*ramp(.16,.47,age)+4*ramp(.46,.72,age);
-    const hurt=age>.037&&age<1.27;
-    scene.fighter(ctx,'target',tx+recoil+(hurt?.20:0),hurt?'hurt':'idle',{});
-    paintOrb(ctx,t,b);
-    const caster=x+footOffset[pose];
-    scene.fighter(ctx,'caster',caster,pose,{});
-    palmContact(ctx,t,caster,ground,pose,b);
-    if(age>0 && age<.75) {
-      const light=ramp(0,.095,age)*(1-ramp(.15,.75,age));
-      ctx.fillStyle='rgba(155,229,249,'+(.16*light)+')';ctx.fillRect(0,0,960,400);
-      ctx.save();ctx.globalAlpha=.41*light;shine(ctx,tx,ground-67,422,'#e3feff');ctx.restore();
-      const pointFlash=ramp(0,.048,age)*(1-ramp(.082,.22,age));
-      ctx.save();ctx.globalAlpha=.66*pointFlash;shine(ctx,b.hitX+8*ramp(0,.18,age),b.hitY,37,'#e6feff');ctx.restore();
-    }
-    impact(ctx,t,tx,ground,b);
-    ctx.restore();
+    return {clock,scene,ball:state(clock,scene.casterX,scene.targetX,scene.ground),
+            casterPose,casterOffset:footOffset[casterPose],casterDepth:-95,
+            targetPose:age>=0&&age<1.30?'hurt':'idle',
+            ambience:1-.28*ramp(.18,.83,clock)*(1-ramp(contact+.79,contact+1.60,clock))};
   }
-  let ready;
-  function warmOrb() {
-    const scratch=document.createElement('canvas');
-    scratch.width=scratch.height=32;
-    const ctx=scratch.getContext('2d');
-    paintOrb(ctx,0,{x:16,y:16,r:10,rx:10,ry:10,glow:1});
-    // Await the first real material draw and compositing copy before playback.
-    ctx.getImageData(16,16,1,1);
-  }
-  window.DragonSpirit = {duration,phases,draw,get ready(){
-    return ready??=Promise.all([window.DragonImpact.ready,Promise.resolve().then(warmOrb)]);
-  }};
+  let ready,renderer;
+  window.DragonSpirit={
+    duration,phases,get realtime(){return renderer?.active??false;},
+    draw(ctx,t,scene){
+      if(!renderer){scene.stage(ctx);return;}
+      const layer=renderer.draw(t,{x:scene.casterX,y:scene.ground},{scene});
+      if(layer)ctx.drawImage(layer,0,0);
+    },
+    get ready(){
+      return ready??=Promise.resolve().then(()=>{
+        const canvas=document.createElement('canvas');canvas.width=960;canvas.height=400;
+        renderer=DragonBeamVolume.createStudy(canvas,(gl,program)=>createDragonArenaStage(gl,program,arenaFrame),worldEffects,true);
+      });
+    },
+  };
 })();

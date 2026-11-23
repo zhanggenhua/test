@@ -48,8 +48,8 @@ ball = dict(sp["parts"][0],source=sp["source"])
 shape = film("spirit",ball,"球体造型 · KK_憨小二","这段素材只用于青白球壳、球内亮区和外缘流动，左右各走自己的时间。",0,[0,1,3,4,6,8])
 burst_stills = dict(id="impact-stills",title="命中效果 · 用户提供的两张原图",note="原片 3.700 秒的亮核冲开外壳，4.100 秒可见绕核光丝、前景宽带和壳外碎石。左侧沿用龙珠元气弹的青白配色。",
     offset=0,start=0,end=4.8,fps=30,source="https://www.bilibili.com/video/BV1Wu4y1u7wh/",cards=[
-        dict(file=resource("spirit","user/burst-04.png"),label="过曝内核与穿壳的亮枝",time=3.7,phase=3.15),
-        dict(file=resource("spirit","user/burst-05.png"),label="内核旋丝、暗壳和碎石的层次",time=4.1,phase=3.55)])
+        dict(file=resource("spirit","user/burst-04.png"),label="过曝内核与穿壳的亮枝",time=3.7,phase=2.79),
+        dict(file=resource("spirit","user/burst-05.png"),label="内核旋丝、暗壳和碎石的层次",time=4.1,phase=3.19)])
 spirit = []
 # These are the game's original 30 fps frames, including the camera cuts.
 # Keep an independent native-speed take alongside optional phase matching.
@@ -64,16 +64,16 @@ cards=[dict(time=pts[i-1],label=label,file=copy(dbdir/"frames"/f"source-{i:04}.p
 primary=dict(title="招式主参考 ·《龙珠斗士Z》元气弹",source="https://www.bilibili.com/video/BV11s411M7oV/?t=57",start=pts[12],end=pts[12]+246/30,offset=0,fps=30,
              film=resource("spirit","clips/"+native.name),cards=cards,
              note="实机含切镜。完整擂台采用固定侧视。可按聚气、推球、破裂等阶段对齐，也可各自原速播放。",
-             anchors=[[t,pts[i-1]] for t,i in [(0,13),(.48,45),(1.62,78),(2.02,103),(2.59,154),(2.86,210),(3.15,226),(3.45,234),(3.55,237),(4.09,245),(4.8,258)]])
+             anchors=[[t,pts[i-1]] for t,i in [(0,13),(.48,45),(1.57,78),(2.0,103),(2.23,154),(2.50,210),(2.79,226),(2.88,234),(3.19,237),(3.73,245),(4.8,258)]])
 spirit.append(primary)
 actions = refs/"spirit/action.json"
 for part in json.loads(actions.read_text(encoding="utf-8")):
     if "base-goku" in part["clip"]:
-        offset = 2.02-(60.221-part["sourceStart"])
+        offset = 2.0-(60.221-part["sourceStart"])
         note = "按双掌前推对齐。原片 60.288 秒从近景切到宽景，63.954 秒出现冲击柱。新版在同一固定镜头内更快抵达目标。"
         name = "《龙珠斗士Z》· 投出至命中"
     else:
-        offset = 2.86-(178.667-part["sourceStart"])
+        offset = 2.50-(178.667-part["sourceStart"])
         note = "以球壳触地对齐。旧实机录像截取 12 帧，可见大部分外壳、绕球亮带和冲击环。原上传页待核实。"
         name = "《龙珠斗士Z》· 触地外形"
         part["source"] = ""
@@ -81,7 +81,7 @@ for part in json.loads(actions.read_text(encoding="utf-8")):
 spirit[1:1] = [shape,burst_stills]
 identity=json.loads((refs/"spirit/identity.json").read_text(encoding="utf8"))[0]
 anime_cards=[]
-for src,ts,phase,label in zip(identity["evidenceFiles"],[1223,1229,1230.5],[3.15,3.55,4.09],["白热巨球和离体电弧","明亮球缘后的地面喷射物","远处亮体和低位尘浪"]):
+for src,ts,phase,label in zip(identity["evidenceFiles"],[1223,1229,1230.5],[2.79,3.19,3.73],["白热巨球和离体电弧","明亮球缘后的地面喷射物","远处亮体和低位尘浪"]):
     path=work.parent/src
     anime_cards.append(dict(time=ts,phase=phase,label=label,file=copy(path,"reference/spirit/dragonball/"+path.name)))
 spirit.insert(1,dict(title="动画造型 ·《龙珠Z》布欧篇",source="https://www.bilibili.com/video/BV1ACvYejEEA/?t=1223",cards=anime_cards,offset=0,start=0,end=4.8,fps=30,
@@ -94,7 +94,7 @@ if burst_clip.is_file():
     subprocess.run(["ffmpeg","-v","error","-y","-ss",str(start),"-i",str(refs/"spirit"/shot["clip"]),"-t",str(end-start),"-an","-c:v","libx264","-crf","16","-pix_fmt","yuv420p","-movflags","+faststart",str(clip)],check=True)
     full=resource("spirit",shot["clip"])
     shot.update(clip="clips/"+clip.name,sourceStart=start,sourceEnd=end,cards=[c for c in shot["cards"] if start<=c["sourceTime"]<end])
-    matched=film("spirit",shot,"命中效果 · 气宗师原片","两侧从爆发阶段对齐。原片 4.100 秒对应左侧 3.550 秒，可逐帧看亮丝绕核、壳层遮挡和碎石外抛。左侧配色取自龙珠元气弹。",3.15-(shot["anchor"]-start))
+    matched=film("spirit",shot,"命中效果 · 气宗师原片","两侧从爆发阶段对齐。原片 4.100 秒对应左侧 3.190 秒，可逐帧看亮丝绕核、壳层遮挡和碎石外抛。左侧配色取自龙珠元气弹。",2.79-(shot["anchor"]-start))
     matched["id"]="impact-film"
     matched["full"]=full
     spirit.insert(4,matched)
@@ -107,6 +107,10 @@ def legacy(filename, title, note, length, fps):
     return dict(title=title,note=note,offset=0,start=0,end=length,fps=fps,source="",cards=[],film="dragon-vfx/legacy/"+filename)
 
 copy(out/"spirit-bomb-v11-7-arena.mp4","legacy/spirit-v11.mp4")
+copy(here/"baseline/spirit-v15.mp4","legacy/spirit-v15.mp4")
+spirit.append(dict(legacy("spirit-v15.mp4","上一版 · V15 元气弹",
+                          "同一擂台。按离手、首触和爆发对齐，可直接比较球径、投出速度和爆发接缝。",4.8,30),
+                   anchors=[[0,0],[1.57,1.605],[2.0,2.02],[2.50,2.86],[2.79,3.15],[3.19,3.55],[3.73,4.09],[4.8,4.8]]))
 copy(here/"baseline/spirit-v14.mp4","legacy/spirit-v14.mp4")
 spirit.append(legacy("spirit-v14.mp4","上一版 · V14 青白爆面","同一擂台和角色，比较抛球时的速度、命中时的纵深以及退场方式。",4.8,30))
 copy(here/"baseline/spirit-v13.mp4","legacy/spirit-v13.mp4")
@@ -161,7 +165,7 @@ payload = {"actors":actors,
 atlas = here/"spirit-assets/impact-v15.webp"
 atlas_url = copy(atlas,"impact-v15.webp") if atlas.is_file() else ""
 (dst/"data.js").write_text("window.DragonData="+json.dumps(payload,ensure_ascii=False,separators=(",",":"))+";\nwindow.DragonImpactAtlas="+json.dumps(atlas_url)+";",encoding="utf-8")
-for name in ("spirit.js","kame.js","kame-arena.js","kame-volume.js","kame-study-effects.js","kame-source-meshes.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
+for name in ("spirit.js","kame.js","arena-stage.js","kame-arena.js","kame-volume.js","kame-study-effects.js","kame-source-meshes.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
     copy(here/name,name)
 shutil.copy2(here/"preview.html",out/"dragon-vfx.html")
 shutil.copy2(work/"vfx-preview.html",out/"index.html")

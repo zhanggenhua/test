@@ -3,7 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),{spawn}=require('node:chil
 const output=path.resolve(__dirname,'../../outputs/dragon-vfx');
 const base='http://127.0.0.1:8819/dragon-vfx.html?paused=1&fx=';
 const takes={
-  spirit:{url:'spirit',fps:30,marks:{15:'intake',53:'formed',61:'release',72:'flight',86:'first-contact',88:'contact',92:'pressure',104:'peak',96:'impact',107:'shell',123:'wake'}},
+  spirit:{url:'spirit',fps:30,marks:{15:'intake',46:'formed',60:'release',68:'flight',74:'first-contact',75:'contact',80:'pressure',86:'peak',84:'impact',95:'shell',112:'wake'}},
   kame:{url:'kame',fps:30,marks:{19:'gather',71:'prelaunch',72:'launch',73:'extension',83:'beam',124:'tail'}},
   'kame-study':{url:'kame&study=1&procedural-study=1',fps:30,marks:{53:'gather',72:'launch',73:'extension',83:'beam',95:'sustain',122:'drain',124:'tail'}},
   'kame-source-materials':{url:'kame&study=1',fps:30,local:true,marks:{61:'gather',72:'launch',73:'extension',83:'beam',124:'tail'}},

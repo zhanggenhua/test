@@ -124,7 +124,7 @@
   }
   // Init, draw and read back during loading. A GL link alone defers driver
   // compilation on several backends until the first visible draw.
-  const ready=new URLSearchParams(location.search).get('fx')==='kame'?Promise.resolve():Promise.resolve().then(async()=>{
+  const ready=!new URLSearchParams(location.search).has('bake-impact')?Promise.resolve():Promise.resolve().then(async()=>{
     setup();
     if(loaded){
       paint(.61);

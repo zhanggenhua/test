@@ -39,6 +39,7 @@ window.SpiritEjectaBuild=function(gl,g){
   const chipShader=g.program(shaderHead+noise+`
     layout(location=0)in vec3 pos;layout(location=1)in vec3 normal;layout(location=2)in vec4 attr;
     uniform bool castShadow;
+    uniform float groundFront;
     out vec3 rgb;out float fade;
     mat3 rot(vec3 axis,float a){float c=cos(a),s=sin(a),v=1.-c;vec3 k=axis;return mat3(
       c+k.x*k.x*v,k.y*k.x*v+k.z*s,k.z*k.x*v-k.y*s,
@@ -59,6 +60,7 @@ window.SpiritEjectaBuild=function(gl,g){
       if(castShadow){
         fade*=.28*exp(-origin.y*1.1);
         P.xz+=vec2(.25,.08)*P.y;P.y=.013;rgb=vec3(.015,.065,.092);
+        fade*=1.-smoothstep(groundFront-.09,groundFront,P.z);
       }
       gl_Position=vp*vec4(P,1.);}`,
     '#version 300 es\nprecision highp float;in vec3 rgb;in float fade;out vec4 O;void main(){if(fade<.035)discard;O=vec4(rgb*fade,fade);}'
@@ -74,7 +76,7 @@ window.SpiritEjectaBuild=function(gl,g){
   const floorLight=g.program(shaderHead+`
     layout(location=0)in vec2 point;out vec2 uv;
     void main(){uv=point;gl_Position=vp*vec4(point.x,.011,point.y,1.);}`,
-    '#version 300 es\nprecision highp float;uniform float age;in vec2 uv;out vec4 O;'+noise+`
+    '#version 300 es\nprecision highp float;uniform float age,groundFront;in vec2 uv;out vec4 O;'+noise+`
     void main(){
       float growth=smoothstep(.03,.57,age),tail=smoothstep(.72,1.42,age);
       float r=length(uv*vec2(.98,1.02)),a=atan(uv.y,uv.x);
@@ -82,11 +84,11 @@ window.SpiritEjectaBuild=function(gl,g){
       float fog=exp(-r*r/(.15+1.56*growth))*(.66+.34*sin(winding+r*7.-age*11.));
       float band=r*6.-growth*4.-age*3.+winding*.54;
       float caustic=exp(-7.*abs(sin(band)))*exp(-pow((r-(.26+1.12*growth-.35*tail))/.68,2.));
-      float light=(.24*fog+.42*caustic)*smoothstep(.012,.38,age)*(1.-tail);
+      float light=(.24*fog+.42*caustic)*smoothstep(.012,.38,age)*(1.-tail)*(1.-smoothstep(groundFront-.09,groundFront,uv.y));
       O=vec4(mix(vec3(.04,.52,.78),vec3(.38,.86,1.),caustic)*light,light);
     }`);
   const ringShader=g.program(shaderHead+noise+`
-    layout(location=0)in vec3 vertex;out vec4 tint;
+    layout(location=0)in vec3 vertex;out vec4 tint;out float groundZ;
     void main(){float id=vertex.z,extra=step(5.,id),born=.20+.034*mod(id,5.)+.34*extra;
       float u=(age-born)/(1.0-.12*extra),phase=clamp(u,0.,1.);
       float angle=vertex.x*(3.1+2.4*hash(id+13.))+id*2.43+phase*(.43+.4*hash(id+42.));
@@ -97,8 +99,8 @@ window.SpiritEjectaBuild=function(gl,g){
       float w=.003+.018*smoothstep(.25,.75,branch);
       r+=vertex.y*w;vec3 P=vec3(cos(angle)*r+.16,.021+.035*abs(arc)+.03*extra,r*sin(angle));
       vec3 color=mix(vec3(.12,.57,1.),vec3(.96,1.4,1.5),smoothstep(.46,.78,branch));
-      tint=vec4(color,life*smoothstep(.17,.56,branch));gl_Position=vp*vec4(P,1.);}`,
-    '#version 300 es\nprecision highp float;in vec4 tint;out vec4 O;void main(){if(tint.a<.01)discard;O=vec4(tint.rgb*tint.a,tint.a);}'
+      tint=vec4(color,life*smoothstep(.17,.56,branch));groundZ=P.z;gl_Position=vp*vec4(P,1.);}`,
+    '#version 300 es\nprecision highp float;uniform float groundFront;in vec4 tint;in float groundZ;out vec4 O;void main(){float a=tint.a*(1.-smoothstep(groundFront-.09,groundFront,groundZ));if(a<.01)discard;O=vec4(tint.rgb*a,a);}'
   );
   // Tubes, including their small end flares, occupy distinct near and far
   // positions. The far branches are drawn before the core and seen through its gaps.
@@ -184,6 +186,11 @@ window.SpiritEjectaBuild=function(gl,g){
       gl_Position=vp*vec4(p,1.);}`,
     '#version 300 es\nprecision highp float;in vec4 tint;out vec4 O;void main(){if(tint.a<.01)discard;O=vec4(tint.rgb*tint.a,tint.a);}'
   );
+  const bounds=new Map([chipShader,floorLight,ringShader].map(p=>[p,gl.getUniformLocation(p,'groundFront')]));
+  function uniforms(program,time){
+    g.uniforms(program,time);
+    if(bounds.has(program))gl.uniform1f(bounds.get(program),g.groundFront??100);
+  }
   return function(time,pass){
     if(time<=0||time>1.66)return;
     let prog,mesh;
@@ -193,12 +200,12 @@ window.SpiritEjectaBuild=function(gl,g){
     gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.depthMask(pass==='stones');
     gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);gl.blendEquation(gl.FUNC_ADD);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
     if(pass==='floor'){
-      g.uniforms(chipShader,time);gl.uniform1i(shadowUniform,1);
+      uniforms(chipShader,time);gl.uniform1i(shadowUniform,1);
       gl.bindVertexArray(shardMesh.vao);gl.drawArrays(gl.TRIANGLES,0,shardMesh.count);
-      g.uniforms(floorLight,time);gl.bindVertexArray(floorMesh.vao);gl.drawArrays(gl.TRIANGLES,0,floorMesh.count);
+      uniforms(floorLight,time);gl.bindVertexArray(floorMesh.vao);gl.drawArrays(gl.TRIANGLES,0,floorMesh.count);
     }
     if(pass==='front'){g.uniforms(coronaShader,time);gl.bindVertexArray(coronaMesh.vao);gl.drawArraysInstanced(gl.TRIANGLES,0,coronaMesh.count,3);}
-    g.uniforms(prog,time);if(prog===chipShader)gl.uniform1i(shadowUniform,0);gl.bindVertexArray(mesh.vao);
+    uniforms(prog,time);if(prog===chipShader)gl.uniform1i(shadowUniform,0);gl.bindVertexArray(mesh.vao);
     if(prog===tubeShader)gl.drawArraysInstanced(gl.TRIANGLES,0,mesh.count,4);
     else gl.drawArrays(gl.TRIANGLES,0,mesh.count);
   };
