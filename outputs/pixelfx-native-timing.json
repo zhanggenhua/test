@@ -1,0 +1,28 @@
+{
+	"adapter": "AMD Radeon RX6500 XT",
+	"cases": [
+		{
+			"instances": 1,
+			"step_p50_ms": 0.385,
+			"step_p95_ms": 0.445
+		},
+		{
+			"instances": 4,
+			"step_p50_ms": 1.436,
+			"step_p95_ms": 1.585
+		},
+		{
+			"instances": 8,
+			"step_p50_ms": 2.893,
+			"step_p95_ms": 3.187
+		}
+	],
+	"effect": "arcane/arcane-beam",
+	"godot": "4.7.2-stable (official)",
+	"measure": "Wall time to step effect nodes and submit texture updates; GPU completion excluded",
+	"mode": "GDExtension CPU C++ with two texture updates",
+	"processor": "Intel(R) Core(TM) Ultra 7 265K",
+	"renderer": "gl_compatibility",
+	"samples_per_row": 120,
+	"timeline_hz": 60
+}

@@ -1,0 +1,70 @@
+{
+  "frames_per_variant": 36,
+  "variants": {
+    "default": {
+      "identical_frames": 31,
+      "max_color_pixels_over_one": 0,
+      "max_glow_pixels_over_one": 0,
+      "actual_max_color_pixels_different": 2,
+      "actual_max_glow_pixels_different": 0,
+      "pass": true
+    },
+    "mirror": {
+      "identical_frames": 31,
+      "max_color_pixels_over_one": 0,
+      "max_glow_pixels_over_one": 0,
+      "actual_max_color_pixels_different": 2,
+      "actual_max_glow_pixels_different": 0,
+      "pass": true
+    },
+    "rotate": {
+      "identical_frames": 32,
+      "max_color_pixels_over_one": 0,
+      "max_glow_pixels_over_one": 0,
+      "actual_max_color_pixels_different": 1,
+      "actual_max_glow_pixels_different": 0,
+      "pass": true
+    },
+    "short_palette": {
+      "identical_frames": 33,
+      "max_color_pixels_over_one": 0,
+      "max_glow_pixels_over_one": 0,
+      "actual_max_color_pixels_different": 2,
+      "actual_max_glow_pixels_different": 0,
+      "pass": true
+    },
+    "seed": {
+      "identical_frames": 36,
+      "max_color_pixels_over_one": 0,
+      "max_glow_pixels_over_one": 0,
+      "actual_max_color_pixels_different": 0,
+      "actual_max_glow_pixels_different": 0,
+      "pass": true
+    },
+    "low_light": {
+      "identical_frames": 31,
+      "max_color_pixels_over_one": 0,
+      "max_glow_pixels_over_one": 0,
+      "actual_max_color_pixels_different": 2,
+      "actual_max_glow_pixels_different": 0,
+      "pass": true
+    },
+    "fade": {
+      "identical_frames": 34,
+      "max_color_pixels_over_one": 0,
+      "max_glow_pixels_over_one": 0,
+      "actual_max_color_pixels_different": 3,
+      "actual_max_glow_pixels_different": 0,
+      "pass": true
+    },
+    "clear": {
+      "identical_frames": 36,
+      "max_color_pixels_over_one": 0,
+      "max_glow_pixels_over_one": 0,
+      "actual_max_color_pixels_different": 0,
+      "actual_max_glow_pixels_different": 0,
+      "pass": true
+    }
+  },
+  "rule": "Each layer, each frame: maximum 4 pixels (or 0.1% of drawn pixels if greater) with a channel difference over 1."
+}

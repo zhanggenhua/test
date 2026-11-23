@@ -159,7 +159,15 @@
     el('newTitle').textContent=title+' · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入头顶，双掌送球前压。命中时白纹卷向内核，碎石从壳外抛出。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spirit) {
-      el('newNote').append(' ',external('对照命中原图 · 4.100 秒','?fx=spirit&ref=burst&at=3.55'),' · ',external('对照球体配色','?fx=spirit&ref=shape&at=2'));
+      const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
+      const burst=external('对照命中原图 · 4.100 秒','?fx=spirit&ref=burst&at=3.55');
+      if(params.has('embedded')){
+        for(const link of [burst,shape]){
+          link.removeAttribute('target');
+          link.href += '&embedded=1';
+        }
+      }
+      el('newNote').append(' ',burst,' · ',shape);
     }
     el('refNote').textContent=current.note;
     el('scrub').min=from();el('scrub').max=to();el('phases').replaceChildren();

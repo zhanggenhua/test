@@ -1,1 +1,166 @@
-<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>横版游戏特效测试</title><style>body{font:1rem system-ui;max-width:45rem;margin:4rem auto;padding:0 1.5rem}li{margin:.85rem 0}</style><h1>横版游戏特效测试</h1><ul><li><a href="dragon-vfx.html?fx=spirit&amp;ref=hit">元气弹 V15 · 与命中原片对照</a></li><li><a href="dragon-vfx.html?fx=kame">龟派气功 · 全幅对照</a></li><li><a href="rashomon-v8.html">三重罗生门 V8</a></li><li><a href="sword-domain.html?move=wanjian">万剑归宗</a></li><li><a href="sword-domain.html?move=fate">无限剑制</a></li><li><a href="pixelfx-library-comparison.html">pixelfx 原生移植对照</a></li></ul><p><a href="vfx-worklist.md">查看制作清单和下一项</a></p></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>特效预览</title>
+<style>
+  :root{color-scheme:dark;font:15px "Microsoft YaHei",system-ui,sans-serif;background:#131a1b;color:#e9ece9;--line:#384446;--panel:#1b2425;--muted:#a4b4b2;--accent:#a2e3d1}
+  *{box-sizing:border-box}body{margin:0}a{color:var(--accent)}
+  .layout{min-height:100dvh;max-width:1800px;margin:auto;display:grid;grid-template-columns:192px minmax(0,1fr)}
+  .catalog{background:var(--panel);border-right:1px solid var(--line);padding:18px 12px 24px}
+  h1{font-size:21px;margin:0 8px 6px;font-weight:750}
+  .worklist{display:inline-block;font-size:13px;margin:1px 8px 9px;text-underline-offset:3px}
+  .group:first-child{margin-top:5px}.group{margin-top:12px}.group h2{font-size:12px;color:var(--muted);margin:0 8px 4px;font-weight:600}
+  .group a{display:block;padding:7px 9px;margin:2px 0;border-radius:5px;color:#e9ece9;text-decoration:none;white-space:nowrap}
+  .group a:hover{background:#2b393a}.group a[aria-current=true]{background:#35524e;color:#d8fff3;font-weight:700}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .workspace{min-width:0;display:flex;flex-direction:column}
+  .bar{min-height:52px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 15px;border-bottom:1px solid var(--line)}
+  .bar h2{font-size:17px;margin:0}.bar label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+  select{color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:5px;font:inherit;padding:5px 8px;max-width:100%}
+  .surface{min-height:590px;height:calc(100dvh - 53px)}
+  iframe{display:block;border:0;width:100%;height:100%;background:#101719}
+  .animation{display:grid;place-items:center;height:100%;padding:14px}
+  .animation img{display:block;max-width:100%;max-height:100%;object-fit:contain}
+  [hidden]{display:none!important}
+  @media(max-width:660px){
+    .layout{display:block}.catalog{border-right:0;border-bottom:1px solid var(--line);padding:11px 10px}
+    .catalog h1,.worklist{display:inline-block;margin-bottom:0}.worklist{margin-left:6px}
+    nav{display:flex;gap:8px 16px;flex-wrap:wrap}.group,.group:first-child{margin:4px 0 0}
+    .group h2{margin-left:7px}.group div{display:flex;flex-wrap:wrap}.group a{padding:5px 7px;font-size:13px}
+    .bar{min-height:42px;padding:5px 10px}.surface{min-height:540px;height:82dvh}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="catalog">
+    <h1>特效预览</h1>
+    <a class="worklist" href="vfx-worklist.md">制作清单</a>
+    <nav id="catalog" aria-label="特效分类"></nav>
+  </aside>
+  <main class="workspace">
+    <div class="bar">
+      <h2 id="effect-title" aria-live="polite">元气弹</h2>
+      <label id="version-control">版本 <select id="version"></select></label>
+    </div>
+    <div class="surface">
+      <iframe id="player" title="特效播放器" allow="autoplay; fullscreen"></iframe>
+      <div class="animation" id="animation" hidden><img id="animation-image" alt=""></div>
+    </div>
+  </main>
+</div>
+<script>
+  const categories = [
+    ['能量攻击', [
+      ['spirit', '元气弹', [
+        ['V15 · 命中原片对照', 'dragon-vfx.html?fx=spirit&ref=hit'],
+        ...[11,10,9,8,7,6,5,4,3,2].map(n => ['V'+n+' · 历史方案', 'spirit-bomb-v'+n+'.html']),
+      ]],
+      ['kame', '龟波气功', [
+        ['当前 · 原片与束身', 'dragon-vfx.html?fx=kame'],
+        ['pixelfx 风格对照', 'kame-pixelfx-styles.html'],
+        ['特效分层工作台', 'kame-vfx-studio.html'],
+        ['实时束身试验', 'kame-laser-study.html'],
+        ['分层特效 V5', 'kame-vfx-v5.gif'],
+        ['CC0 素材对照', 'kame-free-vfx-comparison.gif'],
+        ['早期试片对照', 'kame-vfx-comparison.gif'],
+      ]],
+    ]],
+    ['剑系', [
+      ['wanjian', '万剑归宗', [
+        ['技能 033 · 每回合一剑', 'sword-domain.html?move=wanjian'],
+        ['扩展试演 · 平射、落剑与召回', 'sword-domain.html?move=swarm'],
+      ]],
+      ['fate', '无限剑制', [['领域试演', 'sword-domain.html?move=fate']]],
+      ['myriad', '万剑诀', [['汇流与剑雨', 'sword-domain.html?move=myriad']]],
+    ]],
+    ['防御与召唤', [
+      ['rashomon', '三重罗生门', [
+        ['V8 · 擂台与实机选帧', 'rashomon-v8.html'],
+        ...[7,6,5,4,3,2,1].map(n => ['V'+n+' · 历史方案', 'rashomon-v'+n+'.html']),
+      ]],
+    ]],
+    ['通用与动作试片', [
+      ['stock', '通用战斗特效', [['12 组通用战斗特效', 'xubodang-vfx-preview.html']]],
+      ['scythe', '露比挥镰', [
+        ['斩击特效与动作对照', 'ruby-spin-vfx-comparison.gif'],
+        ['独立斩击试片', 'ruby-spin-vfx.gif'],
+        ['地面镰斩试片', 'ruby-mod-5b-imagegen.html'],
+      ]],
+      ['sword', '火柴人剑士', [['斩击试片', 'ember-attack-preview.gif']]],
+    ]],
+    ['技术对照', [
+      ['runtime', 'pixelfx 移植', [
+        ['库移植预览', 'pixelfx-library-comparison.html'],
+        ['光束算法对照', 'pixelfx-native-comparison.html'],
+      ]],
+    ]],
+  ];
+  const catalog = document.getElementById('catalog');
+  const title = document.getElementById('effect-title');
+  const select = document.getElementById('version');
+  const player = document.getElementById('player');
+  const image = document.getElementById('animation-image');
+  const animation = document.getElementById('animation');
+  const effects = new Map();
+  for (const [category, entries] of categories) {
+    const group = document.createElement('section');
+    const heading = document.createElement('h2');
+    const items = document.createElement('div');
+    group.className = 'group';
+    heading.textContent = category;
+    for (const [key, name, versions] of entries) {
+      const link = document.createElement('a');
+      link.href = '#'+key;
+      link.textContent = name;
+      items.append(link);
+      effects.set(key, {name, versions, link});
+    }
+    group.append(heading, items);
+    catalog.append(group);
+  }
+
+  function showEffect() {
+    let [key, rawVersion] = location.hash.slice(1).split('/');
+    if (key === 'swordArts') {
+      const oldKey = [['wanjian','0'], ['wanjian','1'], ['fate','0'], ['myriad','0']];
+      [key, rawVersion] = oldKey[rawVersion] || oldKey[0];
+    }
+    if (!effects.has(key)) key = 'spirit';
+    const {name, versions} = effects.get(key);
+    const index = Math.max(0, Math.min(versions.length-1, Number.parseInt(rawVersion,10) || 0));
+    const [label, url] = versions[index];
+    title.textContent = name;
+    document.title = name + ' · 特效预览';
+    for (const [id, effect] of effects) {
+      if (id === key) effect.link.setAttribute('aria-current', 'true');
+      else effect.link.removeAttribute('aria-current');
+    }
+    select.replaceChildren(...versions.map(([version], i) => new Option(version, i, false, i === index)));
+    select.onchange = () => { location.hash = key + '/' + select.value; };
+    document.getElementById('version-control').hidden = versions.length < 2;
+
+    const gif = url.endsWith('.gif');
+    player.hidden = gif;
+    animation.hidden = !gif;
+    if (gif) {
+      player.removeAttribute('src');
+      image.alt = name + ' · ' + label;
+      if (image.getAttribute('src') !== url) image.src = url;
+    } else {
+      image.removeAttribute('src');
+      const compact = url.startsWith('dragon-vfx.html?') || url.startsWith('sword-domain.html?');
+      const source = compact ? url + '&embedded=1' : url;
+      player.title = name + ' · ' + label;
+      if (player.getAttribute('src') !== source) player.src = source;
+    }
+  }
+
+  addEventListener('hashchange', showEffect);
+  showEffect();
+</script>
+</body>
+</html>

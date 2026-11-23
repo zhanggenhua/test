@@ -5,6 +5,7 @@
   const clamp=x=>Math.max(0,Math.min(1,x));
   const smooth=(a,b,t)=>{const k=clamp((t-a)/(b-a));return k*k*(3-2*k);};
   const lerp=(a,b,u)=>a+(b-a)*u;
+  const throat=9, tubeRadius=47, settleDistance=78;
   const hash=(i,k)=>{const x=Math.sin(i*27.741+k*78.137)*32475.41;return x-Math.floor(x);};
   function poly(c,coords,color){
     c.fillStyle=color;c.beginPath();c.moveTo(coords[0],coords[1]);
@@ -59,14 +60,12 @@
       float u=T-2.40,off=4.20-T;
       if(u<-.051||off<0.){result=vec4(0);return;}
       float x=p.x,outward=max(0.,x);
-      // The hands and the upper body of the opponent define the aim. Beyond
-      // the fighter the beam opens toward the camera and the lower right.
-      float axis=.081*outward+.000148*outward*outward;
-      float y=p.y-axis;
+      // Project the tube along parallel rays, at the palm's height.
+      float y=p.y;
       float release=smoothstep(-.046,.047,u),field=smoothstep(-.014,.117,u);
       float drain=smoothstep(4.015,4.202,T),emit=release*(1.-smoothstep(4.030,4.18,T));
       float tip=246.+max(0.,u)*14500.,head=(1.-smoothstep(tip-16.,tip+9.,x))*step(-.0004,u);
-      float wid=9.+21.5*(1.-exp(-outward/62.))+.083*outward+.000218*outward*outward;
+      float wid=${tubeRadius}.+(${throat}.-${tubeRadius}.)*exp(-outward/${settleDistance}.);
       if(x < -156. || (abs(p.y)>130. && abs(y)>wid*1.65+40.)){result=vec4(0);return;}
       float stream=x*.0081-u*3.1;
       float eddy=n(vec2(stream*.64,2.1+.53*u));
@@ -87,7 +86,10 @@
       // A bank of pale material overlaps a volume with an unbroken luminous
       // centre. Larger facets live on the two banks; texture only tears their
       // edges, and never sets the colour of the entire cross-section.
-      float depthZ=sqrt(max(0.,1.-min(1.,z*z)));
+      // Intersect the orthographic ray with the cylindrical section. This
+      // depth also determines where the warm spiral passes behind the shell.
+      float surfaceDepth=sqrt(max(0., halfW*halfW-(y-center)*(y-center)));
+      float depthZ=surfaceDepth/max(2.,halfW);
       float topFlow=(x-u*224.)/351.,bottomFlow=(x-u*271.+97.)/427.;
       float tf=fract(topFlow),bf=fract(bottomFlow);
       float topTongue=smoothstep(.015,.184,tf)*(1.-smoothstep(.393,.961,tf));
@@ -102,11 +104,11 @@
       float bottomBank=1.31-.89*bottomTongue+.09*sin(stream*2.21+.8)-edgeN;
       float upperLight=.58+.42*smoothstep(.13,.72,rake);
       float blue=smoothstep(-1.06,-.72,z)*(1.-smoothstep(.81,.984,z))*upperLight;
-      vec3 material=mix(vec3(.008,.016,.037),vec3(.05,.13,.27),depthZ*.65);
+      vec3 material=mix(vec3(.011,.035,.083),vec3(.07,.21,.36),depthZ*.65);
       material=mix(material,mix(vec3(.19,.39,.68),vec3(.34,.68,1.),depthZ),blue);
       float darkTop=(1.-smoothstep(topBank-.014,topBank+.016,z))*(1.-smoothstep(.92,1.05,az));
       float darkBottom=smoothstep(bottomBank,bottomBank+.024,z);
-      material=mix(material,vec3(.010,.020,.047),max(darkTop,darkBottom));
+      material=mix(material,vec3(.018,.046,.095),max(darkTop,darkBottom)*.84);
       float coreTop=spine-.37+.134*sin(stream*1.42)+.116*sin(stream*2.49+.82)*topTongue-.14*bottomTongue+.122*(shellNoise-.5)+.135*ripA+.048*ripB;
       float coreBottom=spine+.34+.14*sin(stream*.82+.31)-.16*bottomTongue+.08*sin(stream*2.71+.38)-.107*ripA+.064*ripB;
       float jacket=smoothstep(coreTop-.18,coreTop-.070,z)*(1.-smoothstep(coreBottom+.055,coreBottom+.19,z));
@@ -186,7 +188,9 @@
                      *(.18+.82*exposure)*(.86+.24*eddy);
       float ribbonDist=abs(y-center-coil);
       float energy=smoothstep(-4.,22.,x)*head*release*smoothstep(.03,.57,nose)*(1.-smoothstep(3.78,4.024,T));
-      float show=exposure*(1.-.96*cut)*energy;
+      float ribbonDepth=(halfW*1.025+2.5*front)*depth;
+      float occlusion=1.-smoothstep(-.9,2.2,surfaceDepth-ribbonDepth);
+      float show=exposure*mix(.16,1.,occlusion)*(1.-.86*cut)*energy;
       over(acc,vec3(1.,.22,.025),exp(-ribbonDist/(4.5*profile+1.4))*crest*show*.57);
       over(acc,vec3(1.,.25,.045),exp(-ribbonDist/(2.67*profile+.45))*(.44+.37*crest)*show);
       over(acc,mix(vec3(1.,.42,.048),vec3(1.,.86,.39),1.-smoothstep(0.,profile,ribbonDist)),
@@ -207,8 +211,8 @@
       for(int j=0;j<3;j++){
         float id=float(j),life=fract(max(0.,u-.027)*1.36+id/3.);
         float born=smoothstep(.008+id*.012,.096+id*.026,u);
-        float radius=22.+75.*life,dx=x+5.+life*41.;
-        vec2 e=vec2((dx+(.145+.105*life)*p.y)/(.49+.058*life),p.y);
+        float radius=17.+43.*life,dx=x+2.+life*24.;
+        vec2 e=vec2(dx/(.245+.075*life),p.y);
         float phi=atan(e.y,e.x),wob=1.+.022*sin(phi*3.-u*6.+id)+.010*sin(phi*6.+id*.8);
         float sd=length(e)-radius*wob,distance=abs(sd);
         float brush=smoothstep(-.38,.67,cos(phi+3.09+.13*sin(u*4.+id)));
@@ -224,7 +228,7 @@
         over(acc,vec3(.31,.77,1.),crest*exp(-max(0.,sd)/12.)*exp(-max(0.,-sd)/7.)*born*.76*emit);
       }
       float punch=exp(-pow((u-.043)/.099,2.));
-      vec2 sp=vec2(p.x,(p.y+.18*p.x)*(.77+.16*punch));
+      vec2 sp=vec2(p.x,p.y*(.87+.10*punch));
       float root=length(sp),phi=atan(sp.y,sp.x);
       float swirl=sand(vec2(phi*1.55-u*3.,root*.096-u*7.1));
       float spokes=pow(max(0.,sin(7.*phi+.061*root-u*11.+swirl*4.)),6.)*exp(-root/31.);
@@ -249,7 +253,7 @@
         for(int j=0;j<5;j++){
           float id=float(j),span=200.+12.*id+max(0.,u)*7800.;
           float g=clamp(x/span,0.,1.),travel=smoothstep(.04,.22,g)*(1.-smoothstep(.92,1.,g));
-          float s=axis*1.19+(id-2.)*(.8+.021*x)+(.9+2.1*g)*sin(g*9.+id*2.6+u*27.);
+          float s=(id-2.)*(.8+4.2*g)+(.9+2.1*g)*sin(g*9.+id*2.6+u*27.);
           float segment=.38+.62*smoothstep(-.66,.55,sin(g*8.7-id*2.3-u*35.));
           float distance=abs(p.y-s);
           over(acc,vec3(.23,.64,1.),exp(-distance/(1.55+2.0*g))*travel*segment*transient);
@@ -259,7 +263,7 @@
         // The orange thread in #198 crosses the cold fan just once. Its
         // brighter heel sits above the colder tips and moves into the coil.
         float a=x-max(0.,u)*1900.,f=clamp((a-31.)/169.,0.,1.);
-        float lane=axis*1.19-6.+19.*f*f+2.5*sin(f*5.8+.54);
+        float lane=-5.+9.*f*f+2.5*sin(f*5.8+.54);
         float pulse=smoothstep(29.,52.,a)*(1.-smoothstep(143.,201.,a))*(.40+.60*smoothstep(.012,.083,abs(f-.51)));
         float lobes=.61+.39*smoothstep(-.52,.65,cos(f*10.4-.42));
         float goldWidth=(1.40+1.22*sin(3.14159*f))*(.58+.42*lobes);
@@ -422,8 +426,8 @@
     const reach=246+Math.max(0,u)*14500,length=u<-.0004?0:Math.min(W-p.x+8,reach);
     const root=Math.max(0,(t-4.147)*10400),drain=smooth(4.015,4.202,t);
     const field=smooth(-.014,.117,u),on=smooth(-.046,.047,u);
-    const axis=x=>.081*x+.000148*x*x+2.6*Math.sin(x*.0076-u*5.8);
-    const section=x=>(9+21.5*(1-Math.exp(-x/62))+.083*x+.000218*x*x)*
+    const axis=x=>2.6*Math.sin(x*.0076-u*5.8);
+    const section=x=>(tubeRadius+(throat-tubeRadius)*Math.exp(-x/settleDistance))*
       (.176+.824*field)*(1-.17*drain)*(.025+.975*smooth(-1,164,reach-x));
     const sample=(x,z)=>axis(x)+section(x)*z;
     const fract=x=>x-Math.floor(x);
@@ -543,13 +547,13 @@
     c.shadowBlur=0;
     const palmLight=on*(1-smooth(4.03,4.18,t));
     for(let i=0;i<3;i++){
-      const life=fract(Math.max(0,u-.027)*1.36+i/3),r=22+75*life,dx=-5-life*41;
+      const life=fract(Math.max(0,u-.027)*1.36+i/3),r=17+43*life,dx=-2-life*24;
       const active=smooth(.008+i*.012,.096+i*.026,u)*(1-smooth(4.0,4.174,t));
       for(let side=0;side<3;side++){
         c.globalAlpha=active*[.36,.87,.94][side];
         c.shadowColor='#54c0ff';c.shadowBlur=[13,7,3][side];c.strokeStyle=['#429aff','#5fcaff','#e9ffff'][side];
         c.lineWidth=[7.2,5.4,2.89][side];c.beginPath();
-        c.ellipse(dx,0,r*(.49+.058*life),r,.145+.105*life,[.78,1.55,2.71][side],[6.60,5.20,4.91][side]);c.stroke();
+        c.ellipse(dx,0,r*(.245+.075*life),r,0,[.78,1.55,2.71][side],[6.60,5.20,4.91][side]);c.stroke();
       }
     }
     c.shadowBlur=0;c.globalAlpha=Math.max(palmLight,(1-smooth(.012,.10,u))*smooth(-.045,-.004,u));
@@ -558,7 +562,7 @@
     const arcs=[];
     for(let i=0;i<64;i++){
       const a=i*TAU/64,rad=r*(.96+.069*Math.cos(3*a-u*10)+.031*Math.sin(7*a+u*11));
-      arcs.push(rad*Math.cos(a),(1.22-.18*punch)*rad*Math.sin(a)-.17*rad*Math.cos(a));
+      arcs.push(rad*Math.cos(a),(1.13-.10*punch)*rad*Math.sin(a));
     }
     c.shadowBlur=7;c.shadowColor='#7fdfff';poly(c,arcs,'#f5ffff');
     if(u>=-.0004&&u<.069){
@@ -570,14 +574,14 @@
           const g=x/span;
           c.globalAlpha=(1-smooth(.004,.069,u))*smooth(.04,.22,g)*(1-smooth(.92,1,g))*
             (.38+.62*smooth(-.66,.55,Math.sin(g*8.7-i*2.3-u*35)));
-          const y=v=>1.19*axis(v)+(i-2)*(.8+.021*v)+(.9+2.1*v/span)*Math.sin(v/span*9+i*2.6+u*27);
+          const y=v=>(i-2)*(.8+4.2*v/span)+(.9+2.1*v/span)*Math.sin(v/span*9+i*2.6+u*27);
           c.lineWidth=1.3+1.1*g;c.beginPath();c.moveTo(x,y(x));c.lineTo(x+6,y(x+6));c.stroke();
         }
       }
       const off=Math.max(0,u)*1900;
       const warmY=x=>{
         const f=clamp((x-off-31)/169);
-        return 1.19*axis(x)-6+19*f*f+2.5*Math.sin(f*5.8+.54);
+        return -5+9*f*f+2.5*Math.sin(f*5.8+.54);
       };
       for(let a=29;a<201;a+=4){
         const f=clamp((a-31)/169),x=a+off;
