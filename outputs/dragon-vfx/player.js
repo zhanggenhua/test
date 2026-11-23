@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const el = id => document.getElementById(id);
-  const film = el('film'), canvas = el('arena'), ctx = canvas.getContext('2d');
+  const film = el('film'), scrub = el('scrub'), canvas = el('arena'), ctx = canvas.getContext('2d');
   const params = new URLSearchParams(location.search);
   const key = params.get('fx') === 'kame' ? 'kame' : 'spirit';
   const spirit = key === 'spirit';
@@ -11,6 +11,13 @@
   const unitySource = DragonData.unityDemo;
   const studyView = {camera:'reference',hiddenLayer:params.get('hide-layer')};
   if(study){canvas.width=852;canvas.height=480;}
+  function mediaSize(id,width,height){
+    if(width&&height)el(id).style.setProperty('--ratio',width+'/'+height);
+  }
+  mediaSize('newMedia',canvas.width,canvas.height);
+  const stillImage=el('still');
+  const sizeStill=()=>{if(!stillImage.hidden)mediaSize('refMedia',stillImage.naturalWidth,stillImage.naturalHeight);};
+  stillImage.addEventListener('load',sizeStill);
   const meshView=el('meshView'),meshContext=meshView.getContext('2d');
   const meshCamera={yaw:0,pitch:0,wire:false};
   const engine = study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spirit ? window.DragonSpirit : window.DragonKame;
@@ -42,7 +49,7 @@
   }));
   let current=refs[0],index=0,at=0;
   let clockStart=0,startAt=0,playing=false,rate=1,usable=false,raf=0,rev=0,objectUrl='',controller;
-  let loading=Promise.resolve(), mediaReady=false;
+  let loading=Promise.resolve(), mediaReady=false, scrubFrame=0, autoplayPending=false;
   let recording;
   let firstPaint=true;
   const duration = () => unityDemo ? unitySource.duration : engine.duration;
@@ -79,7 +86,10 @@
       }catch{return;}
     }
     video.src=url;
-    if(await decoded){recording=video;canvas.after(video);canvas.hidden=true;}
+    if(await decoded){
+      recording=video;canvas.after(video);canvas.hidden=true;
+      mediaSize('newMedia',video.videoWidth,video.videoHeight);
+    }
   }
   function paint(){
     if(!usable)return;
@@ -103,8 +113,11 @@
       if(el('still').getAttribute('src')!==still.file)el('still').src=still.file;
       el('refTime').textContent='源帧 · '+time(still.time);
     }
-    el('clock').textContent=time(at-from())+' / '+time(to()-from());
-    el('scrub').value=at;
+    const elapsed=at-from(), total=to()-from();
+    el('clock').textContent=elapsed.toFixed(2)+' / '+total.toFixed(2)+' s';
+    scrub.value=at;
+    scrub.style.setProperty('--played',100*elapsed/total+'%');
+    scrub.setAttribute('aria-valuetext',elapsed.toFixed(2)+' 秒，共 '+total.toFixed(2)+' 秒');
   }
   function syncFilm(force=false){
     if(!mediaReady||!current.film)return;
@@ -122,6 +135,7 @@
     paint();syncFilm();raf=requestAnimationFrame(tick);
   }
   function pause(){
+    autoplayPending=false;
     playing=false;cancelAnimationFrame(raf);film.pause();recording?.pause();el('play').textContent='播放';
   }
   function play(){
@@ -137,9 +151,10 @@
       await Promise.allSettled(visible.map(img=>{img.loading='eager';return img.decode();}));
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     }
-    if(rev===id)play();
+    if(rev===id&&autoplayPending){autoplayPending=false;play();}
   }
   function seek(t){
+    cancelAnimationFrame(scrubFrame);scrubFrame=0;
     pause();at=clamp(t,from(),to());paint();syncFilm(true);
   }
   function external(label,href){
@@ -181,7 +196,7 @@
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
     el('newTitle').textContent=arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
-    el('newNote').textContent=spirit?'光流沿固定路径入球。双掌送出后球径稳定，命中后沿同一球心压入并破裂。':'掌心聚气、出束、持续喷射、断流消散。';
+    el('newNote').textContent=spirit?'光流汇入球体，双掌推出。命中后内核高速旋开，外壳与碎片向外散开。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spirit) {
       const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
       const burst=external('对照命中原图 · 4.100 秒','?fx=spirit&ref=burst&at=3.19');
@@ -199,7 +214,7 @@
     if(arena&&engine.sourceMaterials)el('newNote').textContent='掌心发射，沿水平战斗轴前进。2D 角色和特效共用深度遮挡。';
     if(unityDemo)el('newNote').textContent='Unity 2021.3 实际播放作者 Demo。原相机、Prefab、材质与 Bloom。';
     el('refNote').textContent=current.note;
-    el('scrub').min=from();el('scrub').max=to();el('phases').replaceChildren();
+    scrub.min=from();scrub.max=to();el('phases').replaceChildren();
     const phases=unityDemo?[
       {t:0,name:'准备'},{t:30/30,name:'蓄力'},{t:58/30,name:'首束'},
       {t:59/30,name:'展开'},{t:69/30,name:'冲圈'},{t:110/30,name:'残束'},{t:117/30,name:'退场'},
@@ -208,12 +223,15 @@
     listCards();
   }
   async function choose(i,autoplay=false,position){
-    pause();const id=++rev;mediaReady=false;
+    cancelAnimationFrame(scrubFrame);scrubFrame=0;
+    pause();const id=++rev;mediaReady=false;autoplayPending=autoplay;
     controller?.abort();controller=new AbortController();
     index=i;current=refs[i];
     const meshAvailable=inspecting()&&DragonBeamVolume.available;
     film.hidden=!current.film;el('still').hidden=!!current.film||inspecting();
     meshView.hidden=!meshAvailable;el('meshControls').hidden=!meshAvailable;
+    if(meshAvailable)mediaSize('refMedia',meshView.width,meshView.height);
+    else sizeStill();
     at=position===undefined?from():clamp(position,from(),to());controls();paint();el('notice').textContent=inspecting()&&!meshAvailable?'此设备无法启用 WebGL 2，左侧使用 Canvas 回退，右侧三维检查暂不可用。':'';
     if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl='';}
     if(!current.film){film.removeAttribute('src');film.load();mediaReady=true;if(autoplay)await startWhenVisible(id);return;}
@@ -234,7 +252,9 @@
         film.addEventListener('loadeddata',success);film.addEventListener('error',failure);signal.addEventListener('abort',abort,{once:true});
       });
       film.src=url;film.load();await loaded;
-      if(rev!==id)return;mediaReady=true;syncFilm(true);if(autoplay)await startWhenVisible(id);
+      if(rev!==id)return;
+      mediaSize('refMedia',film.videoWidth,film.videoHeight);
+      mediaReady=true;syncFilm(true);if(autoplay)await startWhenVisible(id);
     }catch(e){if(rev===id&&e.name!=='AbortError')el('notice').textContent='右侧视频载入失败。'+e.message;}
   }
   el('studyCameraLabel').hidden=!study||unityDemo;
@@ -265,9 +285,22 @@
   el('play').onclick=()=>{if(playing)pause();else play();};
   el('replay').onclick=()=>{seek(from());play();};
   el('speed').onchange=()=>{const was=playing;pause();rate=Number(el('speed').value);if(was)play();};
-  el('scrub').oninput=e=>seek(Number(e.target.value));
+  scrub.addEventListener('pointerdown',pause);
+  scrub.addEventListener('input',()=>{
+    pause();
+    if(!scrubFrame)scrubFrame=requestAnimationFrame(()=>seek(scrub.valueAsNumber));
+  });
+  scrub.addEventListener('change',()=>{if(scrubFrame)seek(scrub.valueAsNumber);});
+  scrub.addEventListener('keydown',e=>{
+    if(!['ArrowLeft','ArrowRight','ArrowDown','ArrowUp'].includes(e.key))return;
+    e.preventDefault();
+    step(e.key==='ArrowLeft'||e.key==='ArrowDown'?-1:1);
+  });
   function step(direction){
-    const frame=Math.round((at-offset())*current.fps)+direction;seek(offset()+frame/current.fps);
+    const start=aligned()?0:offset(), fps=aligned()?30:current.fps;
+    const position=(at-start)*fps;
+    const frame=direction>0?Math.floor(position+1e-6)+1:Math.ceil(position-1e-6)-1;
+    seek(start+frame/fps);
   }
   el('back').onclick=()=>step(-1);el('forth').onclick=()=>step(1);
   const ready=(async()=>{

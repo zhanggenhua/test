@@ -1,4 +1,14 @@
-# 元气弹 V16
+# 元气弹 V17
+
+[统一预览](../../outputs/index.html#spirit)的同步进度条在两幅画面上方。拖动会暂停并定位左右画面，方向键可以逐帧。右侧默认保留气宗师原片，可换成上一版 V16，按同一游戏视口和同一时码逐帧比较。
+
+气宗师原片的 [3.700 秒全幅](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-04-match-3.700.png)用于观察初爆， [4.100 秒全幅](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-05-match-4.100.png)用于观察白热旋流的轴线、内外层遮挡和飞石。右侧 4.100 秒对应横版 3.190 秒。眼见的依据来自原片，空间密度和背侧节奏按横版视口重建。球和爆发沿用元气弹配色。
+
+原先的旋纹附着在折叠球面。V17 将旋流重建为三维发光密度场。每个像素沿透视视线在有限空间内采样，累积发光和消光，同时与擂台、角色的实写深度相交。后方暗壳、近侧压环、电弧和飞石各自按三维位置绘制。压入时的球面逐步过渡为内核体积，退场分为外壳破开、内核下沉和地面余波。[Swardson 体积爆炸教程](https://www.jd.swardson.com/projects/raymarched-explosion.html) · [GPU Gems 体积渲染](https://developer.nvidia.com/gpugems/gpugems/part-vi-beyond-triangles/chapter-39-volume-rendering-techniques)
+
+[完整擂台 V17 · 3.167 秒](../../outputs/dragon-vfx/spirit-shell.png) · [完整擂台 V16 · 同一帧](../../outputs/dragon-vfx/legacy/spirit-v16-shell.png) · [完整录像 V17](../../outputs/dragon-vfx/spirit.mp4) · [完整录像 V16](../../outputs/dragon-vfx/legacy/spirit-v16.mp4)
+
+## 元气弹 V16 存档
 
 [统一预览](../../outputs/index.html#spirit)保持 960×400 的天下第一武道会擂台、既有站位与对照格。右侧默认播放用户指定的命中参考，可切到「上一版 · V15 元气弹」并按离手、首触、爆发对齐。
 

@@ -107,6 +107,9 @@ def legacy(filename, title, note, length, fps):
     return dict(title=title,note=note,offset=0,start=0,end=length,fps=fps,source="",cards=[],film="dragon-vfx/legacy/"+filename)
 
 copy(out/"spirit-bomb-v11-7-arena.mp4","legacy/spirit-v11.mp4")
+copy(here/"baseline/spirit-v16.mp4","legacy/spirit-v16.mp4")
+spirit.append(legacy("spirit-v16.mp4","上一版 · V16 元气弹",
+                     "与新版使用同一轨迹、相机和角色。拖动到 3.19 秒可看球面旋纹与体积旋流的区别。",4.8,30))
 copy(here/"baseline/spirit-v15.mp4","legacy/spirit-v15.mp4")
 spirit.append(dict(legacy("spirit-v15.mp4","上一版 · V15 元气弹",
                           "同一擂台。按离手、首触和爆发对齐，可直接比较球径、投出速度和爆发接缝。",4.8,30),

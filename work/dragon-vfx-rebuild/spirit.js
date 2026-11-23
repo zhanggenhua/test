@@ -459,7 +459,7 @@
     };
     const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram);
     const renderVolume=SpiritVolumeBuild(gl,geometry),renderEjecta=SpiritEjectaBuild(gl,geometry);
-    return (_age,stage)=>{
+    return (_age,stage,_hiddenLayer,opaqueDepth)=>{
       const {clock,ball,matrix}=stage,age=clock-contact;
       renderOrb(clock,ball,stage);
       renderFlow(clock,stage);
@@ -476,7 +476,7 @@
       eye[2]=-stage.eye[2]/ball.r;
       geometry.groundFront=-stage.frontZ/ball.r;
       renderEjecta(age,'stones');renderEjecta(age,'floor');renderEjecta(age,'back');
-      renderVolume(age);renderEjecta(age,'front');
+      renderVolume(age,opaqueDepth);renderEjecta(age,'front');
     };
   }
 
