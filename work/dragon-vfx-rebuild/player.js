@@ -87,7 +87,7 @@
     el('refTime').textContent=time(current.start+Math.max(0,r))+(local<0?' · 首帧':local>=refLength()?' · 末帧':'');
     if(inspecting()){
       if(DragonBeamVolume.available)engine.draw(meshContext,t,scene,meshCamera);
-      el('refTime').textContent=time(t)+' · '+(meshCamera.yaw===0&&meshCamera.pitch===0?'固定侧视':'检查机位');
+      el('refTime').textContent=time(t)+' · '+(meshCamera.yaw===0&&meshCamera.pitch===0?'透视侧视':'透视检查机位');
     }else if(!current.film){
       const still=current.cards.filter(card=>at>=card.phase).at(-1)||current.cards[0];
       if(el('still').getAttribute('src')!==still.file)el('still').src=still.file;

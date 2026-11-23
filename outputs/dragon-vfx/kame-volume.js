@@ -1,5 +1,5 @@
 /* Indexed beam, spiral, mouth and wavefront meshes in stage units.
-   Both preview cameras use this renderer. The gameplay view is yaw=0, pitch=0. */
+   Both previews use the same off-axis perspective lens. The gameplay view is yaw=0, pitch=0. */
 (() => {
   'use strict';
   const width=960,height=400;
@@ -40,10 +40,12 @@
     }
     float ringLife(float id){return fract(max(0.,age-.027)*1.36+id/3.);}
     float winding(float x){return -1.73+x*.0102+.44*(1.-exp(-x/82.))-6.1*(age-.367);}
+    float warmPulse(float x){return pow(.5+.5*sin(.025*x-age*5.+.8),5.);}
   `;
   const vertices=code+`
     layout(location=0) in vec2 parameter;
     uniform vec2 origin,angle;
+    uniform float cameraDistance,lensFit;
     uniform bool wire;
     out vec3 localPosition;
     out vec3 localNormal;
@@ -53,9 +55,6 @@
       float yaw=angle.x,pitch=angle.y;
       p.xz=mat2(cos(yaw),-sin(yaw),sin(yaw),cos(yaw))*p.xz;
       p.yz=mat2(cos(pitch),-sin(pitch),sin(pitch),cos(pitch))*p.yz;
-      // Keep the palm anchored while framing the end of the rotated mesh.
-      float extent=abs(sin(yaw)*sin(pitch));
-      p.xy/=1.+max(0.,extent-.155)*3.6;
       return p;
     }
     void main(){
@@ -68,7 +67,7 @@
         float radius=outerRadius(x);
         if(part==1){
           float helix=winding(x);
-          float cord=(2.3+1.2*sin(.019*x-age*6.)+.55*sin(.075*x-age*8.))*smoothstep(4.,38.,x);
+          float cord=(1.3+5.2*warmPulse(x)+.58*sin(.075*x-age*8.))*smoothstep(4.,38.,x);
           float offset=radius*skin(x,vec2(sin(helix),cos(helix)))+2.40;
           float r=offset+cord*cos(a);
           N=vec3(sin(a),cos(a)*sin(helix),cos(a)*cos(helix));
@@ -91,20 +90,26 @@
       }else{
         float life=ringLife(instance);
         float az=parameter.x*tau, r=17.+43.*life;
-        float x=-2.-life*24.+(6.+8.*life)*cos(az)+4.*sin(az)*sin(az);
+        float x=-2.-life*29.+(8.+12.*life)*cos(az)+5.*sin(az)*sin(az);
         float wobble=1.+.027*sin(az*3.-age*8.+instance)+.014*cos(az*7.+age*4.);
-        float cord=(1.08+1.72*(1.-life))*(.62+.38*sin(az*3.+instance));
+        float cord=(1.32+1.82*(1.-life))*(.74+.26*sin(az*3.+instance));
         float radius=r*wobble+cord*cos(a);
         N=vec3(sin(a),cos(a)*sin(az),cos(a)*cos(az));
         p=vec3(x+cord*sin(a),radius*sin(az),radius*cos(az));
       }
       localPosition=p;localNormal=N;
       vec3 v=camera(p);
-      vec2 q=v.xy+origin;
-      gl_Position=vec4(q.x/480.-1.,1.-q.y/200.,-v.z/800.-(wire?.0008:0.),1.);
+      // The beam originates on the convergence ray. At world z=0, the palm
+      // and the stage plane retain their existing pixel coordinates.
+      float depth=cameraDistance-v.z;
+      vec2 principal=vec2(origin.x/480.-1.,1.-origin.y/200.);
+      vec2 focal=vec2(1./480.,-1./200.)*cameraDistance*lensFit;
+      const float near=70.,far=2300.;
+      float clipZ=((far+near)*depth-2.*far*near)/(far-near);
+      gl_Position=vec4(principal*depth+focal*v.xy,clipZ-(wire?.00018*depth:0.),depth);
     }`;
   const fragments=code+`
-    uniform vec2 angle;
+    uniform vec3 eye;
     uniform bool wire;
     in vec3 localPosition;
     in vec3 localNormal;
@@ -114,8 +119,9 @@
     void main(){
       float p=localPosition.x;
       float fading=smoothstep(1.63,1.794,age),visibility=release()*(1.-fading);
-      vec3 direction=vec3(sin(angle.x)*cos(angle.y),sin(angle.y),cos(angle.x)*cos(angle.y));
-      float facing=max(0.,dot(normalize(localNormal),direction));
+      vec3 normal=normalize(localNormal);
+      vec3 direction=normalize(eye-localPosition);
+      float facing=clamp(dot(normal,direction),0.,1.);
       vec3 color;
       float alpha;
       if(part==0){
@@ -127,26 +133,29 @@
         float steam=sin(p*.011-age*6.8+lane*10.5+fog*4.2);
         float centerline=.13*sin(p*.011-age*4.1+.3)+.16*heat;
         float edge=abs(lane-centerline);
-        float hot=1.-smoothstep(.17+.13*heat,.48+.13*heat,edge);
+        float hot=1.-smoothstep(.145+.12*heat,.43+.12*heat,edge);
         float flowing=smoothstep(.39,.66,fog+.14*steam+.087*heat);
         float crumple=smoothstep(.65,.85,fold+.16*heat)*(1.-hot);
         float stratified=smoothstep(.22,.73,flowing+.21*hot-.48*crumple);
-        vec3 blue=mix(vec3(.018,.035,.074),vec3(.16,.46,.82),stratified);
-        blue=mix(blue,vec3(.32,.77,1.10),smoothstep(.43,.75,flowing+.15*heat+.21*hot));
+        vec3 blue=mix(vec3(.018,.035,.074),vec3(.18,.45,.83),stratified);
+        blue=mix(blue,vec3(.37,.75,1.09),smoothstep(.43,.75,flowing+.16*heat+.19*hot));
         float white=hot*smoothstep(.30,.74,fog+.31*flowing);
         white=max(white,.55*hot*(1.-smoothstep(.0,.33,edge)));
         float paper=smoothstep(.33,.75,torn)*.10;
         color=mix(blue,vec3(.94,1.27,1.36),smoothstep(.19,.90,white));
-        color+=vec3(.047,.13,.20)*paper+vec3(.035,.12,.19)*(1.-facing)*stratified;
+        float rim=(1.-facing)*(1.-facing);
+        color+=vec3(.047,.13,.20)*paper+vec3(.040,.135,.23)*rim*stratified;
+        float sheen=pow(max(0.,dot(normalize(vec3(-.23,.65,.72)+direction),normal)),9.);
+        color+=vec3(.084,.23,.34)*sheen*smoothstep(.25,.74,fold);
         float hole=smoothstep(.45,.75,fold+.08*heat)*(1.-hot);
         alpha=visibility*(1.-hole*.15);
         alpha*=1.-smoothstep(fog-.10,fog+.11,drain())*smoothstep(1.61,1.73,age);
       }else if(part==1){
         if(age<-.0004||tail()>=tip())discard;
-        float intensity=.61+.43*sin(.023*p-age*9.4)+.20*n(vec2(p*.06-age*11.,uv.y*4.));
+        float intensity=.44+.68*warmPulse(p)+.25*n(vec2(p*.06-age*11.,uv.y*4.));
         float scorch=smoothstep(.09,.94,intensity);
         color=mix(vec3(.65,.125,.018),vec3(1.54,.63,.15),scorch);
-        color+=vec3(.91,.51,.22)*smoothstep(.87,1.14,intensity);
+        color+=vec3(.94,.59,.26)*smoothstep(.87,1.15,intensity);
         alpha=visibility*smoothstep(9.,37.,p)*(1.-smoothstep(.91,1.,uv.x))*(1.-smoothstep(1.39,1.633,age));
       }else if(part==2){
         float first=exp(-pow((age-.019)/.086,2.))*smoothstep(-.051,-.012,age);
@@ -159,8 +168,9 @@
         float life=ringLife(instance),az=uv.x*tau;
         float birth=smoothstep(.007+instance*.012,.092+instance*.026,age);
         float torn=.27+.73*smoothstep(-.53,.42,cos(az+2.7+.42*instance)+.34*sin(az*5.+instance));
-        color=mix(vec3(.11,.44,.94),vec3(.64,1.22,1.52),.48+.42*sin(az+instance*.7));
-        alpha=birth*(1.-smoothstep(.73,1.,life))*torn*(1.-fading)*(.35+.65*facing);
+        float leading=smoothstep(-.31,.74,cos(az+2.73+.12*instance));
+        color=mix(vec3(.10,.52,1.19),vec3(.94,1.64,2.03),leading*(.66+.34*facing));
+        alpha=birth*(1.-smoothstep(.72,1.,life))*torn*(1.-fading)*(.55+.45*facing);
       }
       if(alpha<.016)discard;
       color*=.75+.25*facing;
@@ -197,7 +207,7 @@
       float glow=1.-exp(-max(bloom.r,max(bloom.g,bloom.b))*1.28);
       float alpha=surface.a+(1.-surface.a)*glow;
       float peak=max(surface.r,max(surface.g,surface.b))/max(.001,surface.a);
-      vec3 light=surface.rgb/(1.+.38*max(0.,peak-.83))+bloom*(1.-surface.a*.51);
+      vec3 light=surface.rgb/(1.+.38*max(0.,peak-.83))+bloom*(1.-surface.a*.45);
       color=vec4(clamp(light,vec3(0.),vec3(alpha)),alpha);
     }`;
 
@@ -247,7 +257,7 @@
     if(!gl)return null;
     const model=makeProgram(gl,vertices,fragments),blur=makeProgram(gl,screen,down),output=makeProgram(gl,screen,compose);
     const uniforms=(pg,names)=>Object.fromEntries(names.map(name=>[name,gl.getUniformLocation(pg,name)]));
-    const m=uniforms(model,['age','part','origin','angle','wire']);
+    const m=uniforms(model,['age','part','origin','angle','cameraDistance','lensFit','eye','wire']);
     const b=uniforms(blur,['src','size','texel','first']);
     const o=uniforms(output,['mainLayer','nearGlow','farGlow','wire']);
     const surfaces=[
@@ -298,7 +308,14 @@
       gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       gl.useProgram(model);
       gl.uniform1f(m.age,time-2.4);gl.uniform2f(m.origin,origin.x,origin.y);
-      gl.uniform2f(m.angle,yaw*Math.PI/180,pitch*Math.PI/180);
+      const azimuth=yaw*Math.PI/180,elevation=pitch*Math.PI/180;
+      const depth=Math.sin(azimuth)*Math.cos(elevation);
+      const distance=590+315*Math.max(0,-depth);
+      const steepness=Math.abs(Math.sin(azimuth)*Math.sin(elevation));
+      const fit=1/(1+Math.max(0,steepness-.16)*3.3+1.7*Math.max(0,-depth));
+      gl.uniform2f(m.angle,azimuth,elevation);
+      gl.uniform1f(m.cameraDistance,distance);gl.uniform1f(m.lensFit,fit);
+      gl.uniform3f(m.eye,-distance*depth,-distance*Math.sin(elevation),distance*Math.cos(azimuth)*Math.cos(elevation));
       draws(false);if(wire)draws(true);
       gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.bindVertexArray(blank);
       if(!wire){
