@@ -473,7 +473,7 @@
       return flash*vec3(.24,.40,.59)*(.31+.69*facing)*exp(-dot(offset,offset)/41000.);
     }`;
 
-  function worldEffects(gl,makeProgram,groundImpact=false,arenaWake=false){
+  function worldEffects(gl,makeProgram,groundImpact=false,arenaWake=false,animeBurst=false){
     const sphere=sphereGeometry(gl),vp=new Float32Array(16);
     const vertexUniforms=new Map(),eye=[0,0,0];
     const geometry={
@@ -487,7 +487,7 @@
       },
     };
     const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram);
-    const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact,arenaWake),renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact);
+    const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact,arenaWake,animeBurst),renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact);
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
       const {clock,ball,matrix}=stage,age=clock-contact;
       const inlet=groundImpact&&age>0?{...ball,glow:ball.glow*(1-ramp(.008,.075,age))}:ball;
@@ -522,7 +522,9 @@
             ambience:1-.28*ramp(.18,.83,clock)*(1-ramp(contact+.79,contact+1.60,clock))};
   }
   const impactPhases=[...phases,{t:2.701,name:'撞地爆闪'},{t:4.1,name:'贴地旋涡'}].sort((a,b)=>a.t-b.t);
-  function createArena(groundImpact){
+  function createArena(groundImpact,animeBurst=false){
+    const arenaPhases=[...impactPhases.slice(0,-1),{t:5.29,name:'暗浪裂散'},{t:5.96,name:'余波散尽'}];
+    if(animeBurst)arenaPhases.push({t:3.55,name:'动画白闪'},{t:4.07,name:'尘浪翻起'});
     let ready,renderer;
     const sample=groundImpact?(clock,scene)=>{
       const frame=arenaFrame(clock,scene),age=clock-contact;
@@ -531,7 +533,7 @@
     }:arenaFrame;
     return {
       duration:groundImpact?6.2:duration,
-      phases:groundImpact?[...impactPhases.slice(0,-1),{t:5.29,name:'暗浪裂散'},{t:5.96,name:'余波散尽'}]:phases,
+      phases:groundImpact?arenaPhases.sort((a,b)=>a.t-b.t):phases,
       get realtime(){return renderer?.active??false;},
       draw(ctx,t,scene){
         if(!renderer){scene.stage(ctx);return;}
@@ -542,7 +544,7 @@
         return ready??=Promise.resolve().then(()=>{
           const canvas=document.createElement('canvas');canvas.width=960;canvas.height=400;
           const stage=(gl,program)=>createDragonArenaStage(gl,program,sample,groundImpact?impactLighting:null);
-          renderer=DragonBeamVolume.createStudy(canvas,stage,(gl,program)=>worldEffects(gl,program,groundImpact,groundImpact),true);
+          renderer=DragonBeamVolume.createStudy(canvas,stage,(gl,program)=>worldEffects(gl,program,groundImpact,groundImpact,animeBurst),true);
         });
       },
     };
@@ -552,4 +554,5 @@
     buildStudyEffects:(gl,program)=>worldEffects(gl,program,true),
   });
   window.DragonSpiritArena=createArena(true);
+  window.DragonSpiritAnimeArena=createArena(true,true);
 })();

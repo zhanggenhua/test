@@ -432,6 +432,71 @@
     }
     #endif
 
+    #ifdef ANIME_BURST
+    vec4 animeBurstVeil(vec3 p){
+      // On the last flash, the upper glow releases while a lower front
+      // lifts separate banks of dust. Both share the contact plane.
+      float r=length(p.xz),a=atan(p.z,p.x);
+      if(r>2.94||p.y>1.92)return vec4(0.);
+      float flashOn=smoothstep(.974,1.043,age);
+      float flash=flashOn*(1.-smoothstep(1.050,1.157,age));
+      float push=1.-exp(-max(0.,age-.962)*9.8);
+      float edgeNoise=noise3(p*5.9+vec3(.3,age*2.1,.58));
+      float breath=noise3(p*2.35+vec3(.8,-age*.43,.2));
+      float azimuth=.11*sin(3.*a+.53)+.075*sin(5.*a+age*2.8);
+      float ground=smoothstep(.009,.092,p.y);
+      float shell=length(vec2(r/(.84+1.19*push),p.y/(.67+.88*push)));
+      float lobes=.12*(edgeNoise-.44)+azimuth*.27;
+      float lightEdge=1.-smoothstep(.047,.204,abs(shell-.82+lobes));
+      float lightBody=1.-smoothstep(.55,.95,shell+lobes);
+      float scallop=.62+.38*smoothstep(-.69,.71,sin(4.*a+p.y*4.9)+.30*(breath-.5));
+      float shear=pow(.50+.50*cos(3.*a+.69+p.y*1.7),8.);
+      float outrun=1.-smoothstep(1.25+push*.26,1.33+push*1.24,r);
+      float rayHeight=.13+.38*max(0.,r-.84);
+      float skim=exp(-pow((p.y-rayHeight)/(.071+.062*push),2.));
+      float white=flash*ground*(4.58*lightEdge*scallop+1.22*lightBody+3.00*shear*skim*outrun*push);
+      vec3 flashLight=vec3(1.63,2.05,2.40)*(.68+.32*edgeNoise);
+
+      float dust=0.;
+      vec3 dustLight=vec3(0.);
+      float sector=floor(a*(8./6.2831853)+.5);
+      for(int k=-1;k<=1;k++){
+        float bank=mod(sector+float(k),8.);
+        float seed=hash3(vec3(bank,.3,1.7));
+        float jitter=hash3(vec3(bank,2.1,.82));
+        float elapsed=age-1.10-.22*seed;
+        if(elapsed<=0.)continue;
+        float roll=1.-exp(-elapsed*(2.45+1.69*jitter));
+        float drop=smoothstep(.61,1.95,elapsed);
+        float breakUp=smoothstep(.85,1.84,elapsed);
+        float az=(bank+.14*(seed-.5))*6.2831853/8.;
+        vec2 facing=vec2(cos(az),sin(az));
+        vec2 across=vec2(-facing.y,facing.x);
+        float reach=.97+roll*(1.18+.45*seed);
+        vec2 shift=p.xz-reach*facing;
+        float height=.065+(.35+.40*jitter)*roll*(1.-.67*drop);
+        float side=.18+.30*roll+seed*.095;
+        float yScale=(.22+.34*jitter)*(.32+.68*roll)*(1.-.46*drop);
+        vec3 local=vec3(dot(shift,facing)/(side*.93), (p.y-height)/yScale,
+                        dot(shift,across)/(side*1.27));
+        vec3 sideRoll=(local-vec3(.48,.29,.49*(2.*seed-1.)))/vec3(.68,.77,.79);
+        float wave=min(length(local),length(sideRoll))+.25*(breath-.50)+.104*(edgeNoise-.48);
+        float lip=1.-smoothstep(.66,.93,wave);
+        float gap=smoothstep(.10,.33,breath+.13*edgeNoise-.56*breakUp);
+        float life=smoothstep(0.,.19,elapsed)*(1.-smoothstep(.98,2.16,elapsed));
+        float puff=ground*lip*gap*life*(2.18+.92*seed);
+        float crown=smoothstep(-.27,.54,local.y+.22*(edgeNoise-.5));
+        vec3 shadow=vec3(.215,.190,.158)*(.77+.23*breath);
+        vec3 pale=vec3(.79,.755,.68)*(.81+.19*edgeNoise);
+        vec3 light=mix(shadow,pale,crown)+vec3(.029,.084,.117)*(1.-drop);
+        dust+=puff;
+        dustLight+=light*puff;
+      }
+      float total=white+dust;
+      return vec4((flashLight*white+dustLight)/max(.00001,total),total);
+    }
+    #endif
+
     vec4 pressureDust(vec3 p,float age){
       float r=length(p.xz),a=atan(p.z,p.x);
       float speed=1.-exp(-max(0.,age-.05)*5.2);
@@ -481,6 +546,15 @@
       vec4 groundGas=folding>.001?groundVortex(above):vec4(0.);
       #endif
       groundGas.a*=folding;
+      #ifdef ANIME_BURST
+      if(age>.972&&age<3.32){
+        vec4 veil=animeBurstVeil(above);
+        if(veil.a>.00001){
+          float total=groundGas.a+veil.a;
+          groundGas=vec4((groundGas.rgb*groundGas.a+veil.rgb*veil.a)/total,total);
+        }
+      }
+      #endif
       if(age<.62)groundGas=pressureDust(above,age);
       if(envelope*baseFade<.002&&(age>=.34||length(above-vec3(.16,.48,-.04))>1.37))return groundGas;
       #else
@@ -747,8 +821,8 @@
     };
   }
 
-  window.SpiritVolumeBuild=(gl,geom,studio=false,arenaWake=false)=>{
-    const defines=studio?'#define STUDIO\n'+(arenaWake?'#define ARENA_WAKE\n':''):'';
+  window.SpiritVolumeBuild=(gl,geom,studio=false,arenaWake=false,animeBurst=false)=>{
+    const defines=studio?'#define STUDIO\n'+(arenaWake?'#define ARENA_WAKE\n':'')+(animeBurst?'#define ANIME_BURST\n':''):'';
     const variant=source=>source.replace('#version 300 es\n','#version 300 es\n'+defines);
     const end=arenaWake?3.48:studio?2.19:1.63;
     const volumeEnd=studio?end:1.34;

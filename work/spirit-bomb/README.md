@@ -1,3 +1,11 @@
+# 元气弹横版动画爆发试作
+
+[统一预览 · 动画爆发试作](../../outputs/index.html#spirit/anime-burst)从原版横版的命中材质和演出派生。原片在右侧作为默认，气宗师是第二参考。原横版在版本菜单仍可打开，也可手动选为同帧对照。
+
+《龙珠Z》布欧篇 [20:26–20:35.5](https://www.bilibili.com/video/BV1ACvYejEEA/?t=1226) 用于拆解末段的白闪、向外散出的亮面和分批翻起的浅色尘浪。新版在 3.55 秒由原有爆面向外放光，约 4.07 秒可见分块卷起的尘浪。旋转亮丝、离体电弧、飞石、暗浪和带电余波继续使用已有表现。
+
+[末段白闪全幅](../../outputs/dragon-vfx/spirit-anime-arena-flash.png) · [浅尘与余波全幅](../../outputs/dragon-vfx/spirit-anime-arena-dust.png) · [完整录像](../../outputs/dragon-vfx/spirit-anime-arena.mp4)
+
 # 元气弹 2D 横版试演
 
 [统一预览 · 2D 横版](../../outputs/index.html#spirit/arena)左侧采用 960×400 的天下第一武道会擂台和现有角色动画。右侧默认同步播放《龙珠Z》布欧篇元气弹动画。气宗师列第二，仅用于命中与余波。独立 3D 和旧版横版从参考菜单手动切换。

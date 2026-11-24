@@ -6,6 +6,7 @@ const takes={
   spirit:{url:'spirit',fps:30,marks:{15:'intake',46:'formed',60:'release',68:'flight',74:'first-contact',75:'contact',80:'pressure',86:'peak',84:'impact',95:'shell',112:'wake'}},
   'spirit-study':{url:'spirit&study=1&ref=hit',fps:30,marks:{36:'charge',60:'release',75:'contact',81:'flash',84:'impact',96:'vortex',123:'collapse'}},
   'spirit-arena':{url:'spirit&arena=1',fps:30,marks:{36:'charge',60:'release',75:'contact',81:'flash',96:'vortex',123:'collapse',151:'wake',159:'breakup',169:'tail'}},
+  'spirit-anime-arena':{url:'spirit&arena=1&anime-burst=1',fps:30,marks:{81:'impact',106:'flash',122:'dust',145:'wake',159:'breakup'}},
   kame:{url:'kame',fps:30,marks:{19:'gather',71:'prelaunch',72:'launch',73:'extension',83:'beam',124:'tail'}},
   'kame-study':{url:'kame&study=1&procedural-study=1',fps:30,marks:{53:'gather',72:'launch',73:'extension',83:'beam',95:'sustain',122:'drain',124:'tail'}},
   'kame-source-materials':{url:'kame&study=1',fps:30,local:true,marks:{61:'gather',72:'launch',73:'extension',83:'beam',124:'tail'}},

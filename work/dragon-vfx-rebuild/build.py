@@ -188,9 +188,12 @@ spirit_study_take = dict(legacy("spirit-study.mp4","独立 3D · 已确认的撞
 spirit_legacy_arena = dict(legacy("spirit.mp4","V17 · 同一横版擂台",
     "两版共用横版舞台、角色站位和时间。可逐帧比较撞地爆闪与贴地余波。",4.8,30),
     film="dragon-vfx/spirit.mp4")
+spirit_impact_baseline = dict(legacy("spirit-arena.mp4","上一版 · 2D 撞地冲击",
+    "两版共用擂台、角色和时间。可同帧检查动画版新增的白闪和浅尘浪。",6.2,30),
+    film="dragon-vfx/spirit-arena.mp4")
 payload = {"actors":actors,
            "unityDemo":{"film":unity_film,"duration":unity_duration},
-           "sources":{"spirit":[anime_excerpts[0],*study_impact,*anime_excerpts[1:],*spirit],
+           "sources":{"spiritImpactBaseline":spirit_impact_baseline,"spirit":[anime_excerpts[0],*study_impact,*anime_excerpts[1:],*spirit],
                       "spiritArena":[anime_excerpts[0],*arena_impact,*anime_excerpts[1:],*spirit,spirit_study_take,spirit_legacy_arena],
                       "kame":kame,"kameStudy":[study_ref,study_previous,study_early],
                       "kameUnity":[unity_original,unity_web],

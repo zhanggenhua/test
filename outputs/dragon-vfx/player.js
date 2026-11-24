@@ -8,6 +8,8 @@
   const study = !spirit&&params.has('study');
   const spiritStudy = spirit&&params.has('study');
   const spiritArena = spirit&&!spiritStudy&&params.has('arena');
+  const animeBurst = spiritArena&&params.has('anime-burst');
+  const spiritArenaFile = animeBurst?'spirit-anime-arena':'spirit-arena';
   const unityDemo = study&&params.has('unity-demo');
   const arena = !spirit&&!study&&params.has('arena');
   const unitySource = DragonData.unityDemo;
@@ -23,8 +25,9 @@
   stillImage.addEventListener('load',sizeStill);
   const meshView=el('meshView'),meshContext=meshView.getContext('2d');
   const meshCamera={yaw:0,pitch:0,wire:false};
-  const engine = spiritStudy ? window.DragonSpiritStudy : study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spiritArena ? window.DragonSpiritArena : spirit ? window.DragonSpirit : window.DragonKame;
-  const refs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : arena ? DragonData.sources.kameArena.slice() : spiritArena ? DragonData.sources.spiritArena : DragonData.sources[key];
+  const engine = spiritStudy ? window.DragonSpiritStudy : study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spiritArena ? (animeBurst?window.DragonSpiritAnimeArena:window.DragonSpiritArena) : spirit ? window.DragonSpirit : window.DragonKame;
+  const selectedRefs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : arena ? DragonData.sources.kameArena.slice() : spiritArena ? DragonData.sources.spiritArena : DragonData.sources[key];
+  const refs=animeBurst?[...selectedRefs,DragonData.sources.spiritImpactBaseline]:selectedRefs;
   const actors = {};
   const title = spirit ? '元气弹' : '龟派气功';
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
@@ -179,7 +182,7 @@
     }else{
       const clip=engine.sourceMaterials
         ?'dragon-vfx/local/kame/'+(arena?'kame-source-arena':'kame-source-materials')+'.mp4'
-        :'dragon-vfx/'+(spiritStudy?'spirit-study':spiritArena?'spirit-arena':study?'kame-study':key)+'.mp4';
+        :'dragon-vfx/'+(spiritStudy?'spirit-study':spiritArena?spiritArenaFile:study?'kame-study':key)+'.mp4';
       links.append(external('单独播放左侧完整演出',clip));
       links.append(external('查看本版特效源码','dragon-vfx/'+(spiritStudy?'spirit-study':study?'kame-study':arena?'kame-arena':key)+'.js'));
       if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
@@ -199,12 +202,14 @@
     el('back').textContent=aligned()?'新版上一帧':'上一帧';
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
-    el('newTitle').textContent=spiritArena?'元气弹 · 2D 横版擂台':spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
+    el('newTitle').textContent=animeBurst?'元气弹 · 动画爆发试作':spiritArena?'元气弹 · 2D 横版擂台':spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入球体，双掌推出。命中后内核高速旋开，外壳与碎片向外散开。':'掌心聚气、出束、持续喷射、断流消散。';
-    if(spiritArena)el('newNote').textContent='冲击半球塌向地面，带电余波在暗浪内回卷，随后分块散开。';
+    if(spiritArena)el('newNote').textContent=animeBurst
+      ?'撞地冲击后，白闪沿爆面外扩，浅色尘浪翻过已有的带电余波。'
+      :'冲击半球塌向地面，带电余波在暗浪内回卷，随后分块散开。';
     if(spiritStudy)el('newNote').textContent='触地爆闪推开厚浪和溅射碎片，贴地冲击掠过网格，半球向地面塌为卷动的余波。';
     if(spirit&&!spiritStudy) {
-      const base=spiritArena?'?fx=spirit&arena=1':'?fx=spirit';
+      const base=spiritArena?'?fx=spirit&arena=1'+(animeBurst?'&anime-burst=1':''):'?fx=spirit';
       const shape=external('对照球体配色',base+'&ref=shape&at=2');
       const burst=external('第二参考命中图 · 4.100 秒',base+'&ref=burst&at=3.19');
       if(params.has('embedded')){
@@ -348,7 +353,7 @@
     }else{
       await Promise.all([assetReady,engine.ready]);
       if(spirit&&!spiritStudy&&!engine.realtime){
-        const file=spiritArena?'spirit-arena':'spirit';
+        const file=spiritArena?spiritArenaFile:'spirit';
         await loadRecording('dragon-vfx/'+file+'.mp4','元气弹完整擂台 · 三维渲染录像');
       }
     }
