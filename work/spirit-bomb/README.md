@@ -1,16 +1,18 @@
 # 元气弹 2D 横版试演
 
-[统一预览 · 2D 横版](../../outputs/index.html#spirit/arena)左侧采用 960×400 的天下第一武道会擂台和现有角色动画。右侧默认同步播放气宗师原片，独立 3D 和旧版横版从参考菜单手动切换。
+[统一预览 · 2D 横版](../../outputs/index.html#spirit/arena)左侧采用 960×400 的天下第一武道会擂台和现有角色动画。右侧默认同步播放《龙珠Z》布欧篇元气弹动画。气宗师列第二，仅用于命中与余波。独立 3D 和旧版横版从参考菜单手动切换。
 
-相同的撞地爆闪、半球浪、亮丝、碎片和旋涡用横版固定机位重新投影。贴地反光绘制在擂台深度平面并沿台面边缘裁剪。2D 角色从自身透明轮廓写入深度，目标在爆闪时短暂被亮核覆盖。两侧共用时间轴。横版预览延至 6.200 秒，保留原片 4.567 秒塌落、5.000 至 6.000 秒余波持续、6.200 秒出现破口、6.533 秒残光和 7.000 秒清场的先后。侧视余波重建了低位带电气流与断开的暗边。
+相同的撞地爆闪、半球浪、亮丝、碎片和旋涡用横版固定机位重新投影。贴地反光绘制在擂台深度平面并沿台面边缘裁剪。2D 角色从自身透明轮廓写入深度，目标在爆闪时短暂被亮核覆盖。两侧共用时间轴。横版预览延至 6.200 秒，保留第二参考气宗师 4.567 秒塌落、5.000 至 6.000 秒余波持续、6.200 秒出现破口、6.533 秒残光和 7.000 秒清场的先后。侧视余波重建了低位带电气流与断开的暗边。
+
+默认对照使用 [元气弹原片 20:16–20:39](https://www.bilibili.com/video/BV1ACvYejEEA/?t=1216) 的连续爆发和退场段。右侧按白闪、远景爆面和尘浪对应，前摇期间保留该段首帧。投出与触地另有 [原片 16:10–16:24](https://www.bilibili.com/video/BV1ACvYejEEA/?t=970) 的连续片段，可在同一菜单切换。两段都保留原画幅。气宗师时码单独按第二参考记录。
 
 [撞地爆闪 2.700 秒](../../outputs/dragon-vfx/spirit-arena-flash.png) · [半球与碎石 3.200 秒](../../outputs/dragon-vfx/spirit-arena-vortex.png) · [贴地余波 4.100 秒](../../outputs/dragon-vfx/spirit-arena-collapse.png) · [暗浪裂散 5.300 秒](../../outputs/dragon-vfx/spirit-arena-breakup.png) · [完整横版录像](../../outputs/dragon-vfx/spirit-arena.mp4)
 
 # 元气弹独立 3D 试验
 
-[统一预览的独立 3D 版本](../../outputs/index.html#spirit/study)在独立三维场景内播放举手、聚气、前送、飞行、触地、爆发和收势。默认机位依据原片网格的透视和角色站位估计。可切侧视、反向透视，或暂停后旋转、调整俯仰。擂台版留作历史对照。3D 的占位人、地面和体积按同一个透视相机与深度缓冲合成。
+[统一预览的独立 3D 版本](../../outputs/index.html#spirit/study)在独立三维场景内播放举手、聚气、前送、飞行、触地、爆发和收势。独立场景机位依据第二参考气宗师的透视和角色站位估计。右侧默认对照《龙珠Z》动画。可切侧视、反向透视，或暂停后旋转、调整俯仰。擂台版留作历史对照。3D 的占位人、地面和体积按同一个透视相机与深度缓冲合成。
 
-| 阶段 | 原片全幅 | 独立 3D 全幅 | 采用的要素 |
+| 阶段 | 第二参考全幅 | 独立 3D 全幅 | 采用的要素 |
 | --- | --- | --- | --- |
 | 初爆 | [3.700 秒](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-04-match-3.700.png) | [2.800 秒](../../outputs/dragon-vfx/spirit-study-impact.png) | 亮核瞬间扩张，压浪外翻，第一批离体电弧。 |
 | 持续 | [4.100 秒](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-05-match-4.100.png) | [3.200 秒](../../outputs/dragon-vfx/spirit-study-vortex.png) | 开口冲击浪的高背缘和低前缘、卷动的内层亮丝、向外抛的飞石。 |
@@ -18,17 +20,17 @@
 
 飞行球在触地后迅速裂开。六股离体喷流先从落点向不同方向冲出，短促的反光随压力波掠过地面。随后外浪沿贴地半球扩张。半球的底缘跟随实际地面，近侧低沿和远侧高背缘间留有破口。亮核的体积中心设在地面，所有横截面从落地点附近的宽底向顶部收窄。卷动亮丝沿相同半球分布，随碎片回落转为贴地旋涡。
 
-从原片 3.600、3.700、4.167 和 5.033 秒逐段核对。3.600 秒白热团先填满，灰色近浪切过前景。3.700 秒浪沿向外翻，地面反光散出；4.167 秒才露出绕核亮丝和碎片。5.033 秒亮体落地，仍留下宽而不规则的暗边和卷动光迹。对应的 [撞地爆闪全幅](../../outputs/dragon-vfx/spirit-study-flash.png) 为左侧 2.700 秒。爆闪、厚浪、贴地反光、受光碎片和残余尘浪分开计时。
+用第二参考气宗师的 3.600、3.700、4.167 和 5.033 秒逐段核对。3.600 秒白热团先填满，灰色近浪切过前景。3.700 秒浪沿向外翻，地面反光散出；4.167 秒才露出绕核亮丝和碎片。5.033 秒亮体落地，仍留下宽而不规则的暗边和卷动光迹。对应的 [撞地爆闪全幅](../../outputs/dragon-vfx/spirit-study-flash.png) 为左侧 2.700 秒。爆闪、厚浪、贴地反光、受光碎片和残余尘浪分开计时。
 
 气宗师片段提供爆发结构和时序，配色沿用元气弹。体积内核和贴地烟、旋流使用同一个射线积分通道。开口外浪是三维网格，电弧、碎石和地面反光单独渲染。空间构造和相机为目视重建。同步页的 3.190 秒对齐参考 4.100 秒，录像以 30 fps 取样。
 
-[完整 3D 录像](../../outputs/dragon-vfx/spirit-study.mp4) · [3D 场景源码](../dragon-vfx-rebuild/spirit-study.js) · [原片来源](https://www.bilibili.com/video/BV1Wu4y1u7wh/)
+[完整 3D 录像](../../outputs/dragon-vfx/spirit-study.mp4) · [3D 场景源码](../dragon-vfx-rebuild/spirit-study.js) · [第二参考来源](https://www.bilibili.com/video/BV1Wu4y1u7wh/)
 
 ## 元气弹 V17 横版存档
 
-[统一预览](../../outputs/index.html#spirit)的同步进度条在两幅画面上方。拖动会暂停并定位左右画面，方向键可以逐帧。右侧默认保留气宗师原片，可换成上一版 V16，按同一游戏视口和同一时码逐帧比较。
+[统一预览](../../outputs/index.html#spirit)的同步进度条在两幅画面上方。拖动会暂停并定位左右画面，方向键可以逐帧。参考菜单可选元气弹动画原片、第二参考气宗师和上一版 V16。
 
-气宗师原片的 [3.700 秒全幅](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-04-match-3.700.png)用于观察初爆， [4.100 秒全幅](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-05-match-4.100.png)用于观察白热旋流的轴线、内外层遮挡和飞石。右侧 4.100 秒对应横版 3.190 秒。眼见的依据来自原片，空间密度和背侧节奏按横版视口重建。球和爆发沿用元气弹配色。
+第二参考气宗师的 [3.700 秒全幅](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-04-match-3.700.png)用于观察初爆， [4.100 秒全幅](../dragon-vfx-rebuild/reference/spirit/cards/burst/user-burst-05-match-4.100.png)用于观察白热旋流的轴线、内外层遮挡和飞石。右侧 4.100 秒对应横版 3.190 秒。眼见的依据来自原片，空间密度和背侧节奏按横版视口重建。球和爆发沿用元气弹配色。
 
 原先的旋纹附着在折叠球面。V17 将旋流重建为三维发光密度场。每个像素沿透视视线在有限空间内采样，累积发光和消光，同时与擂台、角色的实写深度相交。后方暗壳、近侧压环、电弧和飞石各自按三维位置绘制。压入时的球面逐步过渡为内核体积，退场分为外壳破开、内核下沉和地面余波。[Swardson 体积爆炸教程](https://www.jd.swardson.com/projects/raymarched-explosion.html) · [GPU Gems 体积渲染](https://developer.nvidia.com/gpugems/gpugems/part-vi-beyond-triangles/chapter-39-volume-rendering-techniques)
 

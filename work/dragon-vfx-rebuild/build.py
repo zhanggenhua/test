@@ -47,7 +47,7 @@ def film(group, desc, title, note, offset, subset=None, output=None):
 sp = json.loads((refs/"spirit/manifest.json").read_text(encoding="utf-8"))
 ball = dict(sp["parts"][0],source=sp["source"])
 shape = film("spirit",ball,"球体造型 · KK_憨小二","这段素材只用于青白球壳、球内亮区和外缘流动，左右各走自己的时间。",0,[0,1,3,4,6,8])
-burst_stills = dict(id="impact-stills",title="命中效果 · 用户提供的两张原图",note="原片 3.700 秒的亮核冲开外壳，4.100 秒可见绕核光丝、前景宽带和壳外碎石。左侧沿用龙珠元气弹的青白配色。",
+burst_stills = dict(id="impact-stills",title="命中效果 · 用户提供的两张原图",note="第二参考的气宗师在 3.700 秒亮核冲开外壳。4.100 秒可见绕核光丝、前景宽带和壳外碎石。左侧沿用龙珠元气弹的青白配色。",
     offset=0,start=0,end=4.8,fps=30,source="https://www.bilibili.com/video/BV1Wu4y1u7wh/",cards=[
         dict(file=resource("spirit","user/burst-04.png"),label="过曝内核与穿壳的亮枝",time=3.7,phase=2.79),
         dict(file=resource("spirit","user/burst-05.png"),label="内核旋丝、暗壳和碎石的层次",time=4.1,phase=3.19)])
@@ -62,7 +62,7 @@ if not native.exists():
 readings=[(13,"起手"),(21,"举起双臂"),(47,"光路汇入球缘"),(103,"双掌前推"),(121,"球体下压"),(154,"白核与青色流带"),(210,"球压低，碎光先起"),(216,"竖光上冲"),(234,"爆面抬起，前景飞石"),(237,"破口露出后景"),(245,"横向残光与碎石")]
 pts=json.loads((dbdir/"pts.json").read_text())
 cards=[dict(time=pts[i-1],label=label,file=copy(dbdir/"frames"/f"source-{i:04}.png",f"reference/spirit/dragonball/lv3-{i:03}.png")) for i,label in readings]
-primary=dict(title="招式主参考 ·《龙珠斗士Z》元气弹",source="https://www.bilibili.com/video/BV11s411M7oV/?t=57",start=pts[12],end=pts[12]+246/30,offset=0,fps=30,
+primary=dict(title="游戏实机 ·《龙珠斗士Z》元气弹",source="https://www.bilibili.com/video/BV11s411M7oV/?t=57",start=pts[12],end=pts[12]+246/30,offset=0,fps=30,
              film=resource("spirit","clips/"+native.name),cards=cards,
              note="实机含切镜。完整擂台采用固定侧视。可按聚气、推球、破裂等阶段对齐，也可各自原速播放。",
              anchors=[[t,pts[i-1]] for t,i in [(0,13),(.48,45),(1.57,78),(2.0,103),(2.23,154),(2.50,210),(2.79,226),(2.88,234),(3.19,237),(3.73,245),(4.8,258)]])
@@ -87,7 +87,15 @@ for src,ts,phase,label in zip(identity["evidenceFiles"],[1223,1229,1230.5],[2.79
     anime_cards.append(dict(time=ts,phase=phase,label=label,file=copy(path,"reference/spirit/dragonball/"+path.name)))
 spirit.insert(1,dict(title="动画造型 ·《龙珠Z》布欧篇",source="https://www.bilibili.com/video/BV1ACvYejEEA/?t=1223",cards=anime_cards,offset=0,start=0,end=4.8,fps=30,
                      note="动画远景全幅选帧，用于球的白核青边、前景遮挡和贴地扩散。三张图来自不同镜头。"))
+anime_excerpts=[]
+for excerpt in identity["excerpts"]:
+    take=film("spirit",excerpt,excerpt["title"],excerpt["note"],0)
+    if excerpt["id"]=="spirit-original":
+        take["cards"]=anime_cards
+    anime_excerpts.append(dict(take,id=excerpt["id"],anchors=excerpt["anchors"]))
+
 burst_clip=refs/"spirit/burst-clip.json"
+study_impact=[]
 arena_impact=[]
 if burst_clip.is_file():
     source_shot=json.loads(burst_clip.read_text(encoding="utf-8"))
@@ -104,14 +112,13 @@ if burst_clip.is_file():
              "-movflags","+faststart",str(clip)],check=True)
         cards=sorted((c for c in source_shot["cards"] if start<=c["sourceTime"]<end),key=lambda c:c["sourceTime"])
         shot=dict(source_shot,clip="clips/"+clip.name,sourceStart=start,sourceEnd=end,cards=cards)
-        result=film("spirit",shot,"命中效果 · 气宗师原片",note,2.79-(shot["anchor"]-start),output="dragon-vfx/"+rel.as_posix())
-        return dict(result,id="impact-film",full=full)
+        result=film("spirit",shot,"第二参考 · 气宗师命中与余波",note,2.79-(shot["anchor"]-start),output="dragon-vfx/"+rel.as_posix())
+        return dict(result,id="impact-film",full=full,fullLabel="查看第二参考完整录像")
 
-    matched=matched_impact("lostark-impact-excerpt.mp4",5.35,
-        "两侧从爆发阶段对齐。原片 4.100 秒对应左侧 3.190 秒，可逐帧看亮丝绕核、壳层遮挡和碎石外抛。左侧配色取自龙珠元气弹。")
-    spirit.insert(4,matched)
+    study_impact.append(matched_impact("lostark-impact-excerpt.mp4",5.35,
+        "以爆发阶段对齐。气宗师 4.100 秒对应左侧 3.190 秒，用于比较亮丝、壳层与碎石。"))
     arena_impact.append(matched_impact("lostark-impact-wake.mp4",7.1,
-        "爆发与退场使用同一段气宗师原片。左侧 3.190 秒对应原片 4.100 秒。可继续同步看原片 4.567 秒塌落、6.200 秒裂散和 7.000 秒清场。"))
+        "气宗师用于核对命中与余波。左侧 3.190 秒对应此片 4.100 秒。可继续看 4.567 秒塌落、6.200 秒裂散和 7.000 秒清场。"))
 
 km = json.loads((refs/"kame/manifest.json").read_text(encoding="utf-8"))
 kame_part = dict(km["parts"][0], source=km["source"])
@@ -183,7 +190,9 @@ spirit_legacy_arena = dict(legacy("spirit.mp4","V17 · 同一横版擂台",
     film="dragon-vfx/spirit.mp4")
 payload = {"actors":actors,
            "unityDemo":{"film":unity_film,"duration":unity_duration},
-           "sources":{"spirit":spirit,"spiritArena":[*arena_impact,spirit_study_take,spirit_legacy_arena,*(r for r in spirit if r.get("id")!="impact-film")],"kame":kame,"kameStudy":[study_ref,study_previous,study_early],
+           "sources":{"spirit":[anime_excerpts[0],*study_impact,*anime_excerpts[1:],*spirit],
+                      "spiritArena":[anime_excerpts[0],*arena_impact,*anime_excerpts[1:],*spirit,spirit_study_take,spirit_legacy_arena],
+                      "kame":kame,"kameStudy":[study_ref,study_previous,study_early],
                       "kameUnity":[unity_original,unity_web],
                       "kameArena":[arena_legacy,dict(kame[0], note="原视频 4.200–8.467 秒。按出束相位同步，参考光型和退场。")],
                       "kameArena3d":arena_3d}}

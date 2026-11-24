@@ -124,7 +124,7 @@
   }
   function syncFilm(force=false){
     if(!mediaReady||!current.film)return;
-    const {local,slope}=referenceClock(), shouldPlay=playing&&local>=0&&local<refLength();
+    const {local,slope}=referenceClock(), shouldPlay=playing&&slope>0&&local>=0&&local<refLength();
     const max=Math.max(0,Math.min(refLength(),film.duration)-1/current.fps);
     const want=clamp(local,0,max);
     if(force||Math.abs(film.currentTime-want)>(shouldPlay?.115:.004))film.currentTime=want;
@@ -172,7 +172,7 @@
     }
     const links=el('links');links.replaceChildren();
     if(current.source)links.append(external('打开视频来源',current.source));
-    if(current.full)links.append(external('查看完整原片 · 230 帧',current.full));
+    if(current.full)links.append(external(current.fullLabel??'查看完整原片',current.full));
     if(current.film)links.append(external('单独播放右侧全幅片段',current.film));
     if(unityDemo){
       links.append(external('单独播放 Unity 全幅实录',unitySource.film));
@@ -206,7 +206,7 @@
     if(spirit&&!spiritStudy) {
       const base=spiritArena?'?fx=spirit&arena=1':'?fx=spirit';
       const shape=external('对照球体配色',base+'&ref=shape&at=2');
-      const burst=external('对照命中原图 · 4.100 秒',base+'&ref=burst&at=3.19');
+      const burst=external('第二参考命中图 · 4.100 秒',base+'&ref=burst&at=3.19');
       if(params.has('embedded')){
         for(const link of [burst,shape]){
           link.removeAttribute('target');
@@ -280,7 +280,7 @@
     }
   }
   if(spiritStudy){
-    cameraSelect.replaceChildren(new Option('斜俯视 · 参考构图','reference'),
+    cameraSelect.replaceChildren(new Option('斜俯视 · 气宗师机位','reference'),
       new Option('透视侧视','side'),new Option('反向透视','reverse'));
     orbit.hidden=false;
     resetSpiritOrbit();
@@ -361,8 +361,8 @@
     usable=true;
     let first=0;
     if(params.get('ref')==='burst'&&spirit)first=refs.findIndex(r=>r.id==='impact-stills');
-    if((params.get('ref')==='hit'||((spiritStudy||spiritArena)&&!params.has('ref')))&&spirit)first=refs.findIndex(r=>r.id==='impact-film');
-    if(params.get('ref')==='anime'&&spirit)first=refs.findIndex(r=>r.title.startsWith('动画造型'));
+    if(['hit','secondary'].includes(params.get('ref'))&&spirit)first=refs.findIndex(r=>r.id==='impact-film');
+    if(params.get('ref')==='anime'&&spirit)first=refs.findIndex(r=>r.id==='spirit-original');
     if(params.get('ref')==='shape'&&spirit)first=refs.findIndex(r=>r.title.startsWith('球体造型'));
     if(params.get('ref')==='3d'&&!spirit)first=refs.findIndex(r=>r.id==='mesh-view');
     if(params.get('ref')==='previous')first=refs.findIndex(r=>r.title.startsWith('上一版'));
