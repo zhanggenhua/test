@@ -2,7 +2,7 @@
 
 [统一预览 · 动画爆发试作](../../outputs/index.html#spirit/anime-burst)从原版横版的命中材质和演出派生。原片在右侧作为默认，气宗师是第二参考。原横版在版本菜单仍可打开，也可手动选为同帧对照。
 
-《龙珠Z》布欧篇 [20:26–20:35.5](https://www.bilibili.com/video/BV1ACvYejEEA/?t=1226) 用于拆解末段的白闪、向外散出的亮面和分批翻起的浅色尘浪。新版在 3.55 秒由原有爆面向外放光，约 4.07 秒可见分块卷起的尘浪。旋转亮丝、离体电弧、飞石、暗浪和带电余波继续使用已有表现。
+《龙珠Z》布欧篇 [20:26–20:35.5](https://www.bilibili.com/video/BV1ACvYejEEA/?t=1226) 用于拆解末段的白闪、向外散出的亮面和分批翻起的浅色尘浪。新版在 3.55 秒由原有爆面向外放光，约 4.07 秒可见分块卷起的尘浪。旋转亮丝、离体电弧、飞石和爆发后的电旋继续使用已有表现。暗浪裂散时，主电流先减弱，随后留下从烟尘边缘接触地面的几处短弧。5.282 秒对照的是动画约 20:34.97 的尘浪和第二参考气宗师约 6.192 秒的裂散余电。
 
 [末段白闪全幅](../../outputs/dragon-vfx/spirit-anime-arena-flash.png) · [浅尘与余波全幅](../../outputs/dragon-vfx/spirit-anime-arena-dust.png) · [完整录像](../../outputs/dragon-vfx/spirit-anime-arena.mp4)
 
