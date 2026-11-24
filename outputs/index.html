@@ -18,6 +18,9 @@
   :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
   .workspace{min-width:0;display:flex;flex-direction:column}
   .bar{min-height:52px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 15px;border-bottom:1px solid var(--line)}
+  .mode-switch{display:flex;gap:4px}
+  .mode-switch a{padding:5px 8px;border-radius:5px;text-decoration:none;font-size:13px;white-space:nowrap}
+  .mode-switch a[aria-current=page],.mode-switch a:hover{background:#35524e;color:#d8fff3}
   .bar h2{font-size:17px;margin:0}.bar label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
   select{color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:5px;font:inherit;padding:5px 8px;max-width:100%}
   .surface{min-height:590px;height:calc(100dvh - 53px)}
@@ -44,6 +47,10 @@
   <main class="workspace">
     <div class="bar">
       <h2 id="effect-title" aria-live="polite">元气弹</h2>
+      <nav id="spirit-modes" class="mode-switch" aria-label="元气弹预览方式" hidden>
+        <a href="#spirit/anime-burst">2D 擂台</a>
+        <a href="#spirit/anime-study">独立 3D</a>
+      </nav>
       <label id="version-control">版本 <select id="version"></select></label>
     </div>
     <div class="surface">
@@ -110,6 +117,8 @@
   const catalog = document.getElementById('catalog');
   const title = document.getElementById('effect-title');
   const select = document.getElementById('version');
+  const spiritModes = document.getElementById('spirit-modes');
+  const defaults = {spirit:'anime-burst',kame:'arena'};
   const player = document.getElementById('player');
   const image = document.getElementById('animation-image');
   const animation = document.getElementById('animation');
@@ -141,10 +150,17 @@
     const {name, versions} = effects.get(key);
     const named = rawVersion ? versions.findIndex(([, ,id])=>id===rawVersion) : -1;
     const numbered = Number.parseInt(rawVersion,10);
-    const defaultVersion = key === 'kame' ? versions.findIndex(([, ,id])=>id==='arena') : 0;
+    const defaultVersion = versions.findIndex(([, ,id])=>id&&id===defaults[key]);
     const requested = named>=0?named:Number.isNaN(numbered)?defaultVersion:numbered;
     const index = Math.max(0, Math.min(versions.length-1, requested));
-    const [label, url] = versions[index];
+    const [label, url, versionId] = versions[index];
+    spiritModes.hidden = key !== 'spirit';
+    if (!spiritModes.hidden) {
+      for (const link of spiritModes.querySelectorAll('a')) {
+        if (link.hash === '#spirit/'+versionId) link.setAttribute('aria-current','page');
+        else link.removeAttribute('aria-current');
+      }
+    }
     title.textContent = name;
     document.title = name + ' · 特效预览';
     for (const [id, effect] of effects) {

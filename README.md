@@ -16,7 +16,7 @@
 
 龟波气功默认打开[原材质 2D 擂台](outputs/index.html#kame)，载入本机的侧视网格和贴图。可切到[同角度 3D 检查](outputs/index.html#kame/3d)。左右共用束身、缠绕带、发射口和冲圈网格，以及同一演出时间。右侧可选择环绕角或查看实际网格的线框。点击「还原侧视」回到左侧的透视侧视。右侧参考中可选择「上一版 · 正交 3D」。
 
-[元气弹独立 3D](outputs/index.html#spirit/study)用于按原片拆解爆发、旋流和消散，可在完整画面上切机位或拖动环绕。[2D 横版试演](outputs/index.html#spirit/arena)用现有擂台和角色，对齐同一套撞地冲击。 [实时追踪 3D 检查](outputs/index.html#spirit/anime-study)和[横版追踪预览](outputs/index.html#spirit/anime-burst)共用飞行和碰撞模拟，支持近距、远距及移动目标。
+元气弹默认打开[当前 2D 擂台](outputs/index.html#spirit)，可从页头切到[当前独立 3D](outputs/index.html#spirit/anime-study)。两版共用飞行和碰撞模拟，支持近距、远距及移动目标。旧的[撞地冲击 3D](outputs/index.html#spirit/study)和[横版试演](outputs/index.html#spirit/arena)仍可从版本菜单打开。
 
 [独立 3D 试验场](outputs/index.html#kame/study)用于在放进游戏画面前核对原片阶段。地面、占位人物、束身和残丝在同一 3D 场景输出，左侧可切到侧视。
 
