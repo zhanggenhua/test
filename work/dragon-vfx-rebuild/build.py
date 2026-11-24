@@ -94,41 +94,47 @@ for excerpt in identity["excerpts"]:
         take["cards"]=anime_cards
     anime_excerpts.append(dict(take,id=excerpt["id"],anchors=excerpt["anchors"]))
 
-# The anime separates the initial throw from the final explosion by several cuts.
-# Keep each excerpt intact within its span and declare the jump in the player.
+# Keep the final travelling shot continuous from the ground contact through the flash.
 anime_hit,anime_throw=anime_excerpts[:2]
 phase_rel="reference/spirit/clips/dbz-buu-spirit-phase-comparison.mp4"
 anime_paths=refs/"spirit/clips"
+ground_frame=395
+ground_shot=anime_hit["start"]+ground_frame/30
 subprocess.run(
     ["ffmpeg","-v","error","-y","-i",str(anime_paths/"dbz-buu-spirit-release.mp4"),
      "-i",str(anime_paths/"dbz-buu-spirit-impact.mp4"),
-     "-filter_complex","[0:v]trim=end_frame=240,setpts=PTS-STARTPTS[a];[1:v]setpts=PTS-STARTPTS[b];[a][b]concat=n=2:v=1:a=0",
+     "-filter_complex",f"[0:v]trim=end_frame=240,setpts=PTS-STARTPTS[a];[1:v]trim=start_frame={ground_frame},setpts=PTS-STARTPTS[b];[a][b]concat=n=2:v=1:a=0",
      "-an","-c:v","libx264","-crf","16","-g","15","-pix_fmt","yuv420p","-movflags","+faststart",str(dst/phase_rel)],
     check=True)
-throw_cards=[]
-for name,stamp,label in [
+
+def anime_card(rel,clip,source_start,stamp,label):
+    subprocess.run(
+        ["ffmpeg","-v","error","-y","-ss",str(stamp-source_start),"-i",str(anime_paths/clip),
+         "-frames:v","1","-threads","1",str(dst/rel)],check=True)
+    return dict(file="dragon-vfx/"+rel,label=label,time=stamp)
+
+throw_cards=[anime_card(f"reference/spirit/dragonball/anime-release-{name}.png","dbz-buu-spirit-release.mp4",
+    anime_throw["start"],stamp,label) for name,stamp,label in [
     ("push",973.1,"龙珠原片 · 双掌推出"),
     ("descent",974.0,"龙珠原片 · 白芯青边，球体下压"),
     ("approach",977.0,"龙珠原片 · 球缘抵近地面，尘浪翻起"),
-]:
-    rel=f"reference/spirit/dragonball/anime-release-{name}.png"
-    subprocess.run(
-        ["ffmpeg","-v","error","-y","-ss",str(stamp-anime_throw["start"]),"-i",str(anime_paths/"dbz-buu-spirit-release.mp4"),
-         "-frames:v","1","-threads","1",str(dst/rel)],check=True)
-    throw_cards.append(dict(file="dragon-vfx/"+rel,label=label,time=stamp))
-flash_stamp=1231.73333
-flash_ref="reference/spirit/dragonball/anime-final-outburst.png"
-subprocess.run(
-    ["ffmpeg","-v","error","-y","-ss",str(flash_stamp-anime_hit["start"]),"-i",str(anime_paths/"dbz-buu-spirit-impact.mp4"),
-     "-frames:v","1","-threads","1",str(dst/flash_ref)],check=True)
-anime_final_flash=dict(file="dragon-vfx/"+flash_ref,label="龙珠原片 · 尘浪前方白光外放",time=flash_stamp)
-anime_phases=dict(anime_hit,title="元气弹原片 ·《龙珠Z》布欧篇 · 投出与爆发",
-    film="dragon-vfx/"+phase_rel,start=0,end=31,sourceSpans=[[0,970],[8,1216]],
-    note="原片 16:10–16:18 用于投出和下压，20:16–20:39 用于命中、爆发和退场。跨段剪接保留，画面显示原片时码。",
-    cards=[*throw_cards,*anime_hit["cards"],anime_final_flash],
-    anchors=[[0,0],[1.57,2.37],[2,3.1],[2.43,4.12],[2.73,5.87],[3,7.6],[3.08,8.0],
-             [3.20,12.0],[3.70,15.0],[3.86,21.0],[3.94,22.5],[4.05,23.73333],
-             [4.52,27.0],[6.7,30.9667]])
+]]
+ground_cards=[anime_card(f"reference/spirit/dragonball/{name}.png","dbz-buu-spirit-impact.mp4",
+    anime_hit["start"],stamp,label) for name,stamp,label in [
+    ("anime-ground-travel",1230+5/30,"龙珠原片 · 球沿地表远去，尘道留在身后"),
+    ("anime-final-outburst",1231+22/30,"龙珠原片 · 尘道远端的白闪越过画框"),
+]]
+def ground_time(stamp):
+    return 8+stamp-ground_shot
+
+anime_phases=dict(anime_hit,title="元气弹原片 ·《龙珠Z》布欧篇 · 贴地推进与爆发",
+    film="dragon-vfx/"+phase_rel,start=0,end=ground_time(1239),sourceSpans=[[0,970],[8,ground_shot]],
+    note="16:10–16:18 看投出和下压。20:29.167 起连续看球沿地表远去、一路掀尘和远端白闪。保留两段原片的切换，显示原片时码。",
+    cards=[*throw_cards,*ground_cards],
+    anchors=[[0,0],[1.57,2.37],[2,3.1],[2.43,4.12],[2.50,7.43],[2.56,8],
+             [3.0,ground_time(1230+5/30)],[3.45,ground_time(1230.90)],
+             [3.88,ground_time(1231.49)],[4.05,ground_time(1231+22/30)],
+             [4.73,ground_time(1235.0)],[6.7,ground_time(1239-1/30)]])
 
 burst_clip=refs/"spirit/burst-clip.json"
 study_impact=[]
@@ -138,10 +144,10 @@ if burst_clip.is_file():
     source_shot=json.loads(burst_clip.read_text(encoding="utf-8"))
     full=resource("spirit",source_shot["clip"])
     spirit_secondary=dict(film("spirit",source_shot,"第二参考 ·《失落的方舟》气宗师",
-        "用气宗师前段 0.767–1.500 秒看贴地冲击。后段对照球下移和爆面分层，最终散场跟随龙珠原片。",
-        0,subset=[1,2,4,5,6],output=full),
-        anchors=[[0,3.20],[1.84,3.20],[2.0,3.267],[2.43,3.40],[3.00,3.533],[3.20,3.633],
-                 [3.70,4.100],[4.6,5.010],[6.7,7.110]])
+        "前段 0.767–1.500 秒用来核对贴地冲击，5.000–6.000 秒用来核对贴地回卷。新版漩涡用尘流与余光表现。",
+        0,subset=[1,2,4,5,6,8,9],output=full),
+        anchors=[[0,3.20],[1.84,3.20],[2.0,3.267],[2.56,3.45],[3.00,3.50],[3.88,3.56],
+                 [4.05,4.100],[4.73,5.44],[6.7,7.11]])
 
     def matched_impact(filename,end,note):
         start=3.2

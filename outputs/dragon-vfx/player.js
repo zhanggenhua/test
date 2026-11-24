@@ -257,13 +257,13 @@
     el('newTitle').textContent=animeBurst?'元气弹 · 动画远投与爆发':spiritArena?'元气弹 · 2D 横版擂台':spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入球体，双掌推出。命中后内核高速旋开，外壳与碎片向外散开。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spiritArena)el('newNote').textContent=animeBurst
-      ?'球从擂台左侧离手，横穿场地后下压。地面掀尘，白光从命中处外放，随后尘浪散去。'
+      ?'球贴地压过目标，身后逐段掀起尘道，白闪从尘道末端炸出画框，贴地漩涡卷起尘土后散开。'
       :'冲击半球塌向地面，带电余波在暗浪内回卷，随后分块散开。';
     if(spiritStudy)el('newNote').textContent='触地爆闪推开厚浪和溅射碎片，贴地冲击掠过网格，半球向地面塌为卷动的余波。';
     if(spirit&&!spiritStudy) {
       const base=spiritArena?'?fx=spirit&arena=1'+(animeBurst?'&anime-burst=1':''):'?fx=spirit';
       const shape=external('对照球体配色',base+'&ref=shape&at=2');
-      const burst=external('第二参考命中图 · 4.100 秒',base+'&ref=burst&at='+(animeBurst?'3.70':'3.19'));
+      const burst=external('第二参考命中图 · 4.100 秒',base+'&ref=burst&at='+(animeBurst?'4.05':'3.19'));
       if(params.has('embedded')){
         for(const link of [burst,shape]){
           link.removeAttribute('target');

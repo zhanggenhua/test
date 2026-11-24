@@ -441,30 +441,12 @@
     #endif
 
     #ifdef ANIME_BURST
-    vec4 animeBurstVeil(vec3 p){
-      // On the last flash, the upper glow releases while a lower front
-      // lifts separate banks of dust. Both share the contact plane.
+    vec4 animeBurstDust(vec3 p){
       float r=length(p.xz),a=atan(p.z,p.x);
       if(r>2.94||p.y>1.92)return vec4(0.);
-      float flashOn=smoothstep(.974,1.043,age);
-      float flash=flashOn*(1.-smoothstep(1.050,1.157,age));
-      float push=1.-exp(-max(0.,age-.962)*9.8);
       float edgeNoise=noise3(p*5.9+vec3(.3,age*2.1,.58));
       float breath=noise3(p*2.35+vec3(.8,-age*.43,.2));
-      float azimuth=.11*sin(3.*a+.53)+.075*sin(5.*a+age*2.8);
       float ground=smoothstep(.009,.092,p.y);
-      float shell=length(vec2(r/(.84+1.19*push),p.y/(.67+.88*push)));
-      float lobes=.12*(edgeNoise-.44)+azimuth*.27;
-      float lightEdge=1.-smoothstep(.047,.204,abs(shell-.82+lobes));
-      float lightBody=1.-smoothstep(.55,.95,shell+lobes);
-      float scallop=.62+.38*smoothstep(-.69,.71,sin(4.*a+p.y*4.9)+.30*(breath-.5));
-      float shear=pow(.50+.50*cos(3.*a+.69+p.y*1.7),8.);
-      float outrun=1.-smoothstep(1.25+push*.26,1.33+push*1.24,r);
-      float rayHeight=.13+.38*max(0.,r-.84);
-      float skim=exp(-pow((p.y-rayHeight)/(.071+.062*push),2.));
-      float white=flash*ground*(4.58*lightEdge*scallop+1.22*lightBody+3.00*shear*skim*outrun*push);
-      vec3 flashLight=vec3(1.63,2.05,2.40)*(.68+.32*edgeNoise);
-
       float dust=0.;
       vec3 dustLight=vec3(0.);
       float sector=floor(a*(8./6.2831853)+.5);
@@ -502,8 +484,35 @@
         dust+=puff;
         dustLight+=light*puff;
       }
-      float total=white+dust;
-      return vec4((flashLight*white+dustLight)/max(.00001,total),total);
+      float retreat=1.-.62*smoothstep(.58,1.15,age);
+      return vec4(dustLight/max(.00001,dust),dust*retreat*(1.-smoothstep(1.63,2.60,age)));
+    }
+
+    vec4 animeDustVortex(vec3 p){
+      if(p.y<.0||p.y>.76)return vec4(0.);
+      vec2 plane=p.xz;
+      float r=length(plane),angle=atan(plane.y,plane.x);
+      float lift=smoothstep(.32,.79,age);
+      float sink=smoothstep(1.13,2.50,age);
+      float survival=lift*(1.-smoothstep(1.81,2.66,age));
+      float outer=mix(.71,2.03,lift)-.79*sink;
+      if(r>outer+.25||r<.12)return vec4(0.);
+      float spin=angle-3.85*age-.50*age*age;
+      float winding=spin+2.75*log(.31+r);
+      vec2 flow=vec2(cos(spin),sin(spin))*r;
+      float swell=noise3(vec3(flow*4.2,p.y*5.9));
+      float grain=noise3(vec3(flow*10.7,p.y*7.6+.09*age));
+      float crest=cos(3.*winding+.32*sin(2.*spin)+.73*(swell-.5));
+      float arm=smoothstep(.13,.88,crest+.38*(swell-.5));
+      float taper=smoothstep(.12,.36,r)*(1.-smoothstep(outer-.36,outer+.14,r+.18*swell));
+      float height=(.16+.26*swell+.09*arm)*(1.-.52*sink);
+      float depth=smoothstep(.006,.059,p.y)*(1.-smoothstep(height*.34,height+.15,p.y));
+      float rag=mix(.61+.39*grain,smoothstep(.22,.80,grain+.19*swell),sink);
+      float plume=arm*taper*depth*survival*rag;
+      float lit=smoothstep(.29,.80,p.y/max(.05,height)+.17*swell);
+      vec3 clay=vec3(.28,.235,.195)*(1.-.18*grain);
+      vec3 rim=mix(vec3(.82,.78,.66),vec3(.76,.88,.91),(1.-sink)*.56);
+      return vec4(mix(clay,rim,lit),4.1*plume);
     }
     #endif
 
@@ -561,7 +570,12 @@
       envelope*=1.-smoothstep(.97,1.06,q.y);
       float folding=smoothstep(.33,.81,collapse);
       #ifdef ANIME_BURST
-      vec4 groundGas=age>.19?animeBurstVeil(above):vec4(0.);
+      vec4 groundGas=age>.19?animeBurstDust(above):vec4(0.);
+      if(age>.32){
+        vec4 swirl=animeDustVortex(above);
+        float total=groundGas.a+swirl.a;
+        groundGas=vec4((groundGas.rgb*groundGas.a+swirl.rgb*swirl.a)/max(.00001,total),total);
+      }
       if(age<.62){
         vec4 pressure=pressureDust(above,age);
         float total=groundGas.a+pressure.a;
@@ -640,7 +654,7 @@
       vec3 evenGlow=mix(vec3(.19,.59,.75),vec3(1.83,2.24,2.36),max(broadLight,layer*lowFlow*.82));
       emission=evenGlow;
       density+=1.12*broadLight*envelope*life*baseFade;
-      density*=1.-smoothstep(1.045,1.34,age);
+      density*=1.-smoothstep(.56,.96,age);
       #endif
       float shockTiming=smoothstep(.072,.166,age)*(1.-smoothstep(.193,.340,age));
       vec3 focus=vec3((above.x-.16)*.93,above.y-.48,above.z+.04);
@@ -859,6 +873,72 @@
     };
   }
 
+  function dustCurl(gl,geom){
+    const program=geom.program(`#version 300 es
+      uniform mat4 vp;
+      uniform float age,groundY;
+      out vec2 stamp;
+      out float visibility;
+      out float height;
+      flat out float arm;
+      void main(){
+        const vec2 corner[6]=vec2[6](vec2(0,-1),vec2(1,-1),vec2(1,1),vec2(0,-1),vec2(1,1),vec2(0,1));
+        const float steps=90.;
+        vec2 c=corner[gl_VertexID%6];
+        float t=(float(gl_VertexID/6)+c.x)/steps;
+        arm=float(gl_InstanceID);
+        float group=mod(arm,3.),back=floor(arm/3.);
+        float born=.40+.065*group+.075*back;
+        float live=smoothstep(born,born+.28,age);
+        float fall=smoothstep(1.25,2.59,age);
+        float span=mix(.68,1.91,live)-.91*fall;
+        float s=t*t*(.30+.70*t);
+        float r=.18+(span-.18)*s;
+        float spin=age*3.85+.50*age*age;
+        float angle=group*2.0944-.26+spin-2.75*log(.31+r)+.22*back;
+        float taper=smoothstep(0.,.27,t)*(1.-smoothstep(.81,1.,t));
+        float width=(.108+.102*t+.035*cos(18.*t+group))*taper;
+        vec2 unit=vec2(cos(angle),sin(angle));
+        vec2 slice=unit+c.y*vec2(-unit.y,unit.x)*.14;
+        vec2 world=unit*r+slice*c.y*width;
+        float roll=(.12+.24*taper+.09*sin(8.0*t+group)+.052*c.y)*(1.-.47*fall);
+        height=roll*(.8+.19*back);
+        float dustY=groundY+height;
+        stamp=vec2(t,c.y);
+        visibility=live*(1.-smoothstep(1.53+.10*group,2.54+.045*group,age))*(.82-.34*back)*taper;
+        gl_Position=vp*vec4(world.x-.17,dustY,world.y,1.);
+      }`,`#version 300 es
+      precision highp float;
+      uniform float age;
+      in vec2 stamp;
+      in float visibility,height;
+      flat in float arm;
+      out vec4 color;
+      void main(){
+        float t=stamp.x,edge=abs(stamp.y);
+        float roll=.60+.23*sin(43.*t+arm*2.4-age*4.1)+.16*sin(97.*t-arm+age*3.8);
+        float tuft=sin(181.*t+arm*5.+stamp.y*10.)*.5+.5;
+        float margin=(.75+.20*roll)-.12*tuft;
+        float dust=1.-smoothstep(margin-.38,margin,edge);
+        float albedo=smoothstep(-.70,.69,-stamp.y+roll*.37);
+        vec3 shade=vec3(.29,.26,.223);
+        vec3 crown=mix(vec3(.82,.89,.87),vec3(.81,.76,.65),smoothstep(1.,2.4,age));
+        float alpha=visibility*dust*(.69+.30*roll);
+        vec3 light=mix(shade,crown,albedo)*(.88+.14*tuft+.22*height);
+        color=vec4(light*alpha,alpha);
+      }`);
+    const floor=gl.getUniformLocation(program,'groundY'),vao=gl.createVertexArray();
+    return (age,height)=>{
+      if(age<.40||age>2.66)return;
+      geom.uniforms(program,age);
+      gl.uniform1f(floor,height);
+      gl.bindVertexArray(vao);
+      gl.disable(gl.CULL_FACE);gl.depthMask(false);
+      gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+      gl.drawArraysInstanced(gl.TRIANGLES,0,90*6,6);
+    };
+  }
+
   window.SpiritVolumeBuild=(gl,geom,studio=false,arenaWake=false,animeBurst=false)=>{
     const defines=studio?'#define STUDIO\n'+(arenaWake?'#define ARENA_WAKE\n':'')+(animeBurst?'#define ANIME_BURST\n':''):'';
     const variant=source=>source.replace('#version 300 es\n','#version 300 es\n'+defines);
@@ -868,6 +948,7 @@
     const layer=gl.getUniformLocation(material,'layer'),groundY=gl.getUniformLocation(material,'groundY');
     const volume=geom.program(variant(volumeVertex),variant(volumeFragment));
     const renderStrips=studio&&!animeBurst?burstStrips(gl,geom,arenaWake):null;
+    const renderDustCurl=animeBurst?dustCurl(gl,geom):null;
     const clipOpaque=gl.getUniformLocation(volume,'clipOpaque');
     const volumeFloor=gl.getUniformLocation(volume,'groundY');
     const opaqueDepth=gl.getUniformLocation(volume,'opaqueDepth');
@@ -905,6 +986,7 @@
       gl.depthMask(!studio);
       if(studio)gl.disable(gl.CULL_FACE);
       if(age<(studio?1.57:1.46)){gl.uniform1i(layer,3);geom.draw(geom.sphere);}
+      renderDustCurl?.(age,floorHeight);
       gl.depthMask(true);
       gl.bindVertexArray(null);
     };

@@ -1,14 +1,15 @@
 # 元气弹横版动画远投与爆发
 
-[统一预览](../../outputs/index.html#spirit/anime-burst)左侧是完整的 960×400 擂台。右侧默认按阶段同步《龙珠Z》布欧篇。下方的《失落的方舟》气宗师可以同步拖动，也可以独立按原速看全片。
+[统一预览](../../outputs/index.html#spirit/anime-burst)左侧是完整的 960×400 擂台。右侧默认按阶段同步《龙珠Z》布欧篇。下方的《失落的方舟》气宗师支持同步对照及全片原速播放。
 
 | 参考与原片时码 | 用在新版的位置 |
 | --- | --- |
-| 龙珠原片 16:13.100 推掌，16:14.000 白芯青边的球体下压，16:17.000 球临近地面并掀尘 | 横版将两人站距从 290 拉到 492 画布像素。2.000 秒离手，先向前飞，下降逐渐加快，3.000 秒击中。[下压全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-release-descent.png) · [球缘与尘浪全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-release-approach.png) |
-| 气宗师 0.767–1.500 贴地冲击，3.600–4.100 白核与外层错开 | 只参考冲击贴地铺开的方向，以及命中时光核与冲击前沿的层次。[第一轮全幅](../../outputs/dragon-vfx/reference/spirit/cards/burst/burst-03.png) · [亮峰全幅](../../outputs/dragon-vfx/reference/spirit/cards/burst/user-burst-05-match-4.100.png) |
-| 龙珠原片 20:29–20:35.500，尘浪向外推，白光由远处放射，随后只余尘土 | 4.05 秒白光外放，光退后尘浪继续滚动并散去。移除了球壳细丝、分支放电、落地电环和冷色余电。对照仍按阶段剪接原片的两个时间段。[白闪全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-final-outburst.png) |
+| 龙珠原片 16:13.100 推掌，16:14.000 白芯青边的球体下压，16:17.000 球临近地面并掀尘 | 擂台两人站距 492 画布像素。2.000 秒离手，2.560 秒触地后继续前推。[下压全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-release-descent.png) |
+| 龙珠原片 20:29.167 起的连续镜头，20:30.167 球沿地表远去，尘道从近到远保持在地面 | 固定横版镜头用向右贴地推进表现远去。球在推进中收小，尘团沿实际路径分批升起、扩散和散开。3.000 秒经过目标，3.880 秒推进到终点。[地面推进全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-ground-travel.png) |
+| 龙珠原片 20:31.733，白闪从尘道远端向四周爆开并越过视口 | 4.05 秒在轨迹末端放出大范围白闪和辐射光束，扩张到画框之外。[白闪全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-final-outburst.png) |
+| 气宗师 0.767–1.500 贴地冲击，5.000–6.000 余势回卷 | 从冲击外扩转为贴地回卷。4.73 秒可看见多股尘流旋进，下层尘土和碎屑随后散开。[气宗师全幅录像](../../outputs/dragon-vfx/reference/spirit/clips/lostark-qizong-spirit-bomb.mp4) |
 
-[远投全幅](../../outputs/dragon-vfx/spirit-anime-arena-flight.png) · [触地爆发全幅](../../outputs/dragon-vfx/spirit-anime-arena-impact.png) · [白闪全幅](../../outputs/dragon-vfx/spirit-anime-arena-flash.png) · [尘浪全幅](../../outputs/dragon-vfx/spirit-anime-arena-dust.png) · [完整录像](../../outputs/dragon-vfx/spirit-anime-arena.mp4)
+[新版贴地推进全幅](../../outputs/dragon-vfx/spirit-anime-arena-impact.png) · [白闪全幅](../../outputs/dragon-vfx/spirit-anime-arena-flash.png) · [贴地漩涡全幅](../../outputs/dragon-vfx/spirit-anime-arena-wake.png) · [完整录像](../../outputs/dragon-vfx/spirit-anime-arena.mp4)
 
 # 元气弹 2D 横版试演
 

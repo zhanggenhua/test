@@ -2,7 +2,7 @@
   'use strict';
   const TAU = 2 * Math.PI;
   const swing = 1.57, release = 2.0, contact = 2.50, duration = 4.80;
-  const animeContact=3.0;
+  const animeGround=2.56, animeContact=3.0, animeBlast=3.88;
   const phases = [
     {t:0, name:'举手'}, {t:.48, name:'四周汇气'}, {t:1.67, name:'托球前送'},
     {t:release, name:'双掌投出'}, {t:2.23, name:'飞行'}, {t:contact, name:'球沿触敌'}, {t:2.66, name:'球体压入'},
@@ -295,6 +295,45 @@
   function flightSlope(u,startSlope,endSlope){
     return startSlope+u*(2*(3-2*startSlope-endSlope)+3*u*(startSlope+endSlope-2));
   }
+  function animeTravel(t,castX,castY,hitX,hitY,ground,radius){
+    const flightSpan=animeGround-release, runSpan=animeContact-animeGround;
+    const approachRadius=mix(radius,radius*.58,ramp(animeGround,animeBlast,animeContact));
+    const approachY=ground-1-approachRadius;
+    const approachX=hitX-Math.sqrt(Math.max(1,approachRadius**2-(hitY-approachY)**2));
+    const landX=mix(castX,approachX,.51), landY=ground-1-radius;
+    const finishX=Math.min(hitX+57,835);
+    const atLanding=(approachX-landX)/runSpan, throughTarget=atLanding*.71;
+    const launchVX=.85*(landX-castX)/flightSpan;
+    const launchVY=.32*(landY-castY)/flightSpan;
+    let x,y,r=radius,rx,ry,dx=launchVX,dy=launchVY,glow=1,flow=0;
+    if(t<release)return {launchVX,launchVY};
+    if(t<animeGround){
+      const u=(t-release)/flightSpan;
+      const landingSlope=atLanding*flightSpan/(landX-castX);
+      x=mix(castX,landX,flightProgress(u,.85,landingSlope));
+      y=mix(castY,landY,flightProgress(u,.32,0));
+      dx=(landX-castX)/flightSpan*flightSlope(u,.85,landingSlope);
+      dy=(landY-castY)/flightSpan*flightSlope(u,.32,0);
+      flow=mix(.36,1,ramp(0,.14,t-release));
+    }else{
+      const firstLeg=t<animeContact;
+      const a=firstLeg?landX:approachX,b=firstLeg?approachX:finishX;
+      const span=firstLeg?runSpan:animeBlast-animeContact;
+      const u=clamp((t-(firstLeg?animeGround:animeContact))/span);
+      const v0=(firstLeg?atLanding:throughTarget)*span/(b-a),v1=firstLeg?throughTarget*span/(b-a):0;
+      x=mix(a,b,flightProgress(u,v0,v1));
+      dx=(b-a)/span*flightSlope(u,v0,v1);
+      const roll=ramp(animeGround,animeBlast,t);
+      r=mix(radius,radius*.58,roll);
+      const compression=ramp(animeGround,animeGround+.10,t)*(1-ramp(animeBlast-.22,animeBlast,t));
+      ry=r*(1-.055*compression);rx=r*(1+.052*compression);
+      y=ground-1-ry;dy=0;
+      flow=mix(.73,.32,roll);
+      glow=1-ramp(animeBlast+.011,animeBlast+.137,t);
+    }
+    const speed=Math.max(1e-6,Math.hypot(dx,dy));
+    return {x,y,r,rx:rx??r,ry:ry??r,hitX,hitY,glow,flow,direction:[dx/speed,dy/speed],burstRadius:radius};
+  }
   function state(t,x,tx,ground,animeBurst=false) {
     const gap=tx-x, radius=Math.min(87,Math.max(38,gap*.30));
     const heldX=x+2, heldY=ground-123-radius;
@@ -302,17 +341,15 @@
     const castX=Math.min(x+67,tx-radius-40);
     const castY=handY-Math.sqrt(Math.max(1,radius*radius-(castX-handX)**2));
     const hitX=tx-30, hitY=ground-64;
+    if(animeBurst&&t>=release)return animeTravel(t,castX,castY,hitX,hitY,ground,radius);
     const endY=ground-radius-7;
     const endX=hitX-Math.sqrt(Math.max(1,radius*radius-(hitY-endY)**2));
-    const impactAt=animeBurst?animeContact:contact;
-    const flightSpan=impactAt-release,pushSpan=release-swing;
+    const flightSpan=contact-release,pushSpan=release-swing;
     const vx=(endX-castX)/flightSpan,vy=(endY-castY)/flightSpan;
     const gravity=.34*vy/flightSpan;
-    const startX=.88,endSlopeX=.79,startY=.21,endSlopeY=1.93;
-    const launchVX=animeBurst?startX*vx:vx, hitVX=animeBurst?endSlopeX*vx:vx;
-    const launchVY=animeBurst?startY*vy:vy-.5*gravity*flightSpan;
-    const hitVY=animeBurst?endSlopeY*vy:launchVY+gravity*flightSpan;
-    let cx,cy,r=radius,rx,ry,glow,flow=0,dirX=vx,dirY=vy;
+    const launchVY=vy-.5*gravity*flightSpan;
+    const hitVY=launchVY+gravity*flightSpan;
+    let cx,cy,r=radius,rx,ry,glow,flow=0;
     if(t<swing){
       const mass=packets.reduce((sum,p)=>sum+p.mass*ramp(p.at,p.at+.084,t),0)/totalMass;
       r=5+(radius-5)*Math.cbrt(mass);
@@ -321,39 +358,29 @@
       glow=ramp(.15,.37,t);
     }else if(t<release){
       const q=(t-swing)/pushSpan;
-      cx=push(heldX,castX,launchVX,pushSpan,q);
-      cy=push(heldY,castY,launchVY,pushSpan,q);
+      const handoff=animeBurst?animeTravel(t,castX,castY,hitX,hitY,ground,radius):null;
+      cx=push(heldX,castX,handoff?.launchVX??vx,pushSpan,q);
+      cy=push(heldY,castY,handoff?.launchVY??launchVY,pushSpan,q);
       glow=1;
       flow=.36*ramp(.1,1,q);
-    }else if(t<impactAt){
+    }else if(t<contact){
       const dt=t-release;
       cx=castX+vx*dt;
       cy=castY+dt*(launchVY+.5*gravity*dt);
-      if(animeBurst){
-        const u=dt/flightSpan;
-        cx=castX+(endX-castX)*flightProgress(u,startX,endSlopeX);
-        cy=castY+(endY-castY)*flightProgress(u,startY,endSlopeY);
-        dirX=vx*flightSlope(u,startX,endSlopeX);
-        dirY=vy*flightSlope(u,startY,endSlopeY);
-      }
       glow=1;
       flow=mix(.36,1,ramp(0,.14,dt));
     }else{
-      const age=t-impactAt;
-      const drop=(ground-radius-endY)+2.3;
-      cx=endX+integrateBrake(hitVX,age,animeBurst?.080:.177);
+      const age=t-contact,drop=(ground-radius-endY)+2.3;
+      cx=endX+integrateBrake(vx,age,.177);
       cy=endY+integrateBrake(hitVY,age,drop/hitVY);
-      if(animeBurst){dirX=hitVX*Math.exp(-age/.080);dirY=hitVY*Math.exp(-age*hitVY/drop);}
       const crush=ramp(.015,.145,age)*(1-.70*ramp(.16,.29,age));
-      rx=radius*(1-(animeBurst?.15:.065)*crush);
-      ry=radius*(1-(animeBurst?.080:.038)*crush);
-      if(animeBurst)cy+=radius*.080*crush;
+      rx=radius*(1-.065*crush);
+      ry=radius*(1-.038*crush);
       glow=1-ramp(.047,.215,age);
       flow=Math.exp(-age/.09);
     }
-    const directionLength=Math.max(1e-9,Math.hypot(dirX,dirY));
-    return {x:cx,y:cy,r,rx:rx??r,ry:ry??r,glow,hitX,hitY,flow,
-            direction:[dirX/directionLength,dirY/directionLength]};
+    const length=Math.hypot(vx,vy);
+    return {x:cx,y:cy,r,rx:rx??r,ry:ry??r,glow,hitX,hitY,flow,direction:[vx/length,vy/length]};
   }
 
   function intakePaths(x,tx,ground){
@@ -410,7 +437,7 @@
     return function(time,stage){
       const {casterX:x,targetX:tx,ground}=stage.scene;
       const b=stage.ball,data=[];
-      const impactAt=animeBurst?animeContact:contact;
+      const impactAt=animeBurst?animeBlast:contact;
       function ribbon(points,width,visibility){
         const strips=points.map((p,i)=>{
           const before=points[Math.max(0,i-1)],after=points[Math.min(points.length-1,i+1)];
@@ -443,7 +470,8 @@
           ribbon(points,2.9+1.6*p.mass,visibility);
         }
       }
-      const wake=ramp(release-.015,release+.09,time)*(1-ramp(impactAt-.04,impactAt+.13,time));
+      const wakeEnd=animeBurst?animeGround:impactAt;
+      const wake=ramp(release-.015,release+.09,time)*(1-ramp(wakeEnd-.04,wakeEnd+(animeBurst?.21:.13),time));
       if(wake>.002){
         for(let i=0;i<(animeBurst?6:9);i++){
           const side=2*random(i+17)-1,delay=.036+.104*random(i+62);
@@ -470,26 +498,11 @@
           const reach=99+130*random(i+26);
           const points=Array.from({length:8},(_,j)=>{
             const u=j/7,r=reach*expand(age-(1-u)*.088);
-            return [b.hitX-22+r*Math.cos(angle),
+            return [b.x+r*Math.cos(angle),
                     ground-2-(3+8*random(i+39))*Math.sin(Math.PI*u),
                     r*Math.sin(angle)];
           });
           ribbon(points,1.9+1.7*random(i+43),visibility*(.56+.36*random(i+61)));
-        }
-      }
-      if(animeBurst&&age>.975&&age<1.20){
-        // Radial light follows the flash, with smooth tapered rays and staggered reach.
-        const spark=age-.975, extent=ramp(0,.075,spark);
-        const life=ramp(0,.044,spark)*(1-ramp(.086,.225,spark));
-        const origins=[b.x+13,ground-59,1];
-        for(let i=0;i<10;i++){
-          const angle=-Math.PI+(i+.30*random(i+89))*TAU/10;
-          const length=(108+150*random(i+63))*extent;
-          const points=Array.from({length:10},(_,j)=>{
-            const u=j/9,r=9+u*length;
-            return [origins[0]+r*Math.cos(angle),origins[1]+r*Math.sin(angle),origins[2]+5*u];
-          });
-          ribbon(points,3+8*random(i+51),life*(.65+.55*random(i+32)));
         }
       }
       if(!animeBurst&&age>=0&&age<.145){
@@ -535,6 +548,132 @@
       return flash*vec3(.24,.40,.59)*(.31+.69*facing)*exp(-dot(offset,offset)/41000.);
     }`;
 
+  function groundTrail(gl,makeProgram){
+    const program=makeProgram(gl,`#version 300 es
+      layout(location=0) in vec3 base;
+      layout(location=1) in vec4 shape;
+      layout(location=2) in float opacity;
+      uniform mat4 vp;
+      out vec2 uv;
+      flat out vec3 cloud;
+      void main(){
+        const vec2 corners[6]=vec2[6](vec2(-1,0),vec2(1,0),vec2(1,1),vec2(-1,0),vec2(1,1),vec2(-1,1));
+        uv=corners[gl_VertexID];cloud=vec3(shape.zw,opacity);
+        gl_Position=vp*vec4(base+vec3(uv.x*shape.x,-uv.y*shape.y,0.),1.);
+      }`,`#version 300 es
+      precision highp float;
+      in vec2 uv;
+      flat in vec3 cloud;
+      out vec4 color;
+      float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+      float noise(vec2 p){
+        vec2 c=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+        return mix(mix(hash(c),hash(c+vec2(1,0)),f.x),mix(hash(c+vec2(0,1)),hash(c+1.),f.x),f.y);
+      }
+      void main(){
+        float seed=cloud.y,t=cloud.x;
+        vec2 p=uv+vec2(.10*(1.-uv.y)*sin(2.4*seed),0.);
+        float grain=noise(p*13.+seed),roll=noise(p*5.6+vec2(seed,-t*.39));
+        float a=length((p-vec2(-.13,.34))/vec2(.74,.38));
+        float b=length((p-vec2(.22,.55))/vec2(.55,.38));
+        float c=length((p-vec2(-.43,.44+.07*sin(seed)))/vec2(.39,.34));
+        float body=min(a,min(b,c))+.24*(roll-.51)+.095*(grain-.5);
+        float envelope=1.-smoothstep(.65,1.,body);
+        float fade=smoothstep(.0,.13,uv.y)*(1.-smoothstep(.88,1.,uv.y));
+        float crown=smoothstep(.25,.73,uv.y+.21*roll-.10*body);
+        vec3 shadow=vec3(.36,.32,.25),lit=vec3(.86,.83,.72);
+        vec3 dust=mix(shadow,lit,crown)*(.88+.14*grain);
+        float alpha=cloud.z*envelope*fade*(.74+.26*roll);
+        color=vec4(dust*alpha,alpha);
+      }`);
+    const vp=gl.getUniformLocation(program,'vp'),vao=gl.createVertexArray(),buffer=gl.createBuffer();
+    gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    for(const [index,components,offset] of [[0,3,0],[1,4,12],[2,1,28]]){
+      gl.enableVertexAttribArray(index);
+      gl.vertexAttribPointer(index,components,gl.FLOAT,false,32,offset);
+      gl.vertexAttribDivisor(index,1);
+    }
+    return (time,stage)=>{
+      if(time<animeGround-.05||time>animeBlast+1.02)return;
+      const {casterX,targetX,ground}=stage.scene;
+      const puffs=[];
+      for(let i=0;i<22;i++){
+        const born=animeGround-.045+.062*i, age=time-born;
+        if(age<0||age>1.28)continue;
+        const shell=state(Math.max(animeGround,born),casterX,targetX,ground,true);
+        for(let side=0;side<2;side++){
+          const seed=i*17+side*31+.7;
+          const life=.77+.43*random(seed+42), elapsed=age/life;
+          const opacity=ramp(0,.105,age)*(1-ramp(.39,1,elapsed));
+          if(opacity<.004)continue;
+          const size=.78+.45*random(seed+63), push=1-Math.exp(-age*4.7);
+          const x=shell.x-shell.r*(.33+.36*random(seed+1))-(9+15*random(seed+19))*push;
+          const z=(side?1:-1)*(17+27*random(seed+19)+37*push);
+          const width=size*(14+29*push);
+          const height=size*(17+46*push)*(side?.76:1)*(i%5===2?1.35:1);
+          puffs.push([x,ground+.7,z,width,height,age,seed,opacity*.96]);
+        }
+      }
+      if(!puffs.length)return;
+      puffs.sort((a,b)=>b[2]-a[2]);
+      gl.useProgram(program);gl.uniformMatrix4fv(vp,false,stage.matrix);
+      gl.enable(gl.DEPTH_TEST);gl.depthMask(false);gl.disable(gl.CULL_FACE);
+      gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+      gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(puffs.flat()),gl.STREAM_DRAW);
+      gl.drawArraysInstanced(gl.TRIANGLES,0,6,puffs.length);
+      gl.depthMask(true);
+    };
+  }
+  function blastFlash(gl,makeProgram){
+    const program=makeProgram(gl,`#version 300 es
+      void main(){
+        vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);
+        gl_Position=vec4(p*2.-1.,0.,1.);
+      }`,`#version 300 es
+      precision highp float;
+      uniform vec2 source;
+      uniform float age;
+      out vec4 color;
+      void main(){
+        vec2 p=gl_FragCoord.xy-source;
+        float r=length(p),angle=atan(p.y,p.x);
+        float progress=smoothstep(.035,.176,age);
+        float peak=smoothstep(.026,.107,age)*(1.-smoothstep(.175,.310,age));
+        float reach=mix(38.,1160.,progress);
+        float front=1.-smoothstep(reach-reach*.13,reach+5.,r);
+        const float aim[12]=float[12](.20,.72,1.12,1.53,1.91,2.29,2.73,3.08,3.41,3.78,4.68,5.35);
+        const float widths[12]=float[12](.059,.079,.100,.035,.13,.070,.038,.111,.051,.034,.094,.055);
+        float spikes=0.;
+        for(int i=0;i<12;i++){
+          float v=float(i);
+          float edge=abs(mod(angle-aim[i]+3.14159265,6.2831853)-3.14159265);
+          float width=widths[i]*(.51+.49*progress)+11./(r+62.);
+          float rays=1.-smoothstep(width*.61,width*1.18,edge);
+          float speed=.65+.35*fract(sin(v*428.7+8.)*294.27);
+          float head=1.-smoothstep(reach*speed-45.,reach*speed+36.,r);
+          spikes=max(spikes,rays*head);
+        }
+        float core=exp(-pow(length(p*vec2(.83,1.24))/(24.+108.*progress),2.));
+        float charge=peak*front*(.32+.29*core);
+        float white=peak*max(core,spikes);
+        float opacity=clamp(charge*.77+white*.82,0.,.96);
+        color=vec4(vec3(.62,.86,1.02)*charge+vec3(1.39,1.51,1.58)*white,opacity);
+      }`);
+    const source=gl.getUniformLocation(program,'source'),ageUniform=gl.getUniformLocation(program,'age');
+    const vao=gl.createVertexArray();
+    return (age,x,ground)=>{
+      if(age<=.026||age>=.310)return;
+      gl.useProgram(program);
+      gl.uniform2f(source,x,gl.drawingBufferHeight-ground+48);
+      gl.uniform1f(ageUniform,age);
+      gl.bindVertexArray(vao);
+      gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);
+      gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA,gl.ZERO,gl.ONE);
+      gl.drawArrays(gl.TRIANGLES,0,3);
+    };
+  }
+
   function worldEffects(gl,makeProgram,groundImpact=false,arenaWake=false,animeBurst=false){
     const sphere=sphereGeometry(gl),vp=new Float32Array(16);
     const vertexUniforms=new Map(),eye=[0,0,0];
@@ -551,26 +690,33 @@
     const renderOrb=worldOrb(gl,makeProgram,sphere,animeBurst),renderFlow=worldFlow(gl,makeProgram,animeBurst);
     const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact,arenaWake,animeBurst);
     const renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact,animeBurst);
+    const renderTrail=animeBurst?groundTrail(gl,makeProgram):null;
+    const renderFlash=animeBurst?blastFlash(gl,makeProgram):null;
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
-      const {clock,ball,matrix}=stage,age=clock-(animeBurst?animeContact:contact);
+      const {clock,ball,matrix}=stage,age=clock-(animeBurst?animeBlast:contact);
       const inlet=groundImpact&&age>0?{...ball,glow:ball.glow*(1-ramp(.008,.075,age))}:ball;
       renderOrb(clock,inlet,stage);
       renderFlow(clock,stage);
+      renderTrail?.(clock,stage);
       if(age<0||age>(arenaWake?3.50:groundImpact?2.23:1.67))return;
       // Impact meshes use sphere units around local (0,1,0). Transform them into the arena.
+      const bloom=animeBurst?mix(.66,1,ramp(0,.23,age))*ball.burstRadius:0;
+      const rx=bloom||ball.rx,ry=bloom||ball.ry,rz=bloom||ball.r;
+      const base=ball.y+ball.ry;
       for(let row=0;row<4;row++){
-        vp[row]=matrix[row]*ball.rx;
-        vp[4+row]=-matrix[4+row]*ball.ry;
-        vp[8+row]=-matrix[8+row]*ball.r;
-        vp[12+row]=matrix[row]*ball.x+matrix[4+row]*(ball.y+ball.ry)+matrix[12+row];
+        vp[row]=matrix[row]*rx;
+        vp[4+row]=-matrix[4+row]*ry;
+        vp[8+row]=-matrix[8+row]*rz;
+        vp[12+row]=matrix[row]*ball.x+matrix[4+row]*base+matrix[12+row];
       }
-      eye[0]=(stage.eye[0]-ball.x)/ball.rx;
-      eye[1]=1+(ball.y-stage.eye[1])/ball.ry;
-      eye[2]=-stage.eye[2]/ball.r;
-      geometry.groundFront=-stage.frontZ/ball.r;
+      eye[0]=(stage.eye[0]-ball.x)/rx;
+      eye[1]=1+(base-ry-stage.eye[1])/ry;
+      eye[2]=-stage.eye[2]/rz;
+      geometry.groundFront=-stage.frontZ/rz;
       renderEjecta(age,'stones');renderEjecta(age,'floor');renderEjecta(age,'back');
-      const floorHeight=(ball.y+ball.ry-stage.scene.ground)/ball.ry;
+      const floorHeight=(base-stage.scene.ground)/ry;
       renderVolume(age,opaqueDepth,floorHeight);renderEjecta(age,'front');
+      renderFlash?.(age,ball.x,base);
     };
   }
 
@@ -588,13 +734,13 @@
   function createArena(groundImpact,animeBurst=false){
     const arenaPhases=animeBurst?[
       ...phases.filter(phase=>phase.t<=release),
-      {t:2.43,name:'远距飞行'},{t:2.73,name:'球体下压'},{t:animeContact,name:'触敌着地'},
-      {t:3.20,name:'贴地爆闪'},{t:3.70,name:'亮核与翻尘'},{t:4.05,name:'白光外放'},
-      {t:4.52,name:'尘浪接替'},{t:5.77,name:'尘浪散开'},{t:6.50,name:'清场'},
+      {t:2.43,name:'远距飞行'},{t:animeGround,name:'球缘贴地'},{t:animeContact,name:'撞过目标'},
+      {t:3.45,name:'贴地推进与尘道'},{t:4.05,name:'白闪冲出画面'},
+      {t:4.73,name:'贴地漩涡'},{t:5.77,name:'尘浪散开'},{t:6.65,name:'清场'},
     ]:[...impactPhases.slice(0,-1),{t:5.29,name:'暗浪裂散'},{t:5.96,name:'余波散尽'}];
     let ready,renderer;
     const sample=groundImpact?(clock,scene)=>{
-      const frame=arenaFrame(clock,scene,animeBurst),age=clock-(animeBurst?animeContact:contact);
+      const frame=arenaFrame(clock,scene,animeBurst),age=clock-(animeBurst?animeBlast:contact);
       const flash=ramp(.08,.16,age)*(1-ramp(.24,.39,age));
       return {...frame,impactAge:age,targetLight:1+.21*flash};
     }:arenaFrame;
