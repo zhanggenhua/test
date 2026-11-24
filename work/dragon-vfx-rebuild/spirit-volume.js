@@ -303,6 +303,7 @@
     uniform vec3 eye;
     uniform float age;
     uniform bool clipOpaque;
+    uniform float groundY;
     uniform highp sampler2D opaqueDepth;
     in vec3 proxy;
     out vec4 color;
@@ -350,11 +351,11 @@
     // the same field on both sides of the rotating energy.
     vec4 medium(vec3 p,float life,float collapse){
       #ifdef STUDIO
-      vec3 q=p-vec3(.024,.77-.54*collapse,-.034);
-      q.yz=mat2(.987,-.16,.16,.987)*q.yz;
+      vec3 above=p-vec3(.024,groundY,-.034);
+      vec3 q=above;
       float drive=1.-exp(-age*11.4);
-      q.xz/=mix(.52,1.40,drive)-.39*collapse;
-      q.y/=mix(.56,.90,drive)-.60*collapse;
+      q.xz/=mix(.58,1.58,drive)-.39*collapse;
+      q.y/=mix(.57,1.48,drive)-1.19*collapse;
       #else
       vec3 q=p-vec3(.07,1.13-.79*collapse,-.04);
       q.yz=mat2(.95,-.31,.31,.95)*q.yz;
@@ -368,20 +369,25 @@
       float fiber=noise3(vec3(drift.xz*8.5,q.y*26.-age*4.));
       float shape=length(vec2(r*.92,q.y));
       float envelope=1.-smoothstep(.70,.99,shape+.16*(mass-.48));
-      float baseFade=smoothstep(.0,.15,p.y);
       #ifdef STUDIO
+      float baseFade=smoothstep(0.,.062,above.y);
+      envelope*=1.-smoothstep(.97,1.06,q.y);
       float folding=smoothstep(.33,.81,collapse);
       vec4 groundGas=folding>.001?groundVortex(p):vec4(0.);
       groundGas.a*=folding;
       if(envelope*baseFade<.002)return groundGas;
       #else
+      float baseFade=smoothstep(.0,.15,p.y);
       if(envelope*baseFade<.002)return vec4(0.);
       #endif
 
       float contraction=clamp(q.y+.30,0.,1.4);
       #ifdef STUDIO
-      float radius=.85-.35*pow(clamp(q.y+.28,0.,1.45),1.62)+.10*(mass-.5);
-      float layer=exp(-pow((r-radius)/(.138-.029*contraction),2.));
+      // The emissive wave is an upper dome. Its widest cross section
+      // meets the floor instead of hovering at the center of a sphere.
+      float domeY=clamp(q.y,0.,1.);
+      float radius=.93*sqrt(1.-domeY*domeY)+.075*(mass-.5);
+      float layer=exp(-pow((r-radius)/(.153-.022*contraction),2.));
       #else
       float radius=.76-.19*contraction+.12*(mass-.5);
       float layer=exp(-pow((r-radius)/(.119-.028*contraction),2.));
@@ -406,7 +412,14 @@
       emission+=vec3(2.20,2.77,3.31)*layer*band*(.43+.57*surge);
       emission+=vec3(3.05,3.47,3.84)*hotBands+vec3(1.22,1.46,1.63)*knot;
       #ifdef STUDIO
-      emission*=.37+.22*pulse;
+      emission*=.48+.25*pulse;
+      float push=1.-exp(-max(0.,age-.009)*11.2);
+      float basalEdge=exp(-pow((length(above.xz)-1.48*push)/(.11+.05*push),2.));
+      float basalSheet=exp(-pow((above.y-.07)/(.067+.04*mass),2.));
+      float basalFlash=1.-smoothstep(.33,.88,age);
+      float front=basalSheet*basalEdge*basalFlash;
+      density+=2.25*front*life*baseFade;
+      emission+=vec3(.48,1.47,2.12)*front*(.48+.52*wisps);
       float fissure=smoothstep(-.55,.53,sin(3.*a+q.y*4.6-age*4.1)+.58*(2.*mass-1.));
       density*=.48+.52*fissure;
       float helicalPhase=(q.y+.16*r)*6.1+a/6.2831853-age*1.04+.15*mass;
@@ -414,7 +427,7 @@
       emission+=vec3(.73,1.07,1.52)*sheet*layer*(.48+.52*surge);
       float unwound=(q.y+.12*r)*9.1+a/6.2831853-age*1.23+.14*mass;
       float threads=exp(-abs(fract(unwound+.5)-.5)*(16.+10.*fiber));
-      float whiteArc=smoothstep(-.64,.88,cos(twist-.8+q.y*1.15));
+      float whiteArc=smoothstep(-.62,.88,cos(twist+.60+q.y*1.15));
       float wake=(.16+.84*smoothstep(.10,.77,fiber))*layer;
       emission+=vec3(.92,1.30,1.84)*threads*wake*(.35+.65*whiteArc);
       emission+=vec3(.37,.56,.91)*filament*layer;
@@ -432,8 +445,13 @@
       float b=dot(delta,ray),h=b*b-dot(delta,delta)+extent*extent;
       if(h<=0.)discard;
       vec2 span=vec2(max(0.,-b-sqrt(h)),-b+sqrt(h));
-      if(ray.y<-.0001)span.y=min(span.y,-eye.y/ray.y);
-      if(ray.y>.0001)span.x=max(span.x,-eye.y/ray.y);
+      #ifdef STUDIO
+      float floorOffset=groundY-eye.y;
+      #else
+      float floorOffset=-eye.y;
+      #endif
+      if(ray.y<-.0001)span.y=min(span.y,floorOffset/ray.y);
+      if(ray.y>.0001)span.x=max(span.x,floorOffset/ray.y);
       if(clipOpaque){
         float scene=texelFetch(opaqueDepth,ivec2(gl_FragCoord.xy),0).r;
         if(scene<.999999){
@@ -476,7 +494,7 @@
       precision highp float;
       uniform mat4 vp;
       uniform vec3 eye;
-      uniform float age;
+      uniform float age,groundY;
       out vec3 world;
       out vec4 strip;
       flat out vec3 style;
@@ -491,11 +509,13 @@
         float a0=tau*seed(id*2.7+8.);
         float spin=age*(3.35+.53*seed(id+4.))+age*age*.62;
         float turn=a0+spin+t*mix(2.4,7.5,seed(id+73.));
-        float loft=.28+group*1.11;
-        float rounded=sqrt(1.-pow(.09+.86*group,2.));
-        float reach=(.53+.74*rounded)*mix(.67,1.14,grow);
+        float level=.049+group*.91;
+        float rounded=sqrt(1.-level*level);
+        float reach=1.47*rounded*mix(.66,1.02,grow);
         float rag=.037*sin(7.*turn+id*.7)+.020*cos(13.*turn-id);
-        float y=.12+loft*(.62+.38*rise)*(1.-.61*fall)+.174*(t-.5)+.077*sin(turn*2.2+id*.67);
+        float taper=1.-.59*fall;
+        float y=.026+1.50*level*(.62+.38*rise)*taper
+          + min(level,.23)*(.53*(t-.5)+.30*sin(turn*2.2+id*.67));
         if(outer>.5){
           float n=id-29.;
           float fan=1.-exp(-max(0.,elapsed)*(6.2+seed(n+77.)*4.));
@@ -511,7 +531,7 @@
             rag*=.63;
           }
         }
-        return vec3(cos(turn)*(reach+rag)+.039*sin(age*3.+group*3.),y,sin(turn)*(reach+rag));
+        return vec3(cos(turn)*(reach+rag)+.039*sin(age*3.+group*3.),groundY+y,sin(turn)*(reach+rag));
       }
       void main(){
         const vec2 corner[6]=vec2[6](vec2(0,-1),vec2(1,-1),vec2(1,1),vec2(0,-1),vec2(1,1),vec2(0,1));
@@ -539,13 +559,13 @@
       }`;
     const fragment = `#version 300 es
       precision highp float;
-      uniform float age;
+      uniform float age,groundY;
       in vec3 world;
       in vec4 strip;
       flat in vec3 style;
       out vec4 color;
       void main(){
-        if(world.y<0.||strip.z<.008)discard;
+        if(world.y<groundY||strip.z<.008)discard;
         float t=strip.x,edge=abs(strip.y),id=style.x,outer=style.y;
         float skip=smoothstep(-.42,.09,sin(t*19.+id*2.9)+.51*sin(t*41.-id*2.+age*9.));
         float bristle=.72+.28*sin(t*109.+id*2.13+age*17.);
@@ -558,9 +578,11 @@
         color=vec4(dye*intensity*opacity*(1.+.92*snap),opacity*.24);
       }`;
     const material=geom.program(vertex,fragment),vao=gl.createVertexArray();
-    return age=>{
+    const groundY=gl.getUniformLocation(material,'groundY');
+    return (age,floorHeight)=>{
       if(age<.035||age>1.4)return;
       geom.uniforms(material,age);
+      gl.uniform1f(groundY,floorHeight);
       gl.disable(gl.CULL_FACE);
       gl.blendFuncSeparate(gl.ONE,gl.ONE,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       gl.bindVertexArray(vao);
@@ -577,6 +599,7 @@
     const volume=geom.program(variant(volumeVertex),variant(volumeFragment));
     const renderStrips=studio?burstStrips(gl,geom):null;
     const clipOpaque=gl.getUniformLocation(volume,'clipOpaque');
+    const volumeFloor=gl.getUniformLocation(volume,'groundY');
     const opaqueDepth=gl.getUniformLocation(volume,'opaqueDepth');
     return function render(age,depth,floorHeight=0){
       if(age<=.001||age>=(studio?2.19:1.63))return;
@@ -599,6 +622,7 @@
         // copied opaque depth, so visible energy in front of a sprite survives.
         gl.disable(gl.DEPTH_TEST);
         geom.uniforms(volume,age);
+        if(studio)gl.uniform1f(volumeFloor,floorHeight);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D,depth??null);
         gl.uniform1i(opaqueDepth,0);
@@ -606,7 +630,7 @@
         geom.draw(geom.sphere);
         gl.enable(gl.DEPTH_TEST);
       }
-      renderStrips?.(age);
+      renderStrips?.(age,floorHeight);
       geom.uniforms(material,age);
       gl.depthMask(!studio);
       if(studio)gl.disable(gl.CULL_FACE);

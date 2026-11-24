@@ -1,5 +1,6 @@
 """Publish the source frames, comparison films and local arena renderer together."""
 import base64
+import hashlib
 import io
 import json
 import shutil
@@ -168,7 +169,19 @@ payload = {"actors":actors,
 atlas = here/"spirit-assets/impact-v15.webp"
 atlas_url = copy(atlas,"impact-v15.webp") if atlas.is_file() else ""
 (dst/"data.js").write_text("window.DragonData="+json.dumps(payload,ensure_ascii=False,separators=(",",":"))+";\nwindow.DragonImpactAtlas="+json.dumps(atlas_url)+";",encoding="utf-8")
-for name in ("spirit.js","spirit-study.js","kame.js","arena-stage.js","kame-arena.js","kame-volume.js","kame-study-effects.js","kame-source-meshes.js","kame-study.js","player.js","spirit-volume.js","spirit-ejecta.js","spirit-impact-3d.js"):
+modules = ("spirit.js","spirit-study.js","kame.js","arena-stage.js","kame-arena.js","kame-volume.js",
+           "kame-study-effects.js","kame-source-meshes.js","kame-study.js","player.js","spirit-volume.js",
+           "spirit-ejecta.js","spirit-impact-3d.js")
+for name in modules:
     copy(here/name,name)
-shutil.copy2(here/"preview.html",out/"dragon-vfx.html")
-shutil.copy2(work/"vfx-preview.html",out/"index.html")
+
+# A new catalog URL alone does not invalidate its iframe or the shaders.
+# Use the contents of the actual generated files, including data.js.
+preview = (here/"preview.html").read_text(encoding="utf-8")
+for name in ("data.js",*modules):
+    stamp = hashlib.sha256((dst/name).read_bytes()).hexdigest()[:12]
+    preview = preview.replace(f'src="dragon-vfx/{name}"', f'src="dragon-vfx/{name}?rev={stamp}"')
+(out/"dragon-vfx.html").write_text(preview,encoding="utf-8")
+release = hashlib.sha256(preview.encode("utf-8")).hexdigest()[:12]
+catalog = (work/"vfx-preview.html").read_text(encoding="utf-8")
+(out/"index.html").write_text(catalog.replace("__DRAGON_PREVIEW_BUILD__",release),encoding="utf-8")
