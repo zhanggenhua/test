@@ -48,6 +48,9 @@
       float edge=.043*sin(3.*a-5.*h+age*1.7)+.038*cos(5.*a+7.*h-age*2.1);
       float lobe=.052*pow(.5+.5*sin(2.*a-age*.65),3.);
       float reach=.82+1.28*growth+.18*spread+.18*land;
+      #ifdef ANIME_BURST
+      edge*=.58;lobe*=.53;
+      #endif
       float radius=rim*reach*(1.+edge+lobe);
       float lift=mix(.37,1.03,growth)*reach*(1.-.69*land);
       float height=groundY+.008+h*lift*(1.+rim*edge*.83);
@@ -66,6 +69,18 @@
     }
     void main(){
       surface=normalize(position);
+      #ifdef ANIME_BURST
+      if(layer==5){
+        float a=atan(surface.z,surface.x),h=.5+.5*surface.y;
+        float surge=1.-exp(-max(0.,age-.109)*9.6);
+        float drain=ease(.59,1.08);
+        float rib=sqrt(max(0.,1.-h*h));
+        float curl=.034*sin(3.*a+age*3.1+h*7.)+.023*cos(7.*a-h*9.-age*4.);
+        float r=rib*(.68+.64*surge)*(1.-.41*drain)*(1.+curl);
+        float y=h*(.55+.83*surge)*(1.-.68*drain)-.18*pow(h,10.);
+        world=vec3(cos(a)*r,groundY+.09+y,sin(a)*r);
+      }else
+      #endif
       if(layer==4){
         float t=ease(.89,1.31);
         float r=(.84+.70*t)*(1.-.18*ease(1.38,1.62));
@@ -101,8 +116,85 @@
     float abscomb(float turns){return abs(fract(turns+.5)-.5);}
     vec2 az(float a){return vec2(cos(a),sin(a));}
     void put(vec3 rgb,float a){color=vec4(rgb*a,a);}
+    #ifdef ANIME_BURST
+    void rotatingCore(vec3 n,vec3 v){
+      float h=.5+.5*n.y,a=atan(n.z,n.x);
+      float life=smoothstep(.231,.355,age)*(1.-smoothstep(.67,1.045,age));
+      float heightMask=smoothstep(.015,.14,h)*(1.-smoothstep(.87,1.,h));
+      vec3 face=vec3(az(a).x*sqrt(1.-h*h),h,az(a).y*sqrt(1.-h*h));
+      float facing=dot(face,v);
+      float near=smoothstep(-.12,.22,facing);
+      if(near*life<.007)discard;
+      vec2 flow=az(a-age*3.9);
+      float gas=noise3(vec3(flow*3.7,h*7.+age));
+      float specks=noise3(vec3(flow*19.2,h*63.-age));
+      float breakup=smoothstep(.47,.80,age);
+      float swirl=h*(6.4+.54*breakup)+a/TAU-age*1.81
+        +.11*sin(2.*a+4.8*h-age*3.)+.12*(gas-.5);
+      float spine=abscomb(swirl);
+      float edge=1.-smoothstep(.021,.106+.048*gas,spine);
+      float tails=exp(-abscomb(swirl*3.+.22*gas+.093*specks)*(14.+10.*specks));
+      float fibers=exp(-abscomb(swirl*7.+.33*gas)*22.)*smoothstep(.26,.72,specks);
+      float ribbon=exp(-spine*(5.8+4.1*gas));
+      float tip=.49+.51*smoothstep(-.66,.83,cos(a-age*3.3+h*3.8));
+      float tatter=smoothstep(.20,.72,specks*.5+gas*.53);
+      float crown=exp(-pow((h-.802+.04*sin(a-age*2.4)-.065*(gas-.5))/.066,2.));
+      vec3 light=vec3(.076,.255,.39)*(1.+.87*gas);
+      light+=vec3(.09,.57,.79)*ribbon*(.54+.46*tip);
+      light+=vec3(1.92,2.28,2.45)*edge*(.36+.64*tip)*(.38+.62*tatter);
+      light+=vec3(.92,1.39,1.58)*tails*tip*tatter*(.44+.56*ribbon);
+      light+=vec3(.56,.91,1.10)*fibers*(.24+.76*tip);
+      light+=vec3(1.71,2.16,2.28)*crown*(.53+.47*cos(a-age*4.));
+      float alpha=life*near*heightMask*(.24+.49*ribbon+.27*edge);
+      put(light,alpha);
+    }
+
+    void impactShell(vec3 n,vec3 v,int layer){
+      float h=.5+.5*n.y,a=atan(n.z,n.x),r=sqrt(max(0.,1.-h*h));
+      vec2 heading=az(a);
+      float tear=smoothstep(.62,1.15,age);
+      float grow=smoothstep(.075,.31,age)*(1.-smoothstep(.74,1.19,age));
+      vec3 drift=vec3(az(a+age*.86)*4.8,h*8.-age*1.4);
+      float broad=noise3(drift),fine=noise3(drift*3.2);
+      float nearSide=smoothstep(-.18,.12,dot(heading,normalize(eye.xz+vec2(.0001,0.))));
+      vec3 normal=vec3(heading.x*r,h,heading.y*r);
+      float tangent=abs(dot(normal,v));
+      float crest=(1.-smoothstep(.028,.171+.04*broad,tangent));
+      float edge=(1.-smoothstep(.092,.31,tangent));
+      float gap=1.-tear*smoothstep(.24,.71,broad+.23*sin(a*7.+h*9.));
+      vec3 dark=mix(vec3(.009,.020,.032),vec3(.065,.115,.15),.26+.52*broad);
+      vec3 cyan=mix(vec3(.12,.53,.88),vec3(.55,.91,1.13),fine);
+      float striation=exp(-abscomb(h*8.+a/TAU+.17*broad-age*.65)*18.);
+      float base=exp(-pow((h-.134-.034*sin(3.*a+age*5.))/.073,2.));
+      float baseGlint=base*(.23+.77*smoothstep(.28,.78,fine+.19*sin(a*12.-age*9.)));
+      if(layer==0){
+        float upper=(1.-nearSide)*(.78+.22*smoothstep(.20,.67,h));
+        float domain=smoothstep(.02,.16,h)*(1.-smoothstep(.966,1.,h));
+        vec3 rear=dark*(.78+.22*fine)+vec3(.07,.19,.22)*striation*.48
+          +cyan*(2.32*crest+.56*edge+.68*baseGlint)+vec3(.54,.87,1.02)*crest*crest;
+        put(rear,grow*domain*gap*max(.97*upper,.56*crest*(1.-nearSide)));
+        return;
+      }
+      // Broken diagonal lap: the near pressure lip crosses the lower core.
+      float roll=.434+.119*sin(a+1.3-age*.48)+.038*sin(3.*a+h*3.);
+      float section=smoothstep(-.61,.49,cos(a-.56+age*.48)+.31*(broad-.5));
+      float frontBand=(1.-smoothstep(.057,.113,abs(h-roll)))*(.34+.66*section);
+      float foot=(1.-smoothstep(.064,.17,abs(h-.125+.047*sin(a*2.))))*(.56+.44*broad);
+      float foldedEdge=exp(-pow((h-roll-.077)/(.022+.016*fine),2.))*section;
+      float flank=crest*(.42+.58*smoothstep(.14,.62,fine+.22*cos(3.*a+age)));
+      float alpha=max(foot*.91,max(frontBand,flank*.74));
+      vec3 lower=dark*1.02+vec3(.071,.124,.15)*striation*foot+cyan*(1.48*baseGlint+1.71*flank);
+      vec3 ribbon=mix(vec3(.22,.27,.28),vec3(.58,.63,.64),smoothstep(.19,.71,broad));
+      lower=mix(lower,ribbon+cyan*.81*foldedEdge,frontBand*.94);
+      put(lower,alpha*nearSide*gap*grow);
+    }
+    #endif
     void main(){
       vec3 n=normalize(surface),v=normalize(eye-world);
+      #ifdef ANIME_BURST
+      if(layer==5){rotatingCore(n,v);return;}
+      if(layer==0||layer==3){impactShell(n,v,layer);return;}
+      #endif
       float a=atan(n.z,n.x),lat=asin(clamp(n.y,-1.,1.));
       float turn=age*3.1,open=smoothstep(.055,.44,age);
       float breakup=smoothstep(.75,1.27,age);
@@ -181,10 +273,6 @@
           if(alpha<.012)discard;
           vec3 tint=soot+ash*filament*.61+edge*(crest*.94+broadEdge*.44)*(.97+2.78*peak)*turbulent;
           tint+=vec3(.23,.38,.58)*strike*exp(-pow((h-.52-ripple)/.17,2.));
-          #ifdef ANIME_BURST
-          tint=mix(tint,vec3(.24,.40,.46)+vec3(.29,.43,.47)*crest,.55);
-          alpha*=.82*(1.-smoothstep(.76,1.20,age));
-          #endif
           put(tint,alpha);
         }else{
           float nearMask=max(nearA*.98,nearB*cut*.96);
@@ -200,10 +288,6 @@
           vec3 near=ash*(.85+.60*grain)+edge*(.68*outline+.88*upperLip)*(1.+peak*.85);
           vec3 pressure=vec3(.52,.58,.63)*(.69+.31*grain)+vec3(.26,.40,.59)*lip;
           near=mix(near,pressure,clamp(max(hitMask,strike*nearB)+.34*lip*strike,0.,1.));
-          #ifdef ANIME_BURST
-          near=mix(near,vec3(.28,.38,.41)*(.76+.24*grain)+vec3(.21,.36,.41)*outline,.43);
-          alpha*=.79*(1.-smoothstep(.76,1.20,age));
-          #endif
           put(near,alpha);
         }
         return;
@@ -510,9 +594,9 @@
       float rag=mix(.61+.39*grain,smoothstep(.22,.80,grain+.19*swell),sink);
       float plume=arm*taper*depth*survival*rag;
       float lit=smoothstep(.29,.80,p.y/max(.05,height)+.17*swell);
-      vec3 clay=vec3(.28,.235,.195)*(1.-.18*grain);
-      vec3 rim=mix(vec3(.82,.78,.66),vec3(.76,.88,.91),(1.-sink)*.56);
-      return vec4(mix(clay,rim,lit),4.1*plume);
+      vec3 base=vec3(.035,.15,.215)*(1.-.18*grain);
+      vec3 rim=mix(vec3(.14,.64,.81),vec3(.60,1.18,1.28),lit);
+      return vec4(mix(base,rim,.32+.68*lit)*mix(1.,.48,sink),4.1*plume);
     }
     #endif
 
@@ -649,12 +733,11 @@
       float settle=smoothstep(.59,.94,collapse);
       emission=mix(emission,emission*vec3(.34,.47,.81),settle);
       #ifdef ANIME_BURST
-      float lowFlow=.58+.42*sin(axis*3.14+.92*mass);
-      float broadLight=exp(-1.66*shape*shape)*(.74+.26*mass);
-      vec3 evenGlow=mix(vec3(.19,.59,.75),vec3(1.83,2.24,2.36),max(broadLight,layer*lowFlow*.82));
+      float lowFlow=.48+.52*band;
+      float broadLight=exp(-3.3*shape*shape)*(.61+.26*mass);
+      vec3 evenGlow=mix(vec3(.035,.24,.41),vec3(.42,.89,1.02),max(broadLight,layer*lowFlow*.74));
       emission=evenGlow;
-      density+=1.12*broadLight*envelope*life*baseFade;
-      density*=1.-smoothstep(.56,.96,age);
+      density*=.70*(1.-smoothstep(.57,.99,age));
       #endif
       float shockTiming=smoothstep(.072,.166,age)*(1.-smoothstep(.193,.340,age));
       vec3 focus=vec3((above.x-.16)*.93,above.y-.48,above.z+.04);
@@ -873,6 +956,60 @@
     };
   }
 
+  function pressureRays(gl,geom){
+    const program=geom.program(`#version 300 es
+      uniform mat4 vp;
+      uniform vec3 eye;
+      uniform float age,groundY;
+      out vec3 mark;
+      vec3 curve(float t,float angle,float spread,vec2 lift){
+        float a=angle+.15*sin(2.6*t)-.065*t*t;
+        float r=.82+spread*t;
+        return vec3(r*cos(a),groundY+mix(1.05,lift.x,t)+lift.y*sin(2.6*t),r*sin(a))+vec3(.025,0.,.02);
+      }
+      void main(){
+        const float angles[5]=float[5](.08,1.16,2.28,3.95,5.29);
+        const float height[5]=float[5](1.22,2.58,.72,1.74,2.20);
+        const vec2 quad[6]=vec2[6](vec2(0,-1),vec2(1,-1),vec2(1,1),vec2(0,-1),vec2(1,1),vec2(0,1));
+        vec2 c=quad[gl_VertexID%6];
+        int id=gl_InstanceID;
+        float index=float(id);
+        float t=(float(gl_VertexID/6)+c.x)/32.;
+        float start=.181+.028*index;
+        float grow=smoothstep(start,start+.18,age);
+        float life=smoothstep(start,start+.092,age)*(1.-smoothstep(.46+index*.023,.62+index*.04,age));
+        float angle=angles[id]+age*.48;
+        float spread=(1.01+.62*abs(sin(index*2.7+.48)))*grow;
+        vec2 lift=vec2(mix(1.03,height[id],grow),.13+.10*cos(index));
+        vec3 p=curve(t,angle,spread,lift);
+        vec3 tangent=curve(t+.003,angle,spread,lift)-curve(t-.003,angle,spread,lift);
+        vec3 side=normalize(cross(eye-p,tangent));
+        float fringe=(.048+.089*sin(3.14159*pow(t,.77)))*(1.-.65*t);
+        p+=side*fringe*c.y;
+        mark=vec3(t,c.y,life);
+        gl_Position=vp*vec4(p,1.);
+      }`,`#version 300 es
+      precision highp float;
+      in vec3 mark;
+      out vec4 color;
+      void main(){
+        float tip=smoothstep(.02,.24,mark.x)*(1.-smoothstep(.80,1.,mark.x));
+        float streak=exp(-5.1*mark.y*mark.y);
+        float density=(.29+.71*streak)*(1.-smoothstep(.73,1.,abs(mark.y)))*mark.z*tip;
+        vec3 light=mix(vec3(.09,.54,.82),vec3(1.68,2.17,2.34),streak);
+        color=vec4(light*density*.86,density*.29);
+      }`);
+    const floor=gl.getUniformLocation(program,'groundY'),vao=gl.createVertexArray();
+    return (age,height)=>{
+      if(age<=.181||age>=.78)return;
+      geom.uniforms(program,age);
+      gl.uniform1f(floor,height);
+      gl.bindVertexArray(vao);
+      gl.disable(gl.CULL_FACE);gl.depthMask(false);
+      gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+      gl.drawArraysInstanced(gl.TRIANGLES,0,32*6,5);
+    };
+  }
   function dustCurl(gl,geom){
     const program=geom.program(`#version 300 es
       uniform mat4 vp;
@@ -921,10 +1058,13 @@
         float margin=(.75+.20*roll)-.12*tuft;
         float dust=1.-smoothstep(margin-.38,margin,edge);
         float albedo=smoothstep(-.70,.69,-stamp.y+roll*.37);
-        vec3 shade=vec3(.29,.26,.223);
-        vec3 crown=mix(vec3(.82,.89,.87),vec3(.81,.76,.65),smoothstep(1.,2.4,age));
-        float alpha=visibility*dust*(.69+.30*roll);
-        vec3 light=mix(shade,crown,albedo)*(.88+.14*tuft+.22*height);
+        float decay=smoothstep(1.16,2.52,age);
+        vec3 shade=mix(vec3(.040,.226,.32),vec3(.018,.078,.12),decay);
+        vec3 crown=mix(vec3(.65,1.31,1.48),vec3(.09,.51,.69),decay);
+        float streak=exp(-pow((stamp.y+.18+.14*roll)/.23,2.))*roll;
+        float alpha=visibility*dust*(.64+.36*roll);
+        vec3 light=mix(shade,crown,albedo)*(.88+.14*tuft+.22*height)
+          +vec3(.60,1.21,1.37)*streak*(1.-decay)*.61;
         color=vec4(light*alpha,alpha);
       }`);
     const floor=gl.getUniformLocation(program,'groundY'),vao=gl.createVertexArray();
@@ -949,6 +1089,7 @@
     const volume=geom.program(variant(volumeVertex),variant(volumeFragment));
     const renderStrips=studio&&!animeBurst?burstStrips(gl,geom,arenaWake):null;
     const renderDustCurl=animeBurst?dustCurl(gl,geom):null;
+    const renderPressureRays=animeBurst?pressureRays(gl,geom):null;
     const clipOpaque=gl.getUniformLocation(volume,'clipOpaque');
     const volumeFloor=gl.getUniformLocation(volume,'groundY');
     const opaqueDepth=gl.getUniformLocation(volume,'opaqueDepth');
@@ -982,7 +1123,12 @@
         gl.enable(gl.DEPTH_TEST);
       }
       renderStrips?.(age,floorHeight);
+      renderPressureRays?.(age,floorHeight);
       geom.uniforms(material,age);
+      if(animeBurst&&age>.231&&age<1.045){
+        gl.disable(gl.CULL_FACE);
+        gl.uniform1i(layer,5);geom.draw(geom.sphere);
+      }
       gl.depthMask(!studio);
       if(studio)gl.disable(gl.CULL_FACE);
       if(age<(studio?1.57:1.46)){gl.uniform1i(layer,3);geom.draw(geom.sphere);}

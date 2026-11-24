@@ -144,7 +144,7 @@ if burst_clip.is_file():
     source_shot=json.loads(burst_clip.read_text(encoding="utf-8"))
     full=resource("spirit",source_shot["clip"])
     spirit_secondary=dict(film("spirit",source_shot,"第二参考 ·《失落的方舟》气宗师",
-        "前段 0.767–1.500 秒用来核对贴地冲击，5.000–6.000 秒用来核对贴地回卷。新版漩涡用尘流与余光表现。",
+        "3.700–4.100 秒对照旋转白核、暗色壳层、前景冲击带和飞石。5.000–6.000 秒对照贴地回卷，元气弹用青白色。",
         0,subset=[1,2,4,5,6,8,9],output=full),
         anchors=[[0,3.20],[1.84,3.20],[2.0,3.267],[2.56,3.45],[3.00,3.50],[3.88,3.56],
                  [4.05,3.700],[4.29,4.100],[4.74,5.44],[6.7,7.11]])
