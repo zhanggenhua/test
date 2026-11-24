@@ -115,12 +115,14 @@
         float shafts=smoothstep(.38,.84,noise(vec3(unit*50.,1.2*outside+.38*tick)))*
           exp(-outside/(.111+.090*hazeNoise));
         float sparkle=noise(vec3(unit*45.,.62*tick)),filmy=0.;
+        #ifndef ANIME_SPIRIT
         for(int i=0;i<3;i++){
           float k=float(i),bend=ang*(3.+k)+phase*.87+k*2.3;
           float edge=radius+.023+.02*k+.026*sin(bend)+.011*sin(ang*9.-phase+k);
           float arc=smoothstep(-.47,.42,cos(ang*(2.+k)+k-phase)+.32*sin(9.*ang+k));
           filmy+=exp(-abs(r-edge)*224.)*arc*(.28+.18*sparkle);
         }
+        #endif
         float glow=clamp(.77*halo+.22*shafts+filmy,0.,1.)*(1.-smoothstep(1.40,1.65,r));
         vec3 haze=mix(vec3(.012,.55,.83),vec3(.66,1.,1.),clamp(.45*halo+filmy+.14*shafts,0.,1.));
         color=vec4(haze*glow*.72*energy,glow*.52*energy);return;
@@ -184,6 +186,11 @@
       body=mix(body,vec3(.985,1.,1.),min(.91,absorbed));
       float film=noise(vec3(unit*14.+p*2.6,.70*z+tick*.46));
       body+=vec3(.052,.018,.009)*(film-.39)*smoothstep(.38,.82,r);
+      #ifdef ANIME_SPIRIT
+      vec3 blueWhite=mix(vec3(.90,1.,1.),vec3(.37,.88,.99),smoothstep(.53,1.,r));
+      body=mix(blueWhite,body,.29);
+      density*=.52;
+      #else
       // A projected wavy great circle naturally disappears behind the core on
       // its far half and briefly protrudes past the rim near a tangent.
       for(int i=0;i<7;i++){
@@ -200,6 +207,7 @@
         body=mix(body,vec3(.965,1.,1.),show*(.35+.65*smoothstep(.35,.90,r)));
 
       }
+      #endif
       float sparkle=noise(vec3(unit*45.,.62*tick));
       float rim=exp(-abs(r-.987)*mix(60.,132.,sparkle));
       body=mix(body,vec3(.94,1.,1.),rim*(.67+.33*sparkle));
@@ -227,8 +235,9 @@
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),gl.STATIC_DRAW);
     return {vao,count:indices.length};
   }
-  function worldOrb(gl,makeProgram,sphere){
-    const pg=makeProgram(gl,vertex,fragment);
+  function worldOrb(gl,makeProgram,sphere,animeBurst){
+    const material=animeBurst?fragment.replace('#version 300 es\n','#version 300 es\n#define ANIME_SPIRIT\n'):fragment;
+    const pg=makeProgram(gl,vertex,material);
     const names=['vp','center','radii','haloRight','haloDown','layer','phase','inlets[0]','momentum','energy'];
     const u=Object.fromEntries(names.map(name=>[name,gl.getUniformLocation(pg,name)]));
     const halo=gl.createVertexArray();
@@ -737,7 +746,7 @@
         gl.uniformMatrix4fv(u[0],false,vp);gl.uniform1f(u[1],age);gl.uniform3fv(u[2],eye);
       },
     };
-    const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram,animeBurst);
+    const renderOrb=worldOrb(gl,makeProgram,sphere,animeBurst),renderFlow=worldFlow(gl,makeProgram,animeBurst);
     const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact,arenaWake,animeBurst);
     const renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact,animeBurst);
     const renderTrail=animeBurst?groundTrail(gl,makeProgram):null;

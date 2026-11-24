@@ -39,22 +39,25 @@
       float a=atan(n.z,n.x);
       #ifdef STUDIO
       float h=.5+.5*n.y;
+      float spread=ease(.24,.72);
+      // The equator follows the floor. Surface flow does not displace the dome.
+      float rim=sqrt(max(0.,1.-h*h));
+      #ifdef ANIME_BURST
+      float growth=1.-exp(-max(0.,age-.0465)*8.8);
+      float reach=.82+1.20*growth+.17*spread+.18*land;
+      float radius=rim*reach;
+      float lift=mix(.37,1.03,growth)*reach*(1.-.69*land);
+      float height=groundY+.008+h*lift;
+      #else
       float delay=.025+.043*(.5+.5*sin(a*3.+.8));
       float growth=1.-exp(-max(0.,age-delay)*8.8);
-      float spread=ease(.24,.72);
-      // Map the original mesh to the upper half of a dome whose
-      // equator follows the stage floor, even during the incoming squash.
-      float rim=sqrt(max(0.,1.-h*h));
       float edge=.043*sin(3.*a-5.*h+age*1.7)+.038*cos(5.*a+7.*h-age*2.1);
       float lobe=.052*pow(.5+.5*sin(2.*a-age*.65),3.);
-      #ifdef ANIME_BURST
-      float reach=.82+1.20*growth+.17*spread+.18*land;
-      #else
       float reach=.82+1.28*growth+.18*spread+.18*land;
-      #endif
       float radius=rim*reach*(1.+edge+lobe);
       float lift=mix(.37,1.03,growth)*reach*(1.-.69*land);
       float height=groundY+.008+h*lift*(1.+rim*edge*.83);
+      #endif
       return vec3(cos(a)*radius,height,sin(a)*radius);
       #else
       float deform=.010*sin(3.*a+5.*n.y+age*4.)+.007*cos(7.*a-n.y*8.-age*5.);
