@@ -465,7 +465,7 @@
       },
     };
     const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram);
-    const renderVolume=SpiritVolumeBuild(gl,geometry,study),renderEjecta=SpiritEjectaBuild(gl,geometry);
+    const renderVolume=SpiritVolumeBuild(gl,geometry,study),renderEjecta=SpiritEjectaBuild(gl,geometry,study);
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
       const {clock,ball,matrix}=stage,age=clock-contact;
       const inlet=study&&age>0?{...ball,glow:ball.glow*(1-ramp(.008,.075,age))}:ball;

@@ -75,18 +75,26 @@
       }
       float bounce=power*(.20+.8*facing)*exp(-distance2/42000.);
       float hit=smoothstep(0.,.18,age)*(1.-smoothstep(.72,1.86,age));
+      float flash=smoothstep(.08,.16,age)*(1.-smoothstep(.24,.39,age));
       float r=length(offset.xz);
+      vec3 scatter=vec3(0.);
       if(floorMesh){
         bounce+=hit*(.17+.46*exp(-pow((r-109.-27.*age)/69.,2.)))*exp(-r*r/38000.);
         float push=1.-exp(-max(0.,age-.014)*6.8);
-        float phase=smoothstep(.014,.085,age)*(1.-smoothstep(.23,.52,age));
-        float ridge=exp(-pow((r-206.*push)/(12.+29.*push),2.));
+        float phase=smoothstep(.014,.085,age)*(1.-smoothstep(.27,.61,age));
         float angle=atan(offset.z,offset.x);
-        float split=.77+.23*sin(3.*angle+age*6.)+.16*sin(5.*angle-age*7.);
-        bounce+=phase*(.81*ridge*split+.47*exp(-r*r/18000.));
+        float split=.88+.21*sin(3.*angle+age*6.)+.16*sin(5.*angle-age*7.);
+        float radius=(242.+21.*cos(3.*angle-age*3.2)+11.*sin(angle*7.))*push;
+        float ridge=exp(-pow((r-radius)/(14.+33.*push),2.));
+        float wash=.64*exp(-r*r/35800.)+ridge*split*.87;
+        bounce+=phase*.77*wash;
+        float radial=pow(.5+.5*sin(angle*7.2+sin(angle*4.)*.85),4.);
+        float splitRay=radial*exp(-pow((r-radius+41.)/(45.+15.*push),2.));
+        scatter=vec3(.44,.56,.69)*phase*(.24*wash+.30*splitRay);
       }
       float distanceFade=mix(.62,1.,exp(-length(eye-world)*.00042));
-      vec3 light=albedo*key*distanceFade+bounce*vec3(.082,.26,.52);
+      vec3 light=albedo*key*distanceFade+bounce*vec3(.082,.26,.52)+scatter;
+      light+=flash*vec3(.24,.40,.59)*(.31+.69*facing)*exp(-distance2/41000.);
       color=vec4(light,1.);
     }`;
 
@@ -169,7 +177,8 @@
     },
     get duration(){return DragonSpirit.duration;},
     get phases(){
-      return [...DragonSpirit.phases.slice(0,-1),{t:4.1,name:'贴地旋涡'},DragonSpirit.phases.at(-1)];
+      const phases=[...DragonSpirit.phases,{t:2.701,name:'撞地爆闪'},{t:4.1,name:'贴地旋涡'}];
+      return phases.sort((a,b)=>a.t-b.t);
     },
     get ready(){
       return ready??=Promise.resolve().then(()=>{

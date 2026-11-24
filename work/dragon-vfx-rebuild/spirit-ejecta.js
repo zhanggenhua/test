@@ -1,6 +1,6 @@
 /* Opaque flying stage chips, ground discharges and the lightning that crosses
    the Spirit Bomb's shell. All positions share the volume's 3D depth buffer. */
-window.SpiritEjectaBuild=function(gl,g){
+window.SpiritEjectaBuild=function(gl,g,studio){
   'use strict';
   const tau=Math.PI*2;
   const hash=n=>{const v=Math.sin(n*21.871+5.32)*38914.29;return v-Math.floor(v);};
@@ -20,11 +20,13 @@ window.SpiritEjectaBuild=function(gl,g){
   `;
   const chips=[];
   const poly=[[0,.98,.14],[.79,.23,.24],[.18,.08,.90],[-.64,.21,.42],[-.58,-.08,-.49],[.24,.02,-.79],[-.09,-.82,.03]];
-  for(let i=0;i<178;i++){
+  const count=studio?226:178;
+  for(let i=0;i<count;i++){
     const az=tau*hash(Math.floor(i/6)+7)+hash(i)*.69;
-    const born=.10+.53*hash(Math.floor(i/5)+8)+.08*hash(i+712);
-    const lg=i%8===0;
-    const size=lg?.052+.057*hash(i+79):.010+.030*hash(i+72);
+    const birth=.10+.53*hash(Math.floor(i/5)+8)+.08*hash(i+712);
+    const born=studio?(i<64?.068+.45*birth:birth+.018):birth;
+    const lg=i%(studio?6:8)===0;
+    const size=(lg?.052+.057*hash(i+79):.010+.030*hash(i+72))*(studio?1.17:1);
     const points=poly.map((p,k)=>p.map((m,j)=>m*(.69+.52*hash(i*27+k*3+j))*(j===1?1.18:1)));
     for(let k=1;k<=5;k++){
       const next=k%5+1;
@@ -38,7 +40,7 @@ window.SpiritEjectaBuild=function(gl,g){
   const shaderHead='#version 300 es\nprecision highp float;uniform mat4 vp;uniform float age;uniform vec3 eye;\n';
   const chipShader=g.program(shaderHead+noise+`
     layout(location=0)in vec3 pos;layout(location=1)in vec3 normal;layout(location=2)in vec4 attr;
-    uniform bool castShadow;
+    uniform bool castShadow,impactStudy;
     uniform float groundFront;
     out vec3 rgb;out float fade;
     mat3 rot(vec3 axis,float a){float c=cos(a),s=sin(a),v=1.-c;vec3 k=axis;return mat3(
@@ -56,6 +58,11 @@ window.SpiritEjectaBuild=function(gl,g){
       float pale=smoothstep(.47,.74,hash(id+29.));
       vec3 rock=mix(vec3(.079,.099,.125),vec3(.42,.67,.73),pale);
       rgb=rock*(.58+.92*facing)+vec3(.18,.57,.78)*rim*(.32+.61*facing)*(.51+.59*pale);
+      if(impactStudy){
+        float burst=exp(-pow((age-.28)/.21,2.));
+        float edge=pow(rim,1.44)*(.28+.72*pale);
+        rgb+=vec3(.40,.61,.78)*edge*(.32+1.12*burst);
+      }
       fade=smoothstep(0.,.09,u)*(1.-smoothstep(.76,1.,u));
       if(castShadow){
         fade*=.28*exp(-origin.y*1.1);
@@ -66,6 +73,7 @@ window.SpiritEjectaBuild=function(gl,g){
     '#version 300 es\nprecision highp float;in vec3 rgb;in float fade;out vec4 O;void main(){if(fade<.035)discard;O=vec4(rgb*fade,fade);}'
   );
   const shadowUniform=gl.getUniformLocation(chipShader,'castShadow');
+  gl.useProgram(chipShader);gl.uniform1i(gl.getUniformLocation(chipShader,'impactStudy'),Boolean(studio));
   const ring=[];
   for(let strip=0;strip<10;strip++)for(let i=0;i<118;i++){
     const a=i/118,b=(i+1)/118;
