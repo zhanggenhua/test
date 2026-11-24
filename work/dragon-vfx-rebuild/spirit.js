@@ -137,6 +137,17 @@
       vec2 focus=vec2(.04-.20*drift,.075+.068*sin(phase*.75));
       vec2 disk=q-focus;
       vec2 d=turn(-.12+.29*drift)*(disk/vec2(1.,1.04));
+      #ifdef DIFFUSE_ORB_CORE
+      vec2 driftOffset=vec2(.37*tick,.30*beat);
+      float cloud=noise(vec3(d*3.3+driftOffset,.76*z+.37*beat));
+      float grain=noise(vec3(d*9.2+vec2(cloud,-warp)*.57-driftOffset,.93*z+.52*tick));
+      float broken=noise(vec3(d*5.4+.70*cloud,1.47*z-.46*beat));
+      float kernel=knot(d+vec2(.12*(cloud-.5),.09*(warp-.5)),
+        vec2(.03,-.01),vec2(.46,.39),-.24);
+      float haze=knot(d,vec2(-.07,.08),vec2(.67,.53),.18);
+      float density=kernel*(.51+.23*cloud+.19*smoothstep(.26,.74,grain))
+        +.18*haze*smoothstep(.29,.72,broken);
+      #else
       float density=0.;
       for(int g=0;g<4;g++){
         float f=float(g);
@@ -171,10 +182,15 @@
       float plume=smoothstep(.11,.29,dist)*(1.-smoothstep(.29+.22*broad,.51+.35*broad,dist));
       density+=plume*(.19*smoothstep(.35,.75,broad)+.58*smoothstep(.46,.77,grain)
         *smoothstep(.24,.69,broken));
+      #endif
       float central=1.-smoothstep(.39,.85,r+.13*(warp-.48)+.04*sin(3.*ang+phase));
       float streaking=exp(-abs(dot(p,vec2(-heading.y,heading.x)))*10.)
         *smoothstep(-.84,-.24,slip)*(1.-smoothstep(.28,.72,slip));
+      #ifdef DIFFUSE_ORB_CORE
+      density+=.10*streaking*flow*(.65+.35*grain);
+      #else
       density+=streaking*.32*flow*(.65+.35*grain);
+      #endif
       vec3 body=mix(vec3(.565,.953,.978),vec3(.785,.889,.982),central);
       body+=vec3(.075,.036,.015)*(warp-.5);
       body-=vec3(.042,.034,.015)*central*smoothstep(.48,.75,grain)*(1.-smoothstep(.33,.60,broken));
@@ -227,8 +243,11 @@
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),gl.STATIC_DRAW);
     return {vao,count:indices.length};
   }
-  function worldOrb(gl,makeProgram,sphere){
-    const pg=makeProgram(gl,vertex,fragment);
+  function worldOrb(gl,makeProgram,sphere,animeBurst){
+    const material=animeBurst
+      ?fragment.replace('#version 300 es\n','#version 300 es\n#define DIFFUSE_ORB_CORE\n')
+      :fragment;
+    const pg=makeProgram(gl,vertex,material);
     const names=['vp','center','radii','haloRight','haloDown','layer','phase','inlets[0]','momentum','energy'];
     const u=Object.fromEntries(names.map(name=>[name,gl.getUniformLocation(pg,name)]));
     const halo=gl.createVertexArray();
@@ -736,7 +755,7 @@
         gl.uniformMatrix4fv(u[0],false,vp);gl.uniform1f(u[1],age);gl.uniform3fv(u[2],eye);
       },
     };
-    const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram,animeBurst);
+    const renderOrb=worldOrb(gl,makeProgram,sphere,animeBurst),renderFlow=worldFlow(gl,makeProgram,animeBurst);
     const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact,arenaWake,animeBurst);
     const renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact,animeBurst);
     const renderTrail=animeBurst?groundTrail(gl,makeProgram):null;
