@@ -14,7 +14,7 @@
 
 选题先看[特效制作清单](outputs/vfx-worklist.md)，里面有现行招式编号、已有效果和下一项制作要求。
 
-龟波气功可切到[同角度 3D 检查](outputs/index.html#kame/3d)。左右共用束身、缠绕带、发射口和冲圈网格，以及同一演出时间。右侧可选择环绕角或查看实际网格的线框。点击「还原侧视」回到左侧的透视侧视。右侧参考中可选择「上一版 · 正交 3D」。
+龟波气功默认打开[原材质 2D 擂台](outputs/index.html#kame)，载入本机的侧视网格和贴图。可切到[同角度 3D 检查](outputs/index.html#kame/3d)。左右共用束身、缠绕带、发射口和冲圈网格，以及同一演出时间。右侧可选择环绕角或查看实际网格的线框。点击「还原侧视」回到左侧的透视侧视。右侧参考中可选择「上一版 · 正交 3D」。
 
 [元气弹独立 3D](outputs/index.html#spirit/study)用于按原片拆解爆发、旋流和消散，可在完整画面上切机位或拖动环绕。[2D 横版试演](outputs/index.html#spirit/arena)用现有擂台和角色，对齐同一套撞地冲击。 [实时追踪 3D 检查](outputs/index.html#spirit/anime-study)和[横版追踪预览](outputs/index.html#spirit/anime-burst)共用飞行和碰撞模拟，支持近距、远距及移动目标。
 

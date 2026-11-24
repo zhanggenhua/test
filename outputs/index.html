@@ -64,7 +64,7 @@
         ...[11,10,9,8,7,6,5,4,3,2].map(n => ['V'+n+' · 历史方案', 'spirit-bomb-v'+n+'.html']),
       ]],
       ['kame', '龟波气功', [
-        ['当前 · 网页候选与原视频', 'dragon-vfx.html?fx=kame'],
+        ['历史版 · 网页候选与原视频', 'dragon-vfx.html?fx=kame'],
         ['pixelfx 风格对照', 'kame-pixelfx-styles.html'],
         ['特效分层工作台', 'kame-vfx-studio.html'],
         ['实时束身试验', 'kame-laser-study.html'],
@@ -74,7 +74,7 @@
         ['同角度 3D 检查', 'dragon-vfx.html?fx=kame&ref=3d&at=2.767', '3d'],
         ['原视频对照 · 束身关键帧', 'dragon-vfx.html?fx=kame&at=2.767', 'source'],
         ['独立 3D · 材质与原片对照', 'dragon-vfx.html?fx=kame&study=1', 'study'],
-        ['原材质 · 2D 横版试演', 'dragon-vfx.html?fx=kame&arena=1', 'arena'],
+        ['当前 · 原材质 2D 擂台', 'dragon-vfx.html?fx=kame&arena=1', 'arena'],
       ]],
     ]],
     ['剑系', [
@@ -139,8 +139,10 @@
     }
     if (!effects.has(key)) key = 'spirit';
     const {name, versions} = effects.get(key);
-    const named = rawVersion&&versions.findIndex(([, ,id])=>id===rawVersion);
-    const requested = named>=0?named:Number.parseInt(rawVersion,10)||0;
+    const named = rawVersion ? versions.findIndex(([, ,id])=>id===rawVersion) : -1;
+    const numbered = Number.parseInt(rawVersion,10);
+    const defaultVersion = key === 'kame' ? versions.findIndex(([, ,id])=>id==='arena') : 0;
+    const requested = named>=0?named:Number.isNaN(numbered)?defaultVersion:numbered;
     const index = Math.max(0, Math.min(versions.length-1, requested));
     const [label, url] = versions[index];
     title.textContent = name;
