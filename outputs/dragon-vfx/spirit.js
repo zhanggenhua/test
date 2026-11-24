@@ -468,7 +468,8 @@
     const renderVolume=SpiritVolumeBuild(gl,geometry,study),renderEjecta=SpiritEjectaBuild(gl,geometry);
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
       const {clock,ball,matrix}=stage,age=clock-contact;
-      renderOrb(clock,ball,stage);
+      const inlet=study&&age>0?{...ball,glow:ball.glow*(1-ramp(.008,.075,age))}:ball;
+      renderOrb(clock,inlet,stage);
       renderFlow(clock,stage);
       if(age<0||age>(study?2.23:1.67))return;
       // Impact meshes use sphere units around local (0,1,0). Transform them into the arena.

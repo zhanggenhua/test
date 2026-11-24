@@ -76,7 +76,15 @@
       float bounce=power*(.20+.8*facing)*exp(-distance2/42000.);
       float hit=smoothstep(0.,.18,age)*(1.-smoothstep(.72,1.86,age));
       float r=length(offset.xz);
-      if(floorMesh)bounce+=hit*(.17+.46*exp(-pow((r-109.-27.*age)/69.,2.)))*exp(-r*r/38000.);
+      if(floorMesh){
+        bounce+=hit*(.17+.46*exp(-pow((r-109.-27.*age)/69.,2.)))*exp(-r*r/38000.);
+        float push=1.-exp(-max(0.,age-.014)*6.8);
+        float phase=smoothstep(.014,.085,age)*(1.-smoothstep(.23,.52,age));
+        float ridge=exp(-pow((r-206.*push)/(12.+29.*push),2.));
+        float angle=atan(offset.z,offset.x);
+        float split=.77+.23*sin(3.*angle+age*6.)+.16*sin(5.*angle-age*7.);
+        bounce+=phase*(.81*ridge*split+.47*exp(-r*r/18000.));
+      }
       float distanceFade=mix(.62,1.,exp(-length(eye-world)*.00042));
       vec3 light=albedo*key*distanceFade+bounce*vec3(.082,.26,.52);
       color=vec4(light,1.);
