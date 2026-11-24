@@ -35,11 +35,11 @@ refs = here/"reference"
 def resource(group, name):
     return copy(refs/group/name, Path("reference")/group/name)
 
-def film(group, desc, title, note, offset, subset=None):
+def film(group, desc, title, note, offset, subset=None, output=None):
     cards = desc.get("cards", [])
     if subset is not None:
         cards = [c for i,c in enumerate(cards) if i in subset]
-    return dict(title=title,note=note,offset=offset,film=resource(group,desc["clip"]),
+    return dict(title=title,note=note,offset=offset,film=output or resource(group,desc["clip"]),
                 start=desc["sourceStart"],end=desc.get("sourceEndExclusive",desc.get("sourceEnd")),fps=desc["fps"],
                 cards=[dict(file=resource(group,c["file"]),label=c["label"],time=c["sourceTime"]) for c in cards],
                 source=desc["source"])
@@ -88,17 +88,30 @@ for src,ts,phase,label in zip(identity["evidenceFiles"],[1223,1229,1230.5],[2.79
 spirit.insert(1,dict(title="动画造型 ·《龙珠Z》布欧篇",source="https://www.bilibili.com/video/BV1ACvYejEEA/?t=1223",cards=anime_cards,offset=0,start=0,end=4.8,fps=30,
                      note="动画远景全幅选帧，用于球的白核青边、前景遮挡和贴地扩散。三张图来自不同镜头。"))
 burst_clip=refs/"spirit/burst-clip.json"
+arena_impact=[]
 if burst_clip.is_file():
-    shot=json.loads(burst_clip.read_text(encoding="utf-8"))
-    start,end=3.2,5.35
-    clip=refs/"spirit/clips/lostark-impact-excerpt.mp4"
-    subprocess.run(["ffmpeg","-v","error","-y","-ss",str(start),"-i",str(refs/"spirit"/shot["clip"]),"-t",str(end-start),"-an","-c:v","libx264","-crf","16","-pix_fmt","yuv420p","-movflags","+faststart",str(clip)],check=True)
-    full=resource("spirit",shot["clip"])
-    shot.update(clip="clips/"+clip.name,sourceStart=start,sourceEnd=end,cards=[c for c in shot["cards"] if start<=c["sourceTime"]<end])
-    matched=film("spirit",shot,"命中效果 · 气宗师原片","两侧从爆发阶段对齐。原片 4.100 秒对应左侧 3.190 秒，可逐帧看亮丝绕核、壳层遮挡和碎石外抛。左侧配色取自龙珠元气弹。",2.79-(shot["anchor"]-start))
-    matched["id"]="impact-film"
-    matched["full"]=full
+    source_shot=json.loads(burst_clip.read_text(encoding="utf-8"))
+    full=resource("spirit",source_shot["clip"])
+
+    def matched_impact(filename,end,note):
+        start=3.2
+        rel=Path("reference/spirit/clips")/filename
+        clip=dst/rel
+        clip.parent.mkdir(parents=True,exist_ok=True)
+        subprocess.run(
+            ["ffmpeg","-v","error","-y","-ss",str(start),"-i",str(refs/"spirit"/source_shot["clip"]),
+             "-t",str(end-start),"-an","-c:v","libx264","-crf","16","-pix_fmt","yuv420p",
+             "-movflags","+faststart",str(clip)],check=True)
+        cards=sorted((c for c in source_shot["cards"] if start<=c["sourceTime"]<end),key=lambda c:c["sourceTime"])
+        shot=dict(source_shot,clip="clips/"+clip.name,sourceStart=start,sourceEnd=end,cards=cards)
+        result=film("spirit",shot,"命中效果 · 气宗师原片",note,2.79-(shot["anchor"]-start),output="dragon-vfx/"+rel.as_posix())
+        return dict(result,id="impact-film",full=full)
+
+    matched=matched_impact("lostark-impact-excerpt.mp4",5.35,
+        "两侧从爆发阶段对齐。原片 4.100 秒对应左侧 3.190 秒，可逐帧看亮丝绕核、壳层遮挡和碎石外抛。左侧配色取自龙珠元气弹。")
     spirit.insert(4,matched)
+    arena_impact.append(matched_impact("lostark-impact-wake.mp4",7.1,
+        "爆发与退场使用同一段气宗师原片。左侧 3.190 秒对应原片 4.100 秒。可继续同步看原片 4.567 秒塌落、6.200 秒裂散和 7.000 秒清场。"))
 
 km = json.loads((refs/"kame/manifest.json").read_text(encoding="utf-8"))
 kame_part = dict(km["parts"][0], source=km["source"])
@@ -170,7 +183,7 @@ spirit_legacy_arena = dict(legacy("spirit.mp4","V17 · 同一横版擂台",
     film="dragon-vfx/spirit.mp4")
 payload = {"actors":actors,
            "unityDemo":{"film":unity_film,"duration":unity_duration},
-           "sources":{"spirit":spirit,"spiritArena":[spirit_study_take,spirit_legacy_arena,*spirit],"kame":kame,"kameStudy":[study_ref,study_previous,study_early],
+           "sources":{"spirit":spirit,"spiritArena":[*arena_impact,spirit_study_take,spirit_legacy_arena,*(r for r in spirit if r.get("id")!="impact-film")],"kame":kame,"kameStudy":[study_ref,study_previous,study_early],
                       "kameUnity":[unity_original,unity_web],
                       "kameArena":[arena_legacy,dict(kame[0], note="原视频 4.200–8.467 秒。按出束相位同步，参考光型和退场。")],
                       "kameArena3d":arena_3d}}

@@ -1,10 +1,10 @@
 # 元气弹 2D 横版试演
 
-[统一预览 · 2D 横版](../../outputs/index.html#spirit/arena)左侧采用 960×400 的天下第一武道会擂台和现有角色动画。右侧默认并排播放确认的独立 3D 版本，可切为旧版横版或气宗师原片。
+[统一预览 · 2D 横版](../../outputs/index.html#spirit/arena)左侧采用 960×400 的天下第一武道会擂台和现有角色动画。右侧默认同步播放气宗师原片，独立 3D 和旧版横版从参考菜单手动切换。
 
-相同的撞地爆闪、半球浪、亮丝、碎片和旋涡用横版固定机位重新投影。贴地反光绘制在擂台深度平面并沿台面边缘裁剪。2D 角色从自身透明轮廓写入深度，目标在爆闪时短暂被亮核覆盖。两侧共用时间轴。
+相同的撞地爆闪、半球浪、亮丝、碎片和旋涡用横版固定机位重新投影。贴地反光绘制在擂台深度平面并沿台面边缘裁剪。2D 角色从自身透明轮廓写入深度，目标在爆闪时短暂被亮核覆盖。两侧共用时间轴。横版预览延至 6.200 秒，保留原片 4.567 秒塌落、5.000 至 6.000 秒余波持续、6.200 秒出现破口、6.533 秒残光和 7.000 秒清场的先后。侧视余波重建了低位带电气流与断开的暗边。
 
-[撞地爆闪 2.700 秒](../../outputs/dragon-vfx/spirit-arena-flash.png) · [半球与碎石 3.200 秒](../../outputs/dragon-vfx/spirit-arena-vortex.png) · [贴地余波 4.100 秒](../../outputs/dragon-vfx/spirit-arena-collapse.png) · [完整横版录像](../../outputs/dragon-vfx/spirit-arena.mp4)
+[撞地爆闪 2.700 秒](../../outputs/dragon-vfx/spirit-arena-flash.png) · [半球与碎石 3.200 秒](../../outputs/dragon-vfx/spirit-arena-vortex.png) · [贴地余波 4.100 秒](../../outputs/dragon-vfx/spirit-arena-collapse.png) · [暗浪裂散 5.300 秒](../../outputs/dragon-vfx/spirit-arena-breakup.png) · [完整横版录像](../../outputs/dragon-vfx/spirit-arena.mp4)
 
 # 元气弹独立 3D 试验
 

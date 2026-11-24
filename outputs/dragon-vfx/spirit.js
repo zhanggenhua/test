@@ -473,7 +473,7 @@
       return flash*vec3(.24,.40,.59)*(.31+.69*facing)*exp(-dot(offset,offset)/41000.);
     }`;
 
-  function worldEffects(gl,makeProgram,groundImpact=false){
+  function worldEffects(gl,makeProgram,groundImpact=false,arenaWake=false){
     const sphere=sphereGeometry(gl),vp=new Float32Array(16);
     const vertexUniforms=new Map(),eye=[0,0,0];
     const geometry={
@@ -487,13 +487,13 @@
       },
     };
     const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram);
-    const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact),renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact);
+    const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact,arenaWake),renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact);
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
       const {clock,ball,matrix}=stage,age=clock-contact;
       const inlet=groundImpact&&age>0?{...ball,glow:ball.glow*(1-ramp(.008,.075,age))}:ball;
       renderOrb(clock,inlet,stage);
       renderFlow(clock,stage);
-      if(age<0||age>(groundImpact?2.23:1.67))return;
+      if(age<0||age>(arenaWake?3.50:groundImpact?2.23:1.67))return;
       // Impact meshes use sphere units around local (0,1,0). Transform them into the arena.
       for(let row=0;row<4;row++){
         vp[row]=matrix[row]*ball.rx;
@@ -530,7 +530,8 @@
       return {...frame,impactAge:age,targetLight:1+.21*flash};
     }:arenaFrame;
     return {
-      duration,phases:groundImpact?impactPhases:phases,
+      duration:groundImpact?6.2:duration,
+      phases:groundImpact?[...impactPhases.slice(0,-1),{t:5.29,name:'暗浪裂散'},{t:5.96,name:'余波散尽'}]:phases,
       get realtime(){return renderer?.active??false;},
       draw(ctx,t,scene){
         if(!renderer){scene.stage(ctx);return;}
@@ -541,7 +542,7 @@
         return ready??=Promise.resolve().then(()=>{
           const canvas=document.createElement('canvas');canvas.width=960;canvas.height=400;
           const stage=(gl,program)=>createDragonArenaStage(gl,program,sample,groundImpact?impactLighting:null);
-          renderer=DragonBeamVolume.createStudy(canvas,stage,(gl,program)=>worldEffects(gl,program,groundImpact),true);
+          renderer=DragonBeamVolume.createStudy(canvas,stage,(gl,program)=>worldEffects(gl,program,groundImpact,groundImpact),true);
         });
       },
     };

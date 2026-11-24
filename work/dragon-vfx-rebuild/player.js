@@ -201,7 +201,7 @@
     el('refTitle').textContent=current.title;
     el('newTitle').textContent=spiritArena?'元气弹 · 2D 横版擂台':spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入球体，双掌推出。命中后内核高速旋开，外壳与碎片向外散开。':'掌心聚气、出束、持续喷射、断流消散。';
-    if(spiritArena)el('newNote').textContent='固定横版机位。爆闪照亮擂台和受击角色，冲击半球与角色按前后深度遮挡。';
+    if(spiritArena)el('newNote').textContent='冲击半球塌向地面，带电余波在暗浪内回卷，随后分块散开。';
     if(spiritStudy)el('newNote').textContent='触地爆闪推开厚浪和溅射碎片，贴地冲击掠过网格，半球向地面塌为卷动的余波。';
     if(spirit&&!spiritStudy) {
       const base=spiritArena?'?fx=spirit&arena=1':'?fx=spirit';
@@ -361,7 +361,7 @@
     usable=true;
     let first=0;
     if(params.get('ref')==='burst'&&spirit)first=refs.findIndex(r=>r.id==='impact-stills');
-    if((params.get('ref')==='hit'||(spiritStudy&&!params.has('ref')))&&spirit)first=refs.findIndex(r=>r.id==='impact-film');
+    if((params.get('ref')==='hit'||((spiritStudy||spiritArena)&&!params.has('ref')))&&spirit)first=refs.findIndex(r=>r.id==='impact-film');
     if(params.get('ref')==='anime'&&spirit)first=refs.findIndex(r=>r.title.startsWith('动画造型'));
     if(params.get('ref')==='shape'&&spirit)first=refs.findIndex(r=>r.title.startsWith('球体造型'));
     if(params.get('ref')==='3d'&&!spirit)first=refs.findIndex(r=>r.id==='mesh-view');
