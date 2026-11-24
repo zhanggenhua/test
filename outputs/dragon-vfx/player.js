@@ -29,7 +29,7 @@
   const meshCamera={yaw:0,pitch:0,wire:false};
   const engine = spiritStudy ? (animeStudy?window.DragonSpiritAnimeStudy:window.DragonSpiritStudy) : study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spiritArena ? (animeBurst?window.DragonSpiritAnimeArena:window.DragonSpiritArena) : spirit ? window.DragonSpirit : window.DragonKame;
   const selectedRefs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : arena ? DragonData.sources.kameArena.slice() : spiritArena ? DragonData.sources.spiritArena : DragonData.sources[key];
-  const refs=animeBurst?[DragonData.sources.spiritAnimePhases,...selectedRefs,DragonData.sources.spiritImpactBaseline]:selectedRefs;
+  const refs=animeBurst?[DragonData.sources.spiritAnimePhases,DragonData.sources.spiritRestoredBaseline,...selectedRefs,DragonData.sources.spiritImpactBaseline]:selectedRefs;
   const secondary=animeBurst?DragonData.sources.spiritSecondary:null, secondaryFilm=el('secondaryFilm');
   let secondarySynced=true;
   const actors = {};
@@ -101,7 +101,7 @@
   }
   function referenceClock(){
     if(!aligned())return {local:at-offset(),slope:1};
-    return trial&&current===refs[0]?animeReferenceClock(current,at):phaseClock(current,at);
+    return trial&&(current===refs[0]||current.id==='restored-study')?animeReferenceClock(current,at):phaseClock(current,at);
   }
   // The reference may begin before the game take when aligning a later action.
   const from = () => Math.min(0,offset());
@@ -483,6 +483,7 @@
     if(params.get('ref')==='shape'&&spirit)first=refs.findIndex(r=>r.title.startsWith('球体造型'));
     if(params.get('ref')==='3d'&&!spirit)first=refs.findIndex(r=>r.id==='mesh-view');
     if(params.get('ref')==='previous')first=refs.findIndex(r=>r.title.startsWith('上一版'));
+    if(params.get('ref')==='restored'&&animeBurst)first=refs.findIndex(r=>r.id==='restored-study');
     const requested=params.has('at')?Number(params.get('at')):NaN;
     loading=choose(Math.max(0,first),!Number.isFinite(requested)&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&params.get('paused')!=='1');
     await loading;

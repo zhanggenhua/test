@@ -133,8 +133,8 @@ anime_phases=dict(anime_hit,title="元气弹原片 ·《龙珠Z》布欧篇 · �
     cards=[*throw_cards,*ground_cards],
     anchors=[[0,0],[1.57,2.37],[2,3.1],[2.43,4.12],[2.50,7.43],[2.56,8],
              [3.0,ground_time(1230+5/30)],[3.45,ground_time(1230.90)],
-             [3.88,ground_time(1231.49)],[4.05,ground_time(1231+22/30)],
-             [4.73,ground_time(1235.0)],[6.7,ground_time(1239-1/30)]])
+             [3.88,ground_time(1231.49)],[4.081,ground_time(1231.58)],
+             [4.55,ground_time(1231+22/30)],[4.87,ground_time(1235.0)],[6.7,ground_time(1239-1/30)]])
 
 burst_clip=refs/"spirit/burst-clip.json"
 study_impact=[]
@@ -244,9 +244,20 @@ spirit_impact_baseline = dict(legacy("spirit-arena.mp4","上一版 · 2D 撞地�
     "旧版采用较近站距，供检查原来的撞地演出。",6.2,30),
     film="dragon-vfx/spirit-arena.mp4",
     anchors=[[0,0],[2.0,2.0],[3.0,2.50],[6.7,6.16667]])
+archive_file="spirit-study-82d24da.mp4"
+archive_film=copy(here/"baseline"/archive_file,"legacy/"+archive_file)
+archive_frame="legacy/spirit-study-82d24da-impact.png"
+subprocess.run(["ffmpeg","-v","error","-y","-ss","2.7","-i",str(here/"baseline"/archive_file),
+    "-frames:v","1","-threads","1",str(dst/archive_frame)],check=True)
+spirit_restored_baseline=dict(legacy(archive_file,"回退基准 · 独立 3D 旧版",
+    "这是截图所示的 82d24da 实录。按出手和撞地对齐，旧版 2.701 秒对应「旧版撞地形态」。",4.8,30),
+    id="restored-study",film=archive_film,
+    anchors=[[0,0],[2,2],[2.56,2.33],[3.88,2.5],[4.081,2.701],[6.7,4.767]],
+    cards=[dict(file="dragon-vfx/"+archive_frame,time=2.701,label="截图指定版本 · 青白体积旋流")])
 payload = {"actors":actors,
            "unityDemo":{"film":unity_film,"duration":unity_duration},
-           "sources":{"spiritImpactBaseline":spirit_impact_baseline,"spiritAnimePhases":anime_phases,"spiritSecondary":spirit_secondary,
+           "sources":{"spiritImpactBaseline":spirit_impact_baseline,"spiritRestoredBaseline":spirit_restored_baseline,
+                      "spiritAnimePhases":anime_phases,"spiritSecondary":spirit_secondary,
                       "spirit":[anime_excerpts[0],*study_impact,*anime_excerpts[1:],*spirit],
                       "spiritArena":[anime_excerpts[0],*arena_impact,*anime_excerpts[1:],*spirit,spirit_study_take,spirit_legacy_arena],
                       "kame":kame,"kameStudy":[study_ref,study_previous,study_early],

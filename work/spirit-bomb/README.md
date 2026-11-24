@@ -13,7 +13,9 @@
 | --- | --- |
 | 龙珠 16:13.100–16:17.000 与 20:30.167 | 推掌、球缘临近地面及远距推进留尘。原片后半随景深缩小，横版沿固定战斗轴追踪。[下压原帧](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-release-descent.png) · [推进原帧](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-ground-travel.png) |
 | 龙珠 20:31.733 | 白闪从撞击位置冲出画框。[原片白闪全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-final-outburst.png) |
-| 气宗师 3.600、4.100、5.000–6.000 秒 | 爆发画面沿用气宗师的亮核、深色半球外壳、前景冲击带与碎石层次。起爆时青白亮核和壳缘产生向外扩散的辉光，之后露出原有的旋纹和壳层。光带退去后留下青白漩涡，尘土沿外圈散开。[辉光原帧](../../outputs/dragon-vfx/reference/spirit/cards/burst/impact-glow-3.600.png) · [爆发原帧](../../outputs/dragon-vfx/reference/spirit/cards/burst/user-burst-05-match-4.100.png) · [气宗师全幅录像](../../outputs/dragon-vfx/reference/spirit/clips/lostark-qizong-spirit-bomb.mp4) |
+| 气宗师 3.600、4.100、5.000–6.000 秒 | 保留气宗师命中与余波参考。新版球体和撞地形态直接以独立 3D 旧版为准。[辉光原帧](../../outputs/dragon-vfx/reference/spirit/cards/burst/impact-glow-3.600.png) · [爆发原帧](../../outputs/dragon-vfx/reference/spirit/cards/burst/user-burst-05-match-4.100.png) · [气宗师全幅录像](../../outputs/dragon-vfx/reference/spirit/clips/lostark-qizong-spirit-bomb.mp4) |
+
+回退基准为 `82d24da` 独立 3D 录像 2.701 秒。复用该版出球材质、内层体积旋流和外壳材质。峰值使用贴着内核表面旋转的光丝。远距追踪和触地尘道由碰撞模拟驱动，越屏白闪安排在旋流可见之后。[回退基准全幅](../../outputs/dragon-vfx/legacy/spirit-study-82d24da-impact.png) · [当前同阶段全幅](../../outputs/dragon-vfx/spirit-anime-study-restored-impact.png)
 
 网页回放以 120 Hz 采样目标位置，用同一飞行模拟生成可拖动的画面。即时制接入时，`DragonSpiritAnimeArena.createHoming({x,y,ground,direction,radius},settings)` 由出手点创建模拟，逐步传入 `step(dt, {x,y,halfWidth,halfHeight})`，按 `groundAt` 和 `hit` 触发后续效果。参数单位沿用调用方的世界坐标和秒。网页的默认 2 秒出手和右侧原片时间码用于预览对齐。
 

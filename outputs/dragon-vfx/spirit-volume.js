@@ -47,9 +47,10 @@
       float rim=sqrt(max(0.,1.-h*h));
       float edge=.043*sin(3.*a-5.*h+age*1.7)+.038*cos(5.*a+7.*h-age*2.1);
       float lobe=.052*pow(.5+.5*sin(2.*a-age*.65),3.);
-      float reach=.82+1.28*growth+.18*spread+.18*land;
       #ifdef ANIME_BURST
-      edge*=.58;lobe*=.53;
+      float reach=.82+1.20*growth+.17*spread+.18*land;
+      #else
+      float reach=.82+1.28*growth+.18*spread+.18*land;
       #endif
       float radius=rim*reach*(1.+edge+lobe);
       float lift=mix(.37,1.03,growth)*reach*(1.-.69*land);
@@ -69,18 +70,6 @@
     }
     void main(){
       surface=normalize(position);
-      #ifdef ANIME_BURST
-      if(layer==5){
-        float a=atan(surface.z,surface.x),h=.5+.5*surface.y;
-        float surge=1.-exp(-max(0.,age-.109)*9.6);
-        float drain=ease(.59,1.08);
-        float rib=sqrt(max(0.,1.-h*h));
-        float curl=.034*sin(3.*a+age*3.1+h*7.)+.023*cos(7.*a-h*9.-age*4.);
-        float r=rib*(.68+.64*surge)*(1.-.41*drain)*(1.+curl);
-        float y=h*(.55+.83*surge)*(1.-.68*drain)-.18*pow(h,10.);
-        world=vec3(cos(a)*r,groundY+.09+y,sin(a)*r);
-      }else
-      #endif
       if(layer==4){
         float t=ease(.89,1.31);
         float r=(.84+.70*t)*(1.-.18*ease(1.38,1.62));
@@ -116,88 +105,8 @@
     float abscomb(float turns){return abs(fract(turns+.5)-.5);}
     vec2 az(float a){return vec2(cos(a),sin(a));}
     void put(vec3 rgb,float a){color=vec4(rgb*a,a);}
-    #ifdef ANIME_BURST
-    void rotatingCore(vec3 n,vec3 v){
-      float h=.5+.5*n.y,a=atan(n.z,n.x);
-      float life=smoothstep(.231,.355,age)*(1.-smoothstep(.67,1.045,age));
-      float heightMask=smoothstep(.015,.14,h)*(1.-smoothstep(.87,1.,h));
-      vec3 face=vec3(az(a).x*sqrt(1.-h*h),h,az(a).y*sqrt(1.-h*h));
-      float facing=dot(face,v);
-      float near=smoothstep(-.12,.22,facing);
-      if(near*life<.007)discard;
-      vec2 flow=az(a-age*3.9);
-      float gas=noise3(vec3(flow*3.7,h*7.+age));
-      float specks=noise3(vec3(flow*19.2,h*63.-age));
-      float breakup=smoothstep(.47,.80,age);
-      float swirl=h*(6.4+.54*breakup)+a/TAU-age*1.81
-        +.11*sin(2.*a+4.8*h-age*3.)+.12*(gas-.5);
-      float spine=abscomb(swirl);
-      float edge=1.-smoothstep(.021,.106+.048*gas,spine);
-      float tails=exp(-abscomb(swirl*3.+.22*gas+.093*specks)*(14.+10.*specks));
-      float fibers=exp(-abscomb(swirl*7.+.33*gas)*22.)*smoothstep(.26,.72,specks);
-      float ribbon=exp(-spine*(5.8+4.1*gas));
-      float tip=.49+.51*smoothstep(-.66,.83,cos(a-age*3.3+h*3.8));
-      float tatter=smoothstep(.20,.72,specks*.5+gas*.53);
-      float crown=exp(-pow((h-.802+.04*sin(a-age*2.4)-.065*(gas-.5))/.066,2.));
-      vec3 light=vec3(.076,.255,.39)*(1.+.87*gas);
-      light+=vec3(.09,.57,.79)*ribbon*(.54+.46*tip);
-      light+=vec3(1.92,2.28,2.45)*edge*(.36+.64*tip)*(.38+.62*tatter);
-      light+=vec3(.92,1.39,1.58)*tails*tip*tatter*(.44+.56*ribbon);
-      light+=vec3(.56,.91,1.10)*fibers*(.24+.76*tip);
-      light+=vec3(1.71,2.16,2.28)*crown*(.53+.47*cos(a-age*4.));
-      float alpha=life*near*heightMask*(.24+.49*ribbon+.27*edge);
-      put(light,alpha);
-    }
-
-    void impactShell(vec3 n,vec3 v,int layer){
-      float h=.5+.5*n.y,a=atan(n.z,n.x),r=sqrt(max(0.,1.-h*h));
-      vec2 heading=az(a);
-      float tear=smoothstep(.62,1.15,age);
-      float grow=smoothstep(.075,.31,age)*(1.-smoothstep(.74,1.19,age));
-      vec3 drift=vec3(az(a+age*.86)*4.8,h*8.-age*1.4);
-      float broad=noise3(drift),fine=noise3(drift*3.2);
-      float nearSide=smoothstep(-.18,.12,dot(heading,normalize(eye.xz+vec2(.0001,0.))));
-      vec3 normal=vec3(heading.x*r,h,heading.y*r);
-      float tangent=abs(dot(normal,v));
-      float crest=(1.-smoothstep(.028,.171+.04*broad,tangent));
-      float edge=(1.-smoothstep(.092,.31,tangent));
-      float gap=1.-tear*smoothstep(.24,.71,broad+.23*sin(a*7.+h*9.));
-      vec3 dark=mix(vec3(.009,.020,.032),vec3(.065,.115,.15),.26+.52*broad);
-      vec3 cyan=mix(vec3(.12,.53,.88),vec3(.55,.91,1.13),fine);
-      float striation=exp(-abscomb(h*8.+a/TAU+.17*broad-age*.65)*18.);
-      float base=exp(-pow((h-.134-.034*sin(3.*a+age*5.))/.073,2.));
-      float baseGlint=base*(.23+.77*smoothstep(.28,.78,fine+.19*sin(a*12.-age*9.)));
-      float flare=smoothstep(.16,.28,age)*(1.-smoothstep(.325,.405,age));
-      vec3 rimGlow=vec3(.64,1.04,1.22)*flare*(2.26*crest+.52*edge);
-      if(layer==0){
-        float upper=(1.-nearSide)*(.78+.22*smoothstep(.20,.67,h));
-        float domain=smoothstep(.02,.16,h)*(1.-smoothstep(.966,1.,h));
-        vec3 rear=dark*(.78+.22*fine)+vec3(.07,.19,.22)*striation*.48
-          +cyan*(2.32*crest+.56*edge+.68*baseGlint)+vec3(.54,.87,1.02)*crest*crest+rimGlow;
-        put(rear,grow*domain*gap*max(.97*upper,.56*crest*(1.-nearSide)));
-        return;
-      }
-      // Broken diagonal lap: the near pressure lip crosses the lower core.
-      float roll=.434+.119*sin(a+1.3-age*.48)+.038*sin(3.*a+h*3.);
-      float section=smoothstep(-.61,.49,cos(a-.56+age*.48)+.31*(broad-.5));
-      float frontBand=(1.-smoothstep(.057,.113,abs(h-roll)))*(.34+.66*section);
-      float foot=(1.-smoothstep(.064,.17,abs(h-.125+.047*sin(a*2.))))*(.56+.44*broad);
-      float foldedEdge=exp(-pow((h-roll-.077)/(.022+.016*fine),2.))*section;
-      float flank=crest*(.42+.58*smoothstep(.14,.62,fine+.22*cos(3.*a+age)));
-      float alpha=max(foot*.91,max(frontBand,flank*.74));
-      vec3 lower=dark*1.02+vec3(.071,.124,.15)*striation*foot+cyan*(1.48*baseGlint+1.71*flank);
-      vec3 ribbon=mix(vec3(.22,.27,.28),vec3(.58,.63,.64),smoothstep(.19,.71,broad));
-      lower=mix(lower,ribbon+cyan*.81*foldedEdge,frontBand*.94);
-      lower+=rimGlow*.77+cyan*.64*flare*baseGlint;
-      put(lower,alpha*nearSide*gap*grow);
-    }
-    #endif
     void main(){
       vec3 n=normalize(surface),v=normalize(eye-world);
-      #ifdef ANIME_BURST
-      if(layer==5){rotatingCore(n,v);return;}
-      if(layer==0||layer==3){impactShell(n,v,layer);return;}
-      #endif
       float a=atan(n.z,n.x),lat=asin(clamp(n.y,-1.,1.));
       float turn=age*3.1,open=smoothstep(.055,.44,age);
       float breakup=smoothstep(.75,1.27,age);
@@ -235,6 +144,57 @@
       float bank=lat*1.74+a/TAU-.44*age+widthNoise+.135*(broad-.5);
       float curl=abscomb(bank);
       #ifdef STUDIO
+      #ifdef ANIME_BURST
+      // 82d24da: rim and skirt from the approved impact, before the broad ignition.
+      if(layer==0||layer==3){
+        float h=.5+.5*n.y,side=cos(a-.68+age*.64);
+        float ripple=.055*sin(3.*a+age*1.8)+.042*(broad-.5);
+        float skew=.038*sin(3.*a+.5)+.022*cos(5.*a-.4);
+        float sweep=smoothstep(.020+.077*h+skew,.13+.11*h+skew,age);
+        float collapse=smoothstep(.63,1.44,age);
+        float peak=exp(-pow((age-.29)/.15,2.));
+        float torn=smoothstep(.10,.50,grain+.26*cos(a*3.1-h*14.+age));
+        float split=cos(3.*a-2.*h-age*.68)+.47*cos(7.*a+h*6.2+age);
+        float splitGate=smoothstep(-.81,-.12,split+.32*(grain-.5));
+        float web=1.-smoothstep(.24,.77,collapse*1.22+.24*torn);
+        web*=mix(.46,1.,splitGate);
+        float shoulder=.81+.096*sin(a+age*1.1)+ripple;
+        float crest=exp(-pow((h-shoulder)/(.032+.02*grain),2.));
+        float darkBody=smoothstep(.03,.26,h)*(1.-smoothstep(shoulder-.05,shoulder+.04,h));
+        float broadEdge=exp(-pow((h-shoulder+.061)/(.073+.029*grain),2.));
+        float turbulent=.28+.72*smoothstep(.22,.7,grain*.69+.31*broad);
+        float bandA=.14+.102*sin(a+.63-age*.55)+ripple;
+        float bandB=.41+.19*sin(a+1.2-age*.71)+ripple*.7;
+        float tracking=.26+.74*smoothstep(-.74,.75,cos(a*1.0+age*.85+.35));
+        float nearA=exp(-pow((h-bandA)/(.087+.039*grain),2.));
+        float nearB=exp(-pow((h-bandB)/(.069+.029*grain),2.))*tracking;
+        float filament=exp(-abscomb(h*11.5+.37*sin(a+age*.92)+.22*grain)*17.);
+        float outline=exp(-pow((h-bandA-.065)/.035,2.));
+        vec3 soot=mix(vec3(.019,.032,.054),vec3(.076,.103,.152),.27+.50*broad);
+        vec3 ash=mix(vec3(.048,.071,.111),vec3(.19,.235,.32),filament*.71+broad*.26);
+        vec3 edge=mix(vec3(.15,.34,.71),vec3(.39,.66,1.18),grain);
+        float cut=smoothstep(-.86,-.16,side+.20*(grain-.5));
+        // The high rear arc stays behind the glow. The near skirt crosses
+        // the bottom of the core and leaves the cap open toward the camera.
+        float orientation=dot(az(a),normalize(eye.xz+vec2(.0001,0.)));
+        float rear=1.-smoothstep(-.20,.13,orientation);
+        if(layer==0){
+          float alpha=sweep*web*max(.89*darkBody,.90*crest)*rear;
+          if(alpha<.012)discard;
+          vec3 tint=soot+ash*filament*.61+edge*(crest*.88+broadEdge*.33)*(.71+1.68*peak)*turbulent;
+          put(tint,alpha);
+        }else{
+          float nearMask=max(nearA*.98,nearB*cut*.96);
+          float upperLip=crest*(.10+.38*cut)*smoothstep(.47,.70,broad+.19*side)*(1.-collapse);
+          float shear=smoothstep(-.65,.48,cos(2.*a+h*3.+age*1.4)+.44*broad);
+          float alpha=sweep*web*max(nearMask*(.30+.70*shear),upperLip)*(1.-rear);
+          if(alpha<.017)discard;
+          vec3 near=ash*(.85+.60*grain)+edge*(.65*outline+.88*upperLip)*(1.+peak*.7);
+          put(near,alpha*.91);
+        }
+        return;
+      }
+      #else
       if(layer==0||layer==3){
         float h=.5+.5*n.y,side=cos(a-.68+age*.64);
         float ripple=.055*sin(3.*a+age*1.8)+.042*(broad-.5);
@@ -295,6 +255,7 @@
         }
         return;
       }
+      #endif
       #else
       if(layer==0||layer==3){
         if(age>=1.30)discard;
@@ -398,7 +359,11 @@
     #ifdef STUDIO
     float extentAt(float age){
       #ifdef ARENA_WAKE
+      #ifdef ANIME_BURST
+      return 1.85+1.32*smoothstep(.54,1.29,age);
+      #else
       return 2.06+1.11*smoothstep(.84,1.29,age);
+      #endif
       #else
       return 2.06+.70*smoothstep(.72,1.42,age);
       #endif
@@ -436,7 +401,11 @@
     #ifdef STUDIO
     float extentAt(float age){
       #ifdef ARENA_WAKE
+      #ifdef ANIME_BURST
+      return 1.85+1.32*smoothstep(.54,1.29,age);
+      #else
       return 2.06+1.11*smoothstep(.84,1.29,age);
+      #endif
       #else
       return 2.06+.70*smoothstep(.72,1.42,age);
       #endif
@@ -607,21 +576,11 @@
       float r=length(p.xz),a=atan(p.z,p.x);
       float speed=1.-exp(-max(0.,age-.05)*5.2);
       float front=(.61+1.92*speed)*(.91+.11*sin(3.*a+.9)+.055*sin(7.*a-age*4.));
-      #ifdef ANIME_BURST
-      vec2 fromStrike=p.xz-vec2(.68*exp(-age*6.4),0.);
-      r=length(fromStrike*vec2(.88,1.));
-      a=atan(fromStrike.y,fromStrike.x);
-      speed=1.-exp(-max(0.,age-.022)*7.8);
-      front=(.17+2.52*speed)*(.93+.15*cos(2.*a-.35)+.08*cos(5.*a-age*9.));
-      #endif
       float drift=noise3(p*6.+vec3(0.,age*2.4,0.));
       float thickness=.11+.20*speed;
       float wave=exp(-pow((r-front+.085*(drift-.5))/thickness,2.));
       float spread=exp(-p.y*p.y/(.022+.12*speed*drift));
       float pulse=smoothstep(.065,.17,age)*(1.-smoothstep(.25,.62,age));
-      #ifdef ANIME_BURST
-      pulse=smoothstep(.026,.090,age)*(1.-smoothstep(.24,.62,age));
-      #endif
       float bands=smoothstep(.19,.72,drift+.20*cos(6.*a-r*4.+age*4.));
       float density=1.84*wave*spread*pulse*(.33+.67*bands)*smoothstep(0.,.046,p.y);
       return vec4(mix(vec3(.19,.33,.42),vec3(.47,.69,.94),bands),density);
@@ -657,16 +616,12 @@
       envelope*=1.-smoothstep(.97,1.06,q.y);
       float folding=smoothstep(.33,.81,collapse);
       #ifdef ANIME_BURST
-      vec4 groundGas=age>.19?animeBurstDust(above):vec4(0.);
+      vec4 groundGas=age>.45?animeBurstDust(above):vec4(0.);
+      groundGas.a*=smoothstep(.45,.75,age);
       if(age>.32){
         vec4 swirl=animeDustVortex(above);
         float total=groundGas.a+swirl.a;
         groundGas=vec4((groundGas.rgb*groundGas.a+swirl.rgb*swirl.a)/max(.00001,total),total);
-      }
-      if(age<.62){
-        vec4 pressure=pressureDust(above,age);
-        float total=groundGas.a+pressure.a;
-        groundGas=vec4((groundGas.rgb*groundGas.a+pressure.rgb*pressure.a)/max(.00001,total),total);
       }
       #else
       #ifdef ARENA_WAKE
@@ -677,7 +632,11 @@
       groundGas.a*=folding;
       if(age<.62)groundGas=pressureDust(above,age);
       #endif
+      #ifdef ANIME_BURST
+      if(envelope*baseFade<.002)return groundGas;
+      #else
       if(envelope*baseFade<.002&&(age>=.34||length(above-vec3(.16,.48,-.04))>1.37))return groundGas;
+      #endif
       #else
       float baseFade=smoothstep(.0,.15,p.y);
       if(envelope*baseFade<.002)return vec4(0.);
@@ -736,35 +695,18 @@
       float settle=smoothstep(.59,.94,collapse);
       emission=mix(emission,emission*vec3(.34,.47,.81),settle);
       #ifdef ANIME_BURST
-      float lowFlow=.48+.52*band;
-      float broadLight=exp(-3.3*shape*shape)*(.61+.26*mass);
-      vec3 evenGlow=mix(vec3(.035,.24,.41),vec3(.42,.89,1.02),max(broadLight,layer*lowFlow*.74));
-      emission=evenGlow;
-      density*=.70*(1.-smoothstep(.57,.99,age));
-      #endif
+      float upperGas=density*(1.-folding),sigma=upperGas+groundGas.a;
+      return vec4((emission*upperGas+groundGas.rgb*groundGas.a)/max(.00001,sigma),sigma);
+      #else
       float shockTiming=smoothstep(.072,.166,age)*(1.-smoothstep(.193,.340,age));
       vec3 focus=vec3((above.x-.16)*.93,above.y-.48,above.z+.04);
       float shockShape=1.-smoothstep(.48+shockTiming*.27,.93+shockTiming*.22,length(focus)+.18*(mass-.5));
-      #ifdef ANIME_BURST
-      float opening=smoothstep(.035,.185,age);
-      shockTiming=smoothstep(.039,.142,age)*(1.-smoothstep(.205,.343,age));
-      vec3 strikeCenter=vec3(mix(.71,.15,opening),mix(.19,.49,opening),-.04);
-      vec3 strikeSpan=mix(vec3(.30,.21,.25),vec3(1.33,.88,1.11),opening);
-      focus=(above-strikeCenter)/strikeSpan;
-      float fracture=(mass-.5)*.31+(fiber-.5)*.12;
-      shockShape=1.-smoothstep(.53,.99,length(focus)+fracture);
-      #endif
       float ignition=6.9*shockTiming*shockShape*baseFade*(.62+.38*mass);
       vec3 flash=vec3(2.37,2.83,3.14)*(.76+.24*fiber);
-      #ifdef ANIME_BURST
-      float burst=smoothstep(.16,.285,age)*(1.-smoothstep(.33,.402,age));
-      float nucleus=length((above-vec3(.04,.69,-.06))/vec3(.91,.74,.91));
-      ignition+=burst*(1.-smoothstep(.49,1.01,nucleus+.12*(mass-.5)))*baseFade*5.12;
-      flash+=vec3(1.48,1.67,1.73)*burst;
-      #endif
       float upperGas=density*(1.-folding),sigma=upperGas+groundGas.a+ignition;
       vec3 energy=emission*upperGas+groundGas.rgb*groundGas.a+flash*ignition;
       return vec4(energy/max(.00001,sigma),sigma);
+      #endif
       #else
       return vec4(emission,density);
       #endif
@@ -795,7 +737,11 @@
       #ifdef STUDIO
       float life=smoothstep(.048,.17,age)*(1.-smoothstep(1.04,2.06,age));
       #ifdef ARENA_WAKE
+      #ifdef ANIME_BURST
+      float collapse=smoothstep(.87,1.80,age);
+      #else
       float collapse=smoothstep(.83,1.36,age);
+      #endif
       #else
       float collapse=smoothstep(.87,1.80,age);
       #endif
@@ -824,7 +770,7 @@
 
   // Broken strips expand out of the impact, while the bright filaments
   // wind around the turbulent gas at distinct heights and radii.
-  function burstStrips(gl,geom,arenaWake){
+  function burstStrips(gl,geom,arenaWake,innerOnly){
     const vertex = `#version 300 es
       precision highp float;
       uniform mat4 vp;
@@ -952,65 +898,19 @@
     const material=geom.program(vertex,fragment),vao=gl.createVertexArray();
     const groundY=gl.getUniformLocation(material,'groundY');
     return (age,floorHeight)=>{
-      if(age<.035||age>(arenaWake?3.42:1.4))return;
+      if(age<.035||age>(arenaWake&&!innerOnly?3.42:1.4))return;
       geom.uniforms(material,age);
       gl.uniform1f(groundY,floorHeight);
       gl.disable(gl.CULL_FACE);
       gl.blendFuncSeparate(gl.ONE,gl.ONE,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       gl.bindVertexArray(vao);
-      const strips=arenaWake&&age>1.07?54:39;
+      const strips=innerOnly?29:arenaWake&&age>1.07?54:39;
       gl.drawArraysInstanced(gl.TRIANGLES,0,92*6,strips);
       gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       gl.enable(gl.CULL_FACE);
     };
   }
 
-  function impactGlow(gl,geom){
-    const program=geom.program(`#version 300 es
-      uniform mat4 vp;
-      uniform vec3 eye;
-      uniform float groundY;
-      out vec2 field;
-      void main(){
-        vec2 corner=vec2((gl_VertexID<<1)&2,gl_VertexID&2);
-        field=(corner*2.-1.)*3.8;
-        vec3 center=vec3(.05,groundY+.87,0.);
-        vec3 forward=normalize(eye-center);
-        vec3 right=normalize(cross(vec3(0.,1.,0.),forward));
-        vec3 up=cross(forward,right);
-        gl_Position=vp*vec4(center+field.x*right+field.y*up,1.);
-      }`,`#version 300 es
-      precision highp float;
-      uniform float age;
-      in vec2 field;
-      out vec4 color;
-      void main(){
-        float t=smoothstep(.135,.292,age),fade=1.-smoothstep(.326,.404,age);
-        vec2 p=field/vec2(1.22,.96);
-        float r=length(p);
-        float near=exp(-r*r*1.22);
-        float scatter=exp(-r*r/(1.03+1.24*t));
-        float low=exp(-pow((field.y+.62)/.34,2.)-pow(field.x/2.12,2.));
-        float lift=exp(-pow((field.x+.11)/.27,2.)-pow((field.y-.35)/1.78,2.));
-        vec3 haze=vec3(.11,.42,.68)*(.30*scatter+.20*low);
-        vec3 light=vec3(.85,1.21,1.43)*(.24*near+.088*lift);
-        color=vec4((haze+light)*t*fade,0.);
-      }`);
-    const floor=gl.getUniformLocation(program,'groundY'),vao=gl.createVertexArray();
-    return (age,height)=>{
-      if(age<=.135||age>=.404)return;
-      geom.uniforms(program,age);
-      gl.uniform1f(floor,height);
-      gl.bindVertexArray(vao);
-      gl.disable(gl.DEPTH_TEST);
-      gl.disable(gl.CULL_FACE);
-      gl.depthMask(false);
-      gl.blendFuncSeparate(gl.ONE,gl.ONE,gl.ZERO,gl.ONE);
-      gl.drawArrays(gl.TRIANGLES,0,3);
-      gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
-      gl.enable(gl.DEPTH_TEST);
-    };
-  }
   function dustCurl(gl,geom){
     const program=geom.program(`#version 300 es
       uniform mat4 vp;
@@ -1088,9 +988,8 @@
     const material=geom.program(variant(vertex),variant(fragment));
     const layer=gl.getUniformLocation(material,'layer'),groundY=gl.getUniformLocation(material,'groundY');
     const volume=geom.program(variant(volumeVertex),variant(volumeFragment));
-    const renderStrips=studio&&!animeBurst?burstStrips(gl,geom,arenaWake):null;
+    const renderStrips=studio?burstStrips(gl,geom,arenaWake,animeBurst):null;
     const renderDustCurl=animeBurst?dustCurl(gl,geom):null;
-    const renderImpactGlow=animeBurst?impactGlow(gl,geom):null;
     const clipOpaque=gl.getUniformLocation(volume,'clipOpaque');
     const volumeFloor=gl.getUniformLocation(volume,'groundY');
     const opaqueDepth=gl.getUniformLocation(volume,'opaqueDepth');
@@ -1125,14 +1024,9 @@
       }
       renderStrips?.(age,floorHeight);
       geom.uniforms(material,age);
-      if(animeBurst&&age>.231&&age<1.045){
-        gl.disable(gl.CULL_FACE);
-        gl.uniform1i(layer,5);geom.draw(geom.sphere);
-      }
       gl.depthMask(!studio);
       if(studio)gl.disable(gl.CULL_FACE);
       if(age<(studio?1.57:1.46)){gl.uniform1i(layer,3);geom.draw(geom.sphere);}
-      renderImpactGlow?.(age,floorHeight);
       renderDustCurl?.(age,floorHeight);
       gl.depthMask(true);
       gl.bindVertexArray(null);
