@@ -1,6 +1,6 @@
 /* Opaque flying stage chips, ground discharges and the lightning that crosses
    the Spirit Bomb's shell. All positions share the volume's 3D depth buffer. */
-window.SpiritEjectaBuild=function(gl,g,studio){
+window.SpiritEjectaBuild=function(gl,g,studio,animeBurst){
   'use strict';
   const tau=Math.PI*2;
   const hash=n=>{const v=Math.sin(n*21.871+5.32)*38914.29;return v-Math.floor(v);};
@@ -84,7 +84,7 @@ window.SpiritEjectaBuild=function(gl,g,studio){
   const floorLight=g.program(shaderHead+`
     layout(location=0)in vec2 point;out vec2 uv;
     void main(){uv=point;gl_Position=vp*vec4(point.x,.011,point.y,1.);}`,
-    '#version 300 es\nprecision highp float;uniform float age,groundFront;in vec2 uv;out vec4 O;'+noise+`
+    '#version 300 es\n'+(animeBurst?'#define ANIME_SPIRIT\n':'')+'precision highp float;uniform float age,groundFront;in vec2 uv;out vec4 O;'+noise+`
     void main(){
       float growth=smoothstep(.03,.57,age),tail=smoothstep(.72,1.42,age);
       float r=length(uv*vec2(.98,1.02)),a=atan(uv.y,uv.x);
@@ -92,6 +92,10 @@ window.SpiritEjectaBuild=function(gl,g,studio){
       float fog=exp(-r*r/(.15+1.56*growth))*(.66+.34*sin(winding+r*7.-age*11.));
       float band=r*6.-growth*4.-age*3.+winding*.54;
       float caustic=exp(-7.*abs(sin(band)))*exp(-pow((r-(.26+1.12*growth-.35*tail))/.68,2.));
+      #ifdef ANIME_SPIRIT
+      caustic=exp(-pow((r-1.8*growth)/(.26+.31*growth),2.))*.57;
+      tail=smoothstep(.57,1.06,age);
+      #endif
       float light=(.24*fog+.42*caustic)*smoothstep(.012,.38,age)*(1.-tail)*(1.-smoothstep(groundFront-.09,groundFront,uv.y));
       O=vec4(mix(vec3(.04,.52,.78),vec3(.38,.86,1.),caustic)*light,light);
     }`);
@@ -200,7 +204,7 @@ window.SpiritEjectaBuild=function(gl,g,studio){
     if(bounds.has(program))gl.uniform1f(bounds.get(program),g.groundFront??100);
   }
   return function(time,pass){
-    if(time<=0||time>1.66)return;
+    if(time<=0||time>1.66||(animeBurst&&pass!=='stones'&&pass!=='floor'))return;
     let prog,mesh;
     if(pass==='stones'){prog=chipShader;mesh=shardMesh;}
     else if(pass==='floor'){prog=ringShader;mesh=ringMesh;}
@@ -211,6 +215,7 @@ window.SpiritEjectaBuild=function(gl,g,studio){
       uniforms(chipShader,time);gl.uniform1i(shadowUniform,1);
       gl.bindVertexArray(shardMesh.vao);gl.drawArrays(gl.TRIANGLES,0,shardMesh.count);
       uniforms(floorLight,time);gl.bindVertexArray(floorMesh.vao);gl.drawArrays(gl.TRIANGLES,0,floorMesh.count);
+      if(animeBurst)return;
     }
     if(pass==='front'){g.uniforms(coronaShader,time);gl.bindVertexArray(coronaMesh.vao);gl.drawArraysInstanced(gl.TRIANGLES,0,coronaMesh.count,3);}
     uniforms(prog,time);if(prog===chipShader)gl.uniform1i(shadowUniform,0);gl.bindVertexArray(mesh.vao);

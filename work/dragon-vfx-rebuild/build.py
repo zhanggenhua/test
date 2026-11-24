@@ -116,11 +116,19 @@ for name,stamp,label in [
         ["ffmpeg","-v","error","-y","-ss",str(stamp-anime_throw["start"]),"-i",str(anime_paths/"dbz-buu-spirit-release.mp4"),
          "-frames:v","1","-threads","1",str(dst/rel)],check=True)
     throw_cards.append(dict(file="dragon-vfx/"+rel,label=label,time=stamp))
+flash_stamp=1231.73333
+flash_ref="reference/spirit/dragonball/anime-final-outburst.png"
+subprocess.run(
+    ["ffmpeg","-v","error","-y","-ss",str(flash_stamp-anime_hit["start"]),"-i",str(anime_paths/"dbz-buu-spirit-impact.mp4"),
+     "-frames:v","1","-threads","1",str(dst/flash_ref)],check=True)
+anime_final_flash=dict(file="dragon-vfx/"+flash_ref,label="龙珠原片 · 尘浪前方白光外放",time=flash_stamp)
 anime_phases=dict(anime_hit,title="元气弹原片 ·《龙珠Z》布欧篇 · 投出与爆发",
     film="dragon-vfx/"+phase_rel,start=0,end=31,sourceSpans=[[0,970],[8,1216]],
     note="原片 16:10–16:18 用于投出和下压，20:16–20:39 用于命中、爆发和退场。跨段剪接保留，画面显示原片时码。",
-    cards=[*throw_cards,*anime_hit["cards"]],
-    anchors=[[0,0],[1.57,2.37],[2,3.1],[2.23,4.27],[2.5,7.5],[2.58,8.0],[2.70,12.0],[3.19,15.0],[3.73,21.0],[4.1,22.5],[5.29,27],[6.2,30.9667]])
+    cards=[*throw_cards,*anime_hit["cards"],anime_final_flash],
+    anchors=[[0,0],[1.57,2.37],[2,3.1],[2.43,4.12],[2.73,5.87],[3,7.6],[3.08,8.0],
+             [3.20,12.0],[3.70,15.0],[3.86,21.0],[3.94,22.5],[4.05,23.73333],
+             [4.52,27.0],[6.7,30.9667]])
 
 burst_clip=refs/"spirit/burst-clip.json"
 study_impact=[]
@@ -130,10 +138,10 @@ if burst_clip.is_file():
     source_shot=json.loads(burst_clip.read_text(encoding="utf-8"))
     full=resource("spirit",source_shot["clip"])
     spirit_secondary=dict(film("spirit",source_shot,"第二参考 ·《失落的方舟》气宗师",
-        "前段 0.767–1.500 秒看冲击如何沿地面铺开。后段 3.267 秒起看球下移，3.600–4.100 秒看白核与外壳分层炸开。",
-        0,subset=[1,2,4,5,6,8],output=full),
-        anchors=[[0,3.20],[1.84,3.20],[2.0,3.267],[2.23,3.40],[2.50,3.533],[2.70,3.633],
-                 [3.19,4.100],[4.1,5.010],[6.2,7.110]])
+        "用气宗师前段 0.767–1.500 秒看贴地冲击。后段对照球下移和爆面分层，最终散场跟随龙珠原片。",
+        0,subset=[1,2,4,5,6],output=full),
+        anchors=[[0,3.20],[1.84,3.20],[2.0,3.267],[2.43,3.40],[3.00,3.533],[3.20,3.633],
+                 [3.70,4.100],[4.6,5.010],[6.7,7.110]])
 
     def matched_impact(filename,end,note):
         start=3.2
@@ -223,8 +231,9 @@ spirit_legacy_arena = dict(legacy("spirit.mp4","V17 · 同一横版擂台",
     "两版共用横版舞台、角色站位和时间。可逐帧比较撞地爆闪与贴地余波。",4.8,30),
     film="dragon-vfx/spirit.mp4")
 spirit_impact_baseline = dict(legacy("spirit-arena.mp4","上一版 · 2D 撞地冲击",
-    "两版共用擂台、角色和时间。可同帧检查球体下压、贴地冲击、白闪和浅尘浪。",6.2,30),
-    film="dragon-vfx/spirit-arena.mp4")
+    "上一版站距更近，按离手、命中和退场对齐。",6.2,30),
+    film="dragon-vfx/spirit-arena.mp4",
+    anchors=[[0,0],[2.0,2.0],[3.0,2.50],[6.7,6.16667]])
 payload = {"actors":actors,
            "unityDemo":{"film":unity_film,"duration":unity_duration},
            "sources":{"spiritImpactBaseline":spirit_impact_baseline,"spiritAnimePhases":anime_phases,"spiritSecondary":spirit_secondary,

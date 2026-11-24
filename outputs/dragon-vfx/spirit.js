@@ -2,6 +2,7 @@
   'use strict';
   const TAU = 2 * Math.PI;
   const swing = 1.57, release = 2.0, contact = 2.50, duration = 4.80;
+  const animeContact=3.0;
   const phases = [
     {t:0, name:'举手'}, {t:.48, name:'四周汇气'}, {t:1.67, name:'托球前送'},
     {t:release, name:'双掌投出'}, {t:2.23, name:'飞行'}, {t:contact, name:'球沿触敌'}, {t:2.66, name:'球体压入'},
@@ -114,12 +115,14 @@
         float shafts=smoothstep(.38,.84,noise(vec3(unit*50.,1.2*outside+.38*tick)))*
           exp(-outside/(.111+.090*hazeNoise));
         float sparkle=noise(vec3(unit*45.,.62*tick)),filmy=0.;
+        #ifndef ANIME_SPIRIT
         for(int i=0;i<3;i++){
           float k=float(i),bend=ang*(3.+k)+phase*.87+k*2.3;
           float edge=radius+.023+.02*k+.026*sin(bend)+.011*sin(ang*9.-phase+k);
           float arc=smoothstep(-.47,.42,cos(ang*(2.+k)+k-phase)+.32*sin(9.*ang+k));
           filmy+=exp(-abs(r-edge)*224.)*arc*(.28+.18*sparkle);
         }
+        #endif
         float glow=clamp(.77*halo+.22*shafts+filmy,0.,1.)*(1.-smoothstep(1.40,1.65,r));
         vec3 haze=mix(vec3(.012,.55,.83),vec3(.66,1.,1.),clamp(.45*halo+filmy+.14*shafts,0.,1.));
         color=vec4(haze*glow*.72*energy,glow*.52*energy);return;
@@ -183,6 +186,11 @@
       body=mix(body,vec3(.985,1.,1.),min(.91,absorbed));
       float film=noise(vec3(unit*14.+p*2.6,.70*z+tick*.46));
       body+=vec3(.052,.018,.009)*(film-.39)*smoothstep(.38,.82,r);
+      #ifdef ANIME_SPIRIT
+      vec3 blueWhite=mix(vec3(.90,1.,1.),vec3(.37,.88,.99),smoothstep(.53,1.,r));
+      body=mix(blueWhite,body,.29);
+      density*=.52;
+      #else
       // A projected wavy great circle naturally disappears behind the core on
       // its far half and briefly protrudes past the rim near a tangent.
       for(int i=0;i<7;i++){
@@ -199,6 +207,7 @@
         body=mix(body,vec3(.965,1.,1.),show*(.35+.65*smoothstep(.35,.90,r)));
 
       }
+      #endif
       float sparkle=noise(vec3(unit*45.,.62*tick));
       float rim=exp(-abs(r-.987)*mix(60.,132.,sparkle));
       body=mix(body,vec3(.94,1.,1.),rim*(.67+.33*sparkle));
@@ -226,8 +235,9 @@
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),gl.STATIC_DRAW);
     return {vao,count:indices.length};
   }
-  function worldOrb(gl,makeProgram,sphere){
-    const pg=makeProgram(gl,vertex,fragment);
+  function worldOrb(gl,makeProgram,sphere,animeBurst){
+    const material=animeBurst?fragment.replace('#version 300 es\n','#version 300 es\n#define ANIME_SPIRIT\n'):fragment;
+    const pg=makeProgram(gl,vertex,material);
     const names=['vp','center','radii','haloRight','haloDown','layer','phase','inlets[0]','momentum','energy'];
     const u=Object.fromEntries(names.map(name=>[name,gl.getUniformLocation(pg,name)]));
     const halo=gl.createVertexArray();
@@ -294,12 +304,14 @@
     const hitX=tx-30, hitY=ground-64;
     const endY=ground-radius-7;
     const endX=hitX-Math.sqrt(Math.max(1,radius*radius-(hitY-endY)**2));
-    const flightSpan=contact-release,pushSpan=release-swing;
+    const impactAt=animeBurst?animeContact:contact;
+    const flightSpan=impactAt-release,pushSpan=release-swing;
     const vx=(endX-castX)/flightSpan,vy=(endY-castY)/flightSpan;
     const gravity=.34*vy/flightSpan;
-    const launchVX=animeBurst?.72*vx:vx, hitVX=animeBurst?1.24*vx:vx;
-    const launchVY=animeBurst?.47*vy:vy-.5*gravity*flightSpan;
-    const hitVY=animeBurst?1.68*vy:launchVY+gravity*flightSpan;
+    const startX=.88,endSlopeX=.79,startY=.21,endSlopeY=1.93;
+    const launchVX=animeBurst?startX*vx:vx, hitVX=animeBurst?endSlopeX*vx:vx;
+    const launchVY=animeBurst?startY*vy:vy-.5*gravity*flightSpan;
+    const hitVY=animeBurst?endSlopeY*vy:launchVY+gravity*flightSpan;
     let cx,cy,r=radius,rx,ry,glow,flow=0,dirX=vx,dirY=vy;
     if(t<swing){
       const mass=packets.reduce((sum,p)=>sum+p.mass*ramp(p.at,p.at+.084,t),0)/totalMass;
@@ -313,25 +325,25 @@
       cy=push(heldY,castY,launchVY,pushSpan,q);
       glow=1;
       flow=.36*ramp(.1,1,q);
-    }else if(t<contact){
+    }else if(t<impactAt){
       const dt=t-release;
       cx=castX+vx*dt;
       cy=castY+dt*(launchVY+.5*gravity*dt);
       if(animeBurst){
         const u=dt/flightSpan;
-        cx=castX+(endX-castX)*flightProgress(u,.72,1.24);
-        cy=castY+(endY-castY)*flightProgress(u,.47,1.68);
-        dirX=vx*flightSlope(u,.72,1.24);
-        dirY=vy*flightSlope(u,.47,1.68);
+        cx=castX+(endX-castX)*flightProgress(u,startX,endSlopeX);
+        cy=castY+(endY-castY)*flightProgress(u,startY,endSlopeY);
+        dirX=vx*flightSlope(u,startX,endSlopeX);
+        dirY=vy*flightSlope(u,startY,endSlopeY);
       }
       glow=1;
       flow=mix(.36,1,ramp(0,.14,dt));
     }else{
-      const age=t-contact;
+      const age=t-impactAt;
       const drop=(ground-radius-endY)+2.3;
-      cx=endX+integrateBrake(hitVX,age,animeBurst?.143:.177);
+      cx=endX+integrateBrake(hitVX,age,animeBurst?.080:.177);
       cy=endY+integrateBrake(hitVY,age,drop/hitVY);
-      if(animeBurst){dirX=hitVX;dirY=hitVY;}
+      if(animeBurst){dirX=hitVX*Math.exp(-age/.080);dirY=hitVY*Math.exp(-age*hitVY/drop);}
       const crush=ramp(.015,.145,age)*(1-.70*ramp(.16,.29,age));
       rx=radius*(1-(animeBurst?.15:.065)*crush);
       ry=radius*(1-(animeBurst?.080:.038)*crush);
@@ -339,7 +351,7 @@
       glow=1-ramp(.047,.215,age);
       flow=Math.exp(-age/.09);
     }
-    const directionLength=Math.hypot(dirX,dirY);
+    const directionLength=Math.max(1e-9,Math.hypot(dirX,dirY));
     return {x:cx,y:cy,r,rx:rx??r,ry:ry??r,glow,hitX,hitY,flow,
             direction:[dirX/directionLength,dirY/directionLength]};
   }
@@ -398,6 +410,7 @@
     return function(time,stage){
       const {casterX:x,targetX:tx,ground}=stage.scene;
       const b=stage.ball,data=[];
+      const impactAt=animeBurst?animeContact:contact;
       function ribbon(points,width,visibility){
         const strips=points.map((p,i)=>{
           const before=points[Math.max(0,i-1)],after=points[Math.min(points.length-1,i+1)];
@@ -430,9 +443,9 @@
           ribbon(points,2.9+1.6*p.mass,visibility);
         }
       }
-      const wake=ramp(release-.015,release+.09,time)*(1-ramp(contact-.04,contact+.13,time));
+      const wake=ramp(release-.015,release+.09,time)*(1-ramp(impactAt-.04,impactAt+.13,time));
       if(wake>.002){
-        for(let i=0;i<9;i++){
+        for(let i=0;i<(animeBurst?6:9);i++){
           const side=2*random(i+17)-1,delay=.036+.104*random(i+62);
           const z=(2*random(i+5)-1)*.49,across=.84*side;
           const back=Math.sqrt(Math.max(.05,1-across*across-z*z));
@@ -443,10 +456,11 @@
             return [old.x-old.r*(ux*back+uy*across)-ux*extra,
                     old.y-old.r*(uy*back-ux*across)-uy*extra,old.r*z];
           });
-          ribbon(points,1.35+1.35*random(i+6),wake*(.39+.48*random(i+74)));
+          const width=(animeBurst?2.5:1.35)+1.35*random(i+6);
+          ribbon(points,width,wake*(.39+.48*random(i+74)));
         }
       }
-      const age=time-contact;
+      const age=time-impactAt;
       if(animeBurst&&age>0&&age<.31){
         // A low front skims the floor from the contact point before the volume rises.
         const expand=t=>1-Math.exp(-Math.max(0,t)*9.2);
@@ -463,7 +477,22 @@
           ribbon(points,1.9+1.7*random(i+43),visibility*(.56+.36*random(i+61)));
         }
       }
-      if(age>=0&&age<.145){
+      if(animeBurst&&age>.975&&age<1.20){
+        // Radial light follows the flash, with smooth tapered rays and staggered reach.
+        const spark=age-.975, extent=ramp(0,.075,spark);
+        const life=ramp(0,.044,spark)*(1-ramp(.086,.225,spark));
+        const origins=[b.x+13,ground-59,1];
+        for(let i=0;i<10;i++){
+          const angle=-Math.PI+(i+.30*random(i+89))*TAU/10;
+          const length=(108+150*random(i+63))*extent;
+          const points=Array.from({length:10},(_,j)=>{
+            const u=j/9,r=9+u*length;
+            return [origins[0]+r*Math.cos(angle),origins[1]+r*Math.sin(angle),origins[2]+5*u];
+          });
+          ribbon(points,3+8*random(i+51),life*(.65+.55*random(i+32)));
+        }
+      }
+      if(!animeBurst&&age>=0&&age<.145){
         const gain=(.53+.47*ramp(0,.025,age))*(1-ramp(.038,.145,age));
         for(let i=0;i<5;i++){
           const turn=-.92+i*.45, length=(15+20*random(i+33))*(.61+4*age);
@@ -519,10 +548,11 @@
         gl.uniformMatrix4fv(u[0],false,vp);gl.uniform1f(u[1],age);gl.uniform3fv(u[2],eye);
       },
     };
-    const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram,animeBurst);
-    const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact,arenaWake,animeBurst),renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact);
+    const renderOrb=worldOrb(gl,makeProgram,sphere,animeBurst),renderFlow=worldFlow(gl,makeProgram,animeBurst);
+    const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact,arenaWake,animeBurst);
+    const renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact,animeBurst);
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
-      const {clock,ball,matrix}=stage,age=clock-contact;
+      const {clock,ball,matrix}=stage,age=clock-(animeBurst?animeContact:contact);
       const inlet=groundImpact&&age>0?{...ball,glow:ball.glow*(1-ramp(.008,.075,age))}:ball;
       renderOrb(clock,inlet,stage);
       renderFlow(clock,stage);
@@ -545,28 +575,31 @@
   }
 
   function arenaFrame(clock,scene,animeBurst=false){
-    const age=clock-contact;
+    const impactAt=animeBurst?animeContact:contact,age=clock-impactAt;
     const casterPose=clock<.13?'idle':clock<.28?'raise':clock<1.86?'lift':
-      clock<1.97?'drive':clock<2.23?'throw':clock<contact+1.24?'recover':'idle';
+      clock<1.97?'drive':clock<2.23?'throw':age<1.24?'recover':'idle';
     const footOffset={idle:0,raise:1.45,lift:1.45,drive:1.78,throw:3.78,recover:.1};
     return {clock,scene,ball:state(clock,scene.casterX,scene.targetX,scene.ground,animeBurst),
             casterPose,casterOffset:footOffset[casterPose],casterDepth:-95,
             targetPose:age>=0&&age<1.30?'hurt':'idle',
-            ambience:1-.28*ramp(.18,.83,clock)*(1-ramp(contact+.79,contact+1.60,clock))};
+            ambience:1-.28*ramp(.18,.83,clock)*(1-ramp(impactAt+.79,impactAt+1.60,clock))};
   }
   const impactPhases=[...phases,{t:2.701,name:'撞地爆闪'},{t:4.1,name:'贴地旋涡'}].sort((a,b)=>a.t-b.t);
   function createArena(groundImpact,animeBurst=false){
-    const arenaPhases=[...impactPhases.slice(0,-1),{t:5.29,name:'暗浪裂散'},{t:5.96,name:'余波散尽'}];
-    if(animeBurst)arenaPhases.push({t:2.32,name:'球体下压'},{t:2.60,name:'冲击铺开'},
-      {t:3.55,name:'动画白闪'},{t:4.07,name:'尘浪翻起'});
+    const arenaPhases=animeBurst?[
+      ...phases.filter(phase=>phase.t<=release),
+      {t:2.43,name:'远距飞行'},{t:2.73,name:'球体下压'},{t:animeContact,name:'触敌着地'},
+      {t:3.20,name:'贴地爆闪'},{t:3.70,name:'亮核与翻尘'},{t:4.05,name:'白光外放'},
+      {t:4.52,name:'尘浪接替'},{t:5.77,name:'尘浪散开'},{t:6.50,name:'清场'},
+    ]:[...impactPhases.slice(0,-1),{t:5.29,name:'暗浪裂散'},{t:5.96,name:'余波散尽'}];
     let ready,renderer;
     const sample=groundImpact?(clock,scene)=>{
-      const frame=arenaFrame(clock,scene,animeBurst),age=clock-contact;
+      const frame=arenaFrame(clock,scene,animeBurst),age=clock-(animeBurst?animeContact:contact);
       const flash=ramp(.08,.16,age)*(1-ramp(.24,.39,age));
       return {...frame,impactAge:age,targetLight:1+.21*flash};
     }:arenaFrame;
     return {
-      duration:groundImpact?6.2:duration,
+      duration:animeBurst?6.7:groundImpact?6.2:duration,
       phases:groundImpact?arenaPhases.sort((a,b)=>a.t-b.t):phases,
       get realtime(){return renderer?.active??false;},
       draw(ctx,t,scene){
