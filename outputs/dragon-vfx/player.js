@@ -200,7 +200,7 @@
     el('refTitle').textContent=current.title;
     el('newTitle').textContent=spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入球体，双掌推出。命中后内核高速旋开，外壳与碎片向外散开。':'掌心聚气、出束、持续喷射、断流消散。';
-    if(spiritStudy)el('newNote').textContent='触地后球体迅速破开，亮流、冲击浪和碎片分层向外冲出，最后塌成贴地旋涡。';
+    if(spiritStudy)el('newNote').textContent='飞行球触地破开。半球形冲击浪贴地扩张，内部亮流随之翻起，最后塌成贴地旋涡。';
     if(spirit&&!spiritStudy) {
       const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
       const burst=external('对照命中原图 · 4.100 秒','?fx=spirit&ref=burst&at=3.19');

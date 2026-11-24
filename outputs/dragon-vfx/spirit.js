@@ -484,7 +484,8 @@
       eye[2]=-stage.eye[2]/ball.r;
       geometry.groundFront=-stage.frontZ/ball.r;
       renderEjecta(age,'stones');renderEjecta(age,'floor');renderEjecta(age,'back');
-      renderVolume(age,opaqueDepth);renderEjecta(age,'front');
+      const floorHeight=(ball.y+ball.ry-stage.scene.ground)/ball.ry;
+      renderVolume(age,opaqueDepth,floorHeight);renderEjecta(age,'front');
     };
   }
 

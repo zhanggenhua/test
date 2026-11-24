@@ -9,6 +9,7 @@
     uniform mat4 vp;
     uniform float age;
     uniform int layer;
+    uniform float groundY;
     out vec3 world;
     out vec3 surface;
 
@@ -41,13 +42,15 @@
       float delay=.025+.043*(.5+.5*sin(a*3.+.8));
       float growth=1.-exp(-max(0.,age-delay)*8.8);
       float spread=ease(.24,.72);
-      float curve=.72+.30*sin(h*2.57)+.11*h;
-      float edge=.058*sin(3.*a-5.*h+age*1.7)+.044*cos(5.*a+7.*h-age*2.1);
-      float lobe=.068*pow(.5+.5*sin(2.*a-age*.65),3.);
-      float radius=(.82+1.14*growth+.16*spread+.19*land)*(curve+edge+lobe);
-      float rear=1.-smoothstep(-.56,.70,sin(a));
-      float crest=1.12+.76*rear+.28*sin(2.*a-h*3.+age*.92);
-      float height=.028+h*mix(.50,crest,growth)*(1.-.69*land);
+      // Map the original mesh to the upper half of a dome whose
+      // equator follows the stage floor, even during the incoming squash.
+      float rim=sqrt(max(0.,1.-h*h));
+      float edge=.043*sin(3.*a-5.*h+age*1.7)+.038*cos(5.*a+7.*h-age*2.1);
+      float lobe=.052*pow(.5+.5*sin(2.*a-age*.65),3.);
+      float reach=.82+1.20*growth+.17*spread+.18*land;
+      float radius=rim*reach*(1.+edge+lobe);
+      float lift=mix(.37,1.03,growth)*reach*(1.-.69*land);
+      float height=groundY+.008+h*lift*(1.+rim*edge*.83);
       return vec3(cos(a)*radius,height,sin(a)*radius);
       #else
       float deform=.010*sin(3.*a+5.*n.y+age*4.)+.007*cos(7.*a-n.y*8.-age*5.);
@@ -103,7 +106,11 @@
       float a=atan(n.z,n.x),lat=asin(clamp(n.y,-1.,1.));
       float turn=age*3.1,open=smoothstep(.055,.44,age);
       float breakup=smoothstep(.75,1.27,age);
+      #ifdef STUDIO
+      if(world.y<-.008&&layer!=0&&layer!=3)discard;
+      #else
       if(world.y<-.008)discard;
+      #endif
       if(layer==4){
         if(n.y<0.)discard;
         float radius=length(n.xz),spin=a-age*3.9;
@@ -145,13 +152,13 @@
         float splitGate=smoothstep(-.81,-.12,split+.32*(grain-.5));
         float web=1.-smoothstep(.24,.77,collapse*1.22+.24*torn);
         web*=mix(.46,1.,splitGate);
-        float shoulder=.84+.076*sin(a+age*1.1)+ripple;
+        float shoulder=.81+.096*sin(a+age*1.1)+ripple;
         float crest=exp(-pow((h-shoulder)/(.032+.02*grain),2.));
         float darkBody=smoothstep(.03,.26,h)*(1.-smoothstep(shoulder-.05,shoulder+.04,h));
         float broadEdge=exp(-pow((h-shoulder+.061)/(.073+.029*grain),2.));
         float turbulent=.28+.72*smoothstep(.22,.7,grain*.69+.31*broad);
-        float bandA=.20+.14*sin(a+.63-age*.55)+ripple;
-        float bandB=.50+.23*sin(a+1.2-age*.71)+ripple*.7;
+        float bandA=.14+.102*sin(a+.63-age*.55)+ripple;
+        float bandB=.41+.19*sin(a+1.2-age*.71)+ripple*.7;
         float tracking=.26+.74*smoothstep(-.74,.75,cos(a*1.0+age*.85+.35));
         float nearA=exp(-pow((h-bandA)/(.087+.039*grain),2.));
         float nearB=exp(-pow((h-bandB)/(.069+.029*grain),2.))*tracking;
@@ -161,16 +168,20 @@
         vec3 ash=mix(vec3(.048,.071,.111),vec3(.19,.235,.32),filament*.71+broad*.26);
         vec3 edge=mix(vec3(.15,.34,.71),vec3(.39,.66,1.18),grain);
         float cut=smoothstep(-.86,-.16,side+.20*(grain-.5));
+        // The high rear arc stays behind the glow. The near skirt crosses
+        // the bottom of the core and leaves the cap open toward the camera.
+        float orientation=dot(az(a),normalize(eye.xz+vec2(.0001,0.)));
+        float rear=1.-smoothstep(-.20,.13,orientation);
         if(layer==0){
-          float alpha=sweep*web*max(.94*darkBody,.90*crest);
+          float alpha=sweep*web*max(.89*darkBody,.90*crest)*rear;
           if(alpha<.012)discard;
-          vec3 rear=soot+ash*filament*.61+edge*(crest*.88+broadEdge*.33)*(.71+1.68*peak)*turbulent;
-          put(rear,alpha);
+          vec3 tint=soot+ash*filament*.61+edge*(crest*.88+broadEdge*.33)*(.71+1.68*peak)*turbulent;
+          put(tint,alpha);
         }else{
           float nearMask=max(nearA*.98,nearB*cut*.96);
           float upperLip=crest*(.10+.38*cut)*smoothstep(.47,.70,broad+.19*side)*(1.-collapse);
           float shear=smoothstep(-.65,.48,cos(2.*a+h*3.+age*1.4)+.44*broad);
-          float alpha=sweep*web*max(nearMask*(.30+.70*shear),upperLip);
+          float alpha=sweep*web*max(nearMask*(.30+.70*shear),upperLip)*(1.-rear);
           if(alpha<.017)discard;
           vec3 near=ash*(.85+.60*grain)+edge*(.65*outline+.88*upperLip)*(1.+peak*.7);
           put(near,alpha*.91);
@@ -339,11 +350,11 @@
     // the same field on both sides of the rotating energy.
     vec4 medium(vec3 p,float life,float collapse){
       #ifdef STUDIO
-      vec3 q=p-vec3(.024,1.11-.88*collapse,-.034);
+      vec3 q=p-vec3(.024,.77-.54*collapse,-.034);
       q.yz=mat2(.987,-.16,.16,.987)*q.yz;
       float drive=1.-exp(-age*11.4);
       q.xz/=mix(.52,1.40,drive)-.39*collapse;
-      q.y/=mix(.66,1.27,drive)-.97*collapse;
+      q.y/=mix(.56,.90,drive)-.60*collapse;
       #else
       vec3 q=p-vec3(.07,1.13-.79*collapse,-.04);
       q.yz=mat2(.95,-.31,.31,.95)*q.yz;
@@ -369,7 +380,7 @@
 
       float contraction=clamp(q.y+.30,0.,1.4);
       #ifdef STUDIO
-      float radius=.78-.29*pow(abs(q.y+.06),1.47)+.10*(mass-.5);
+      float radius=.85-.35*pow(clamp(q.y+.28,0.,1.45),1.62)+.10*(mass-.5);
       float layer=exp(-pow((r-radius)/(.138-.029*contraction),2.));
       #else
       float radius=.76-.19*contraction+.12*(mass-.5);
@@ -480,10 +491,11 @@
         float a0=tau*seed(id*2.7+8.);
         float spin=age*(3.35+.53*seed(id+4.))+age*age*.62;
         float turn=a0+spin+t*mix(2.4,7.5,seed(id+73.));
-        float loft=.37+group*1.38;
-        float reach=(.92+.32*sin(3.14159*(.06+group*.91)))*mix(.67,1.14,grow);
+        float loft=.28+group*1.11;
+        float rounded=sqrt(1.-pow(.09+.86*group,2.));
+        float reach=(.53+.74*rounded)*mix(.67,1.14,grow);
         float rag=.037*sin(7.*turn+id*.7)+.020*cos(13.*turn-id);
-        float y=.18+loft*(.62+.38*rise)*(1.-.61*fall)+.174*(t-.5)+.077*sin(turn*2.2+id*.67);
+        float y=.12+loft*(.62+.38*rise)*(1.-.61*fall)+.174*(t-.5)+.077*sin(turn*2.2+id*.67);
         if(outer>.5){
           float n=id-29.;
           float fan=1.-exp(-max(0.,elapsed)*(6.2+seed(n+77.)*4.));
@@ -561,14 +573,15 @@
   window.SpiritVolumeBuild=(gl,geom,studio=false)=>{
     const variant=source=>studio?source.replace('#version 300 es\n','#version 300 es\n#define STUDIO\n'):source;
     const material=geom.program(variant(vertex),variant(fragment));
-    const layer=gl.getUniformLocation(material,'layer');
+    const layer=gl.getUniformLocation(material,'layer'),groundY=gl.getUniformLocation(material,'groundY');
     const volume=geom.program(variant(volumeVertex),variant(volumeFragment));
     const renderStrips=studio?burstStrips(gl,geom):null;
     const clipOpaque=gl.getUniformLocation(volume,'clipOpaque');
     const opaqueDepth=gl.getUniformLocation(volume,'opaqueDepth');
-    return function render(age,depth){
+    return function render(age,depth,floorHeight=0){
       if(age<=.001||age>=(studio?2.19:1.63))return;
       geom.uniforms(material,age);
+      if(studio)gl.uniform1f(groundY,floorHeight);
       gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
       gl.enable(gl.BLEND);gl.blendEquation(gl.FUNC_ADD);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       gl.enable(gl.CULL_FACE);gl.frontFace(gl.CCW);
@@ -577,8 +590,9 @@
         gl.uniform1i(layer,4);geom.draw(geom.sphere);
       }
       gl.depthMask(false);gl.cullFace(gl.FRONT);
+      if(studio)gl.disable(gl.CULL_FACE);
       if(age<(studio?1.57:1.46)){gl.uniform1i(layer,0);geom.draw(geom.sphere);}
-      gl.cullFace(gl.BACK);
+      gl.cullFace(gl.BACK);gl.enable(gl.CULL_FACE);
       if(age<.38){gl.uniform1i(layer,1);geom.draw(geom.sphere);}
       if(age>.058&&age<(studio?2.19:1.34)){
         // The proxy only bounds screen coverage. Truncate the ray at the
@@ -595,6 +609,7 @@
       renderStrips?.(age);
       geom.uniforms(material,age);
       gl.depthMask(!studio);
+      if(studio)gl.disable(gl.CULL_FACE);
       if(age<(studio?1.57:1.46)){gl.uniform1i(layer,3);geom.draw(geom.sphere);}
       gl.depthMask(true);
       gl.bindVertexArray(null);
