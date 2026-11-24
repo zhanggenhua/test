@@ -451,7 +451,29 @@
     };
   }
 
-  function worldEffects(gl,makeProgram,study=false){
+  const impactLighting=`
+    vec3 spiritGroundImpulse(vec2 offset,float age){
+      float r=length(offset);
+      float hit=smoothstep(0.,.18,age)*(1.-smoothstep(.72,1.86,age));
+      float bounce=hit*(.17+.46*exp(-pow((r-109.-27.*age)/69.,2.)))*exp(-r*r/38000.);
+      float push=1.-exp(-max(0.,age-.014)*6.8);
+      float phase=smoothstep(.014,.085,age)*(1.-smoothstep(.27,.61,age));
+      float angle=atan(offset.y,offset.x);
+      float split=.88+.21*sin(3.*angle+age*6.)+.16*sin(5.*angle-age*7.);
+      float radius=(242.+21.*cos(3.*angle-age*3.2)+11.*sin(angle*7.))*push;
+      float ridge=exp(-pow((r-radius)/(14.+33.*push),2.));
+      float wash=.64*exp(-r*r/35800.)+ridge*split*.87;
+      float radial=pow(.5+.5*sin(angle*7.2+sin(angle*4.)*.85),4.);
+      float splitRay=radial*exp(-pow((r-radius+41.)/(45.+15.*push),2.));
+      vec3 scatter=vec3(.44,.56,.69)*phase*(.24*wash+.30*splitRay);
+      return (bounce+phase*.77*wash)*vec3(.082,.26,.52)+scatter;
+    }
+    vec3 spiritImpactFlash(vec3 offset,float age,float facing){
+      float flash=smoothstep(.08,.16,age)*(1.-smoothstep(.24,.39,age));
+      return flash*vec3(.24,.40,.59)*(.31+.69*facing)*exp(-dot(offset,offset)/41000.);
+    }`;
+
+  function worldEffects(gl,makeProgram,groundImpact=false){
     const sphere=sphereGeometry(gl),vp=new Float32Array(16);
     const vertexUniforms=new Map(),eye=[0,0,0];
     const geometry={
@@ -465,13 +487,13 @@
       },
     };
     const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram);
-    const renderVolume=SpiritVolumeBuild(gl,geometry,study),renderEjecta=SpiritEjectaBuild(gl,geometry,study);
+    const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact),renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact);
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
       const {clock,ball,matrix}=stage,age=clock-contact;
-      const inlet=study&&age>0?{...ball,glow:ball.glow*(1-ramp(.008,.075,age))}:ball;
+      const inlet=groundImpact&&age>0?{...ball,glow:ball.glow*(1-ramp(.008,.075,age))}:ball;
       renderOrb(clock,inlet,stage);
       renderFlow(clock,stage);
-      if(age<0||age>(study?2.23:1.67))return;
+      if(age<0||age>(groundImpact?2.23:1.67))return;
       // Impact meshes use sphere units around local (0,1,0). Transform them into the arena.
       for(let row=0;row<4;row++){
         vp[row]=matrix[row]*ball.rx;
@@ -499,21 +521,34 @@
             targetPose:age>=0&&age<1.30?'hurt':'idle',
             ambience:1-.28*ramp(.18,.83,clock)*(1-ramp(contact+.79,contact+1.60,clock))};
   }
-  let ready,renderer;
-  window.DragonSpirit={
-    duration,phases,sample:state,
+  const impactPhases=[...phases,{t:2.701,name:'撞地爆闪'},{t:4.1,name:'贴地旋涡'}].sort((a,b)=>a.t-b.t);
+  function createArena(groundImpact){
+    let ready,renderer;
+    const sample=groundImpact?(clock,scene)=>{
+      const frame=arenaFrame(clock,scene),age=clock-contact;
+      const flash=ramp(.08,.16,age)*(1-ramp(.24,.39,age));
+      return {...frame,impactAge:age,targetLight:1+.21*flash};
+    }:arenaFrame;
+    return {
+      duration,phases:groundImpact?impactPhases:phases,
+      get realtime(){return renderer?.active??false;},
+      draw(ctx,t,scene){
+        if(!renderer){scene.stage(ctx);return;}
+        const layer=renderer.draw(t,{x:scene.casterX,y:scene.ground},{scene});
+        if(layer)ctx.drawImage(layer,0,0);
+      },
+      get ready(){
+        return ready??=Promise.resolve().then(()=>{
+          const canvas=document.createElement('canvas');canvas.width=960;canvas.height=400;
+          const stage=(gl,program)=>createDragonArenaStage(gl,program,sample,groundImpact?impactLighting:null);
+          renderer=DragonBeamVolume.createStudy(canvas,stage,(gl,program)=>worldEffects(gl,program,groundImpact),true);
+        });
+      },
+    };
+  }
+  window.DragonSpirit=Object.assign(createArena(false),{
+    sample:state,impactLighting,impactPhases,
     buildStudyEffects:(gl,program)=>worldEffects(gl,program,true),
-    get realtime(){return renderer?.active??false;},
-    draw(ctx,t,scene){
-      if(!renderer){scene.stage(ctx);return;}
-      const layer=renderer.draw(t,{x:scene.casterX,y:scene.ground},{scene});
-      if(layer)ctx.drawImage(layer,0,0);
-    },
-    get ready(){
-      return ready??=Promise.resolve().then(()=>{
-        const canvas=document.createElement('canvas');canvas.width=960;canvas.height=400;
-        renderer=DragonBeamVolume.createStudy(canvas,(gl,program)=>createDragonArenaStage(gl,program,arenaFrame),(gl,program)=>worldEffects(gl,program),true);
-      });
-    },
-  };
+  });
+  window.DragonSpiritArena=createArena(true);
 })();

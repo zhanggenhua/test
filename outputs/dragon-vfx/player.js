@@ -7,6 +7,7 @@
   const spirit = key === 'spirit';
   const study = !spirit&&params.has('study');
   const spiritStudy = spirit&&params.has('study');
+  const spiritArena = spirit&&!spiritStudy&&params.has('arena');
   const unityDemo = study&&params.has('unity-demo');
   const arena = !spirit&&!study&&params.has('arena');
   const unitySource = DragonData.unityDemo;
@@ -22,8 +23,8 @@
   stillImage.addEventListener('load',sizeStill);
   const meshView=el('meshView'),meshContext=meshView.getContext('2d');
   const meshCamera={yaw:0,pitch:0,wire:false};
-  const engine = spiritStudy ? window.DragonSpiritStudy : study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spirit ? window.DragonSpirit : window.DragonKame;
-  const refs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : arena ? DragonData.sources.kameArena.slice() : DragonData.sources[key];
+  const engine = spiritStudy ? window.DragonSpiritStudy : study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spiritArena ? window.DragonSpiritArena : spirit ? window.DragonSpirit : window.DragonKame;
+  const refs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : arena ? DragonData.sources.kameArena.slice() : spiritArena ? DragonData.sources.spiritArena : DragonData.sources[key];
   const actors = {};
   const title = spirit ? '元气弹' : '龟派气功';
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
@@ -178,7 +179,7 @@
     }else{
       const clip=engine.sourceMaterials
         ?'dragon-vfx/local/kame/'+(arena?'kame-source-arena':'kame-source-materials')+'.mp4'
-        :'dragon-vfx/'+(spiritStudy?'spirit-study':study?'kame-study':key)+'.mp4';
+        :'dragon-vfx/'+(spiritStudy?'spirit-study':spiritArena?'spirit-arena':study?'kame-study':key)+'.mp4';
       links.append(external('单独播放左侧完整演出',clip));
       links.append(external('查看本版特效源码','dragon-vfx/'+(spiritStudy?'spirit-study':study?'kame-study':arena?'kame-arena':key)+'.js'));
       if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
@@ -198,12 +199,14 @@
     el('back').textContent=aligned()?'新版上一帧':'上一帧';
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
-    el('newTitle').textContent=spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
+    el('newTitle').textContent=spiritArena?'元气弹 · 2D 横版擂台':spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入球体，双掌推出。命中后内核高速旋开，外壳与碎片向外散开。':'掌心聚气、出束、持续喷射、断流消散。';
+    if(spiritArena)el('newNote').textContent='固定横版机位。爆闪照亮擂台和受击角色，冲击半球与角色按前后深度遮挡。';
     if(spiritStudy)el('newNote').textContent='触地爆闪推开厚浪和溅射碎片，贴地冲击掠过网格，半球向地面塌为卷动的余波。';
     if(spirit&&!spiritStudy) {
-      const shape=external('对照球体配色','?fx=spirit&ref=shape&at=2');
-      const burst=external('对照命中原图 · 4.100 秒','?fx=spirit&ref=burst&at=3.19');
+      const base=spiritArena?'?fx=spirit&arena=1':'?fx=spirit';
+      const shape=external('对照球体配色',base+'&ref=shape&at=2');
+      const burst=external('对照命中原图 · 4.100 秒',base+'&ref=burst&at=3.19');
       if(params.has('embedded')){
         for(const link of [burst,shape]){
           link.removeAttribute('target');
@@ -344,7 +347,10 @@
       if(!recording)throw Error('本机 Unity 实录未载入');
     }else{
       await Promise.all([assetReady,engine.ready]);
-      if(spirit&&!spiritStudy&&!engine.realtime)await loadRecording('dragon-vfx/spirit.mp4','元气弹完整擂台 · 三维渲染录像');
+      if(spirit&&!spiritStudy&&!engine.realtime){
+        const file=spiritArena?'spirit-arena':'spirit';
+        await loadRecording('dragon-vfx/'+file+'.mp4','元气弹完整擂台 · 三维渲染录像');
+      }
     }
     if(arena&&engine.sourceMaterials){
       const comparison=DragonData.sources.kameArena3d;

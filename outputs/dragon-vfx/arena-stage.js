@@ -20,7 +20,7 @@
     uniform float depth, distance, ground;
     uniform int layer;
     uniform bool mirrored;
-    out vec2 uv;
+    out vec2 uv,floorPoint;
     void main(){
       const vec2 quad[6]=vec2[6](vec2(0.,0.),vec2(1.,0.),vec2(0.,1.),
                                   vec2(0.,1.),vec2(1.,0.),vec2(1.,1.));
@@ -28,33 +28,52 @@
       uv=vec2(mirrored?1.-corner.x:corner.x,corner.y);
       if(layer==0){
         gl_Position=vec4(2.*corner.x-1.,1.-2.*corner.y,0.,1.);
-      }else if(layer==1){
-        vec2 point=mix(vec2(-4000.,-distance+60.),vec2(4000.,3000.),corner);
-        gl_Position=projection*vec4(point.x,ground,point.y,1.);
+      }else if(layer==1||layer==3){
+        floorPoint=mix(vec2(-4000.,-distance+60.),vec2(4000.,3000.),corner);
+        gl_Position=projection*vec4(floorPoint.x,ground,floorPoint.y,1.);
       }else{
         vec2 pixel=rect.xy+corner*rect.zw;
         vec2 position=center+(pixel-center)*(1.+depth/distance);
         gl_Position=projection*vec4(position,depth,1.);
       }
     }`;
-  const fragment=`#version 300 es
+  const fragment=impactLighting=>`#version 300 es
     precision highp float;
     precision highp int;
     uniform sampler2D art;
     uniform int layer;
     uniform float ambience;
-    in vec2 uv;
+    in vec2 uv,floorPoint;
     out vec4 color;
+    ${impactLighting??""}
+    ${impactLighting?"#define IMPACT_LIGHT":""}
+    #ifdef IMPACT_LIGHT
+    uniform float impactAge,impactX;
+    #endif
     void main(){
       if(layer==1){color=vec4(0.);return;}
+      #ifdef IMPACT_LIGHT
+      if(layer==3){
+        // Restrict the projected light to the painted fighting platform.
+        // The depth plane and the 2D art use the same front edge.
+        vec2 pixel=vec2(gl_FragCoord.x,400.-gl_FragCoord.y);
+        float t=clamp((pixel.y-198.)/150.,0.,1.);
+        float edge=mix(248.,13.,t);
+        float border=smoothstep(edge,edge+4.,pixel.x)*smoothstep(edge,edge+4.,960.-pixel.x)
+          *smoothstep(198.,204.,pixel.y)*(1.-smoothstep(345.,348.,pixel.y));
+        vec2 offset=vec2(impactX-floorPoint.x,-floorPoint.y);
+        vec3 light=spiritGroundImpulse(offset,impactAge)+spiritImpactFlash(vec3(offset.x,-72.,offset.y),impactAge,.72);
+        color=vec4(light*border*.70,0.);return;
+      }
+      #endif
       vec4 image=texture(art,uv);
       if(image.a<.055)discard;
       color=vec4(image.rgb*image.a*ambience,image.a);
     }`;
 
-  function arena(gl,makeProgram,sampleState){
-    const program=makeProgram(gl,vertex,fragment),quad=gl.createVertexArray();
-    const names=['projection','rect','center','depth','distance','ground','layer','mirrored','art','ambience'];
+  function arena(gl,makeProgram,sampleState,impactLighting){
+    const program=makeProgram(gl,vertex,fragment(impactLighting)),quad=gl.createVertexArray();
+    const names=['projection','rect','center','depth','distance','ground','layer','mirrored','art','ambience','impactAge','impactX'];
     const u=Object.fromEntries(names.map(name=>[name,gl.getUniformLocation(program,name)]));
     const textures=new WeakMap();
     const backdrop=document.createElement('canvas');
@@ -109,10 +128,19 @@
       gl.drawArrays(gl.TRIANGLES,0,6);
       gl.colorMask(true,true,true,true);
 
-      gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+      gl.enable(gl.BLEND);
+      if(impactLighting&&frame.impactAge>0&&frame.impactAge<1.86){
+        gl.depthMask(false);
+        gl.blendFuncSeparate(gl.ONE,gl.ONE,gl.ZERO,gl.ONE);
+        gl.uniform1i(u.layer,3);
+        gl.uniform1f(u.impactAge,frame.impactAge);gl.uniform1f(u.impactX,frame.ball.x);
+        gl.drawArrays(gl.TRIANGLES,0,6);
+        gl.depthMask(true);
+      }
+      gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       gl.uniform1i(u.layer,2);
-      gl.uniform1f(u.ambience,frame.characterLight??1);
       function sprite(role,x,pose,depth){
+        gl.uniform1f(u.ambience,(role==='target'?frame.targetLight:undefined)??frame.characterLight??1);
         bind(scene.fighterFrame(role,pose));
         gl.uniform4f(u.rect,x-75.6,scene.ground-150.78,151.2,151.2);
         gl.uniform1f(u.depth,depth);

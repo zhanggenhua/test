@@ -160,9 +160,17 @@ unity_web = dict(legacy("kame-study.mp4","程序化 WebGL · 完整场景",
                        "沿用相同演出阶段，比较网页重做与 Unity 原 Prefab 的光型、分层和收束。",128/30,30),
                  film="dragon-vfx/kame-study.mp4",
                  anchors=[[0,0],[58/30,72/30],[69/30,83/30],[110/30,124/30],[unity_duration,128/30]])
+spirit_study_take = dict(legacy("spirit-study.mp4","独立 3D · 已确认的撞地冲击",
+    "按同一时间同步。右侧是确认的独立 3D 场景，左侧采用游戏横版机位和角色。",4.8,30),
+    film="dragon-vfx/spirit-study.mp4",
+    cards=[dict(time=t,phase=t,label=label,file="dragon-vfx/spirit-study-"+name+".png")
+           for t,label,name in [(2.7,"撞地爆闪","flash"),(3.2,"半球外浪与碎石","vortex"),(4.1,"贴地余波","collapse")]])
+spirit_legacy_arena = dict(legacy("spirit.mp4","V17 · 同一横版擂台",
+    "两版共用横版舞台、角色站位和时间。可逐帧比较撞地爆闪与贴地余波。",4.8,30),
+    film="dragon-vfx/spirit.mp4")
 payload = {"actors":actors,
            "unityDemo":{"film":unity_film,"duration":unity_duration},
-           "sources":{"spirit":spirit,"kame":kame,"kameStudy":[study_ref,study_previous,study_early],
+           "sources":{"spirit":spirit,"spiritArena":[spirit_study_take,spirit_legacy_arena,*spirit],"kame":kame,"kameStudy":[study_ref,study_previous,study_early],
                       "kameUnity":[unity_original,unity_web],
                       "kameArena":[arena_legacy,dict(kame[0], note="原视频 4.200–8.467 秒。按出束相位同步，参考光型和退场。")],
                       "kameArena3d":arena_3d}}
