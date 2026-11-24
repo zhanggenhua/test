@@ -167,11 +167,13 @@
       float striation=exp(-abscomb(h*8.+a/TAU+.17*broad-age*.65)*18.);
       float base=exp(-pow((h-.134-.034*sin(3.*a+age*5.))/.073,2.));
       float baseGlint=base*(.23+.77*smoothstep(.28,.78,fine+.19*sin(a*12.-age*9.)));
+      float flare=smoothstep(.16,.28,age)*(1.-smoothstep(.325,.405,age));
+      vec3 rimGlow=vec3(.64,1.04,1.22)*flare*(2.26*crest+.52*edge);
       if(layer==0){
         float upper=(1.-nearSide)*(.78+.22*smoothstep(.20,.67,h));
         float domain=smoothstep(.02,.16,h)*(1.-smoothstep(.966,1.,h));
         vec3 rear=dark*(.78+.22*fine)+vec3(.07,.19,.22)*striation*.48
-          +cyan*(2.32*crest+.56*edge+.68*baseGlint)+vec3(.54,.87,1.02)*crest*crest;
+          +cyan*(2.32*crest+.56*edge+.68*baseGlint)+vec3(.54,.87,1.02)*crest*crest+rimGlow;
         put(rear,grow*domain*gap*max(.97*upper,.56*crest*(1.-nearSide)));
         return;
       }
@@ -186,6 +188,7 @@
       vec3 lower=dark*1.02+vec3(.071,.124,.15)*striation*foot+cyan*(1.48*baseGlint+1.71*flank);
       vec3 ribbon=mix(vec3(.22,.27,.28),vec3(.58,.63,.64),smoothstep(.19,.71,broad));
       lower=mix(lower,ribbon+cyan*.81*foldedEdge,frontBand*.94);
+      lower+=rimGlow*.77+cyan*.64*flare*baseGlint;
       put(lower,alpha*nearSide*gap*grow);
     }
     #endif
@@ -753,6 +756,12 @@
       #endif
       float ignition=6.9*shockTiming*shockShape*baseFade*(.62+.38*mass);
       vec3 flash=vec3(2.37,2.83,3.14)*(.76+.24*fiber);
+      #ifdef ANIME_BURST
+      float burst=smoothstep(.16,.285,age)*(1.-smoothstep(.33,.402,age));
+      float nucleus=length((above-vec3(.04,.69,-.06))/vec3(.91,.74,.91));
+      ignition+=burst*(1.-smoothstep(.49,1.01,nucleus+.12*(mass-.5)))*baseFade*5.12;
+      flash+=vec3(1.48,1.67,1.73)*burst;
+      #endif
       float upperGas=density*(1.-folding),sigma=upperGas+groundGas.a+ignition;
       vec3 energy=emission*upperGas+groundGas.rgb*groundGas.a+flash*ignition;
       return vec4(energy/max(.00001,sigma),sigma);
@@ -956,6 +965,52 @@
     };
   }
 
+  function impactGlow(gl,geom){
+    const program=geom.program(`#version 300 es
+      uniform mat4 vp;
+      uniform vec3 eye;
+      uniform float groundY;
+      out vec2 field;
+      void main(){
+        vec2 corner=vec2((gl_VertexID<<1)&2,gl_VertexID&2);
+        field=(corner*2.-1.)*3.8;
+        vec3 center=vec3(.05,groundY+.87,0.);
+        vec3 forward=normalize(eye-center);
+        vec3 right=normalize(cross(vec3(0.,1.,0.),forward));
+        vec3 up=cross(forward,right);
+        gl_Position=vp*vec4(center+field.x*right+field.y*up,1.);
+      }`,`#version 300 es
+      precision highp float;
+      uniform float age;
+      in vec2 field;
+      out vec4 color;
+      void main(){
+        float t=smoothstep(.135,.292,age),fade=1.-smoothstep(.326,.404,age);
+        vec2 p=field/vec2(1.22,.96);
+        float r=length(p);
+        float near=exp(-r*r*1.22);
+        float scatter=exp(-r*r/(1.03+1.24*t));
+        float low=exp(-pow((field.y+.62)/.34,2.)-pow(field.x/2.12,2.));
+        float lift=exp(-pow((field.x+.11)/.27,2.)-pow((field.y-.35)/1.78,2.));
+        vec3 haze=vec3(.11,.42,.68)*(.30*scatter+.20*low);
+        vec3 light=vec3(.85,1.21,1.43)*(.24*near+.088*lift);
+        color=vec4((haze+light)*t*fade,0.);
+      }`);
+    const floor=gl.getUniformLocation(program,'groundY'),vao=gl.createVertexArray();
+    return (age,height)=>{
+      if(age<=.135||age>=.404)return;
+      geom.uniforms(program,age);
+      gl.uniform1f(floor,height);
+      gl.bindVertexArray(vao);
+      gl.disable(gl.DEPTH_TEST);
+      gl.disable(gl.CULL_FACE);
+      gl.depthMask(false);
+      gl.blendFuncSeparate(gl.ONE,gl.ONE,gl.ZERO,gl.ONE);
+      gl.drawArrays(gl.TRIANGLES,0,3);
+      gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+      gl.enable(gl.DEPTH_TEST);
+    };
+  }
   function dustCurl(gl,geom){
     const program=geom.program(`#version 300 es
       uniform mat4 vp;
@@ -1035,6 +1090,7 @@
     const volume=geom.program(variant(volumeVertex),variant(volumeFragment));
     const renderStrips=studio&&!animeBurst?burstStrips(gl,geom,arenaWake):null;
     const renderDustCurl=animeBurst?dustCurl(gl,geom):null;
+    const renderImpactGlow=animeBurst?impactGlow(gl,geom):null;
     const clipOpaque=gl.getUniformLocation(volume,'clipOpaque');
     const volumeFloor=gl.getUniformLocation(volume,'groundY');
     const opaqueDepth=gl.getUniformLocation(volume,'opaqueDepth');
@@ -1076,6 +1132,7 @@
       gl.depthMask(!studio);
       if(studio)gl.disable(gl.CULL_FACE);
       if(age<(studio?1.57:1.46)){gl.uniform1i(layer,3);geom.draw(geom.sphere);}
+      renderImpactGlow?.(age,floorHeight);
       renderDustCurl?.(age,floorHeight);
       gl.depthMask(true);
       gl.bindVertexArray(null);

@@ -32,7 +32,8 @@ const takes={
       const marks=name.startsWith('spirit-anime-')?await page.evaluate(study=>{
         const sample=DragonSpiritAnimeArena.timeline(DragonSpiritAnimeArena.layout);
         const frame=t=>Math.round(t*30);
-        const peak={[frame(sample.impactAt+.41)]:'shell',[frame(sample.impactAt+1.12)]:'vortex'};
+        const peak={[frame(sample.impactAt+.32)]:'glow',[frame(sample.impactAt+.41)]:'shell',
+          [frame(sample.impactAt+1.12)]:'vortex'};
         if(study)return {74:'flight',101:'ground',...peak};
         return {60:'release',72:'flight',[frame(sample.groundAt-.05)]:'descent',
           [frame(sample.groundAt+.32)]:'pressure',[frame(sample.impactAt)]:'impact',

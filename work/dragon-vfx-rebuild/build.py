@@ -143,11 +143,15 @@ spirit_secondary=None
 if burst_clip.is_file():
     source_shot=json.loads(burst_clip.read_text(encoding="utf-8"))
     full=resource("spirit",source_shot["clip"])
+    high_bloom=anime_card("reference/spirit/cards/burst/impact-glow-3.600.png",Path(source_shot["clip"]).name,
+        source_shot["sourceStart"],3.6,"气宗师 · 高爆白芯与外扩辉光")
     spirit_secondary=dict(film("spirit",source_shot,"第二参考 ·《失落的方舟》气宗师",
-        "3.700–4.100 秒对照旋转白核、暗色壳层、前景冲击带和飞石。5.000–6.000 秒对照贴地回卷，元气弹用青白色。",
+        "3.600 秒对照高爆辉光，4.100 秒对照旋转白核、暗色壳层和飞石。5.000–6.000 秒对照贴地回卷，元气弹用青白色。",
         0,subset=[1,2,4,5,6,8,9],output=full),
         anchors=[[0,3.20],[1.84,3.20],[2.0,3.267],[2.56,3.45],[3.00,3.50],[3.88,3.56],
-                 [4.05,3.700],[4.29,4.100],[4.74,5.44],[6.7,7.11]])
+                 [4.05,3.581],[4.20,3.600],[4.29,4.100],[4.74,5.44],[6.7,7.11]])
+    spirit_secondary["cards"].append(high_bloom)
+    spirit_secondary["cards"].sort(key=lambda card:card["time"])
 
     def matched_impact(filename,end,note):
         start=3.2

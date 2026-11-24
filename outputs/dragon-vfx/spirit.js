@@ -394,7 +394,7 @@
       stages.push({t:mix(release,run.stopAt,.51),name:'空中追踪'});
     }
     if(Number.isFinite(impact))stages.push({t:impact,name:'接触引爆'},{t:impact+.17,name:'白闪冲出画面'},
-      {t:impact+.41,name:'亮核与外壳'},{t:impact+.86,name:'贴地漩涡'},{t:impact+1.89,name:'尘浪散开'});
+      {t:impact+.32,name:'高爆辉光'},{t:impact+.41,name:'亮核与外壳'},{t:impact+.86,name:'贴地漩涡'},{t:impact+1.89,name:'尘浪散开'});
     stages.push({t:run.duration,name:'清场'});
     return {impactAt:impact,groundAt:run.groundAt,stopAt:run.stopAt,duration:run.duration,phases:stages};
   }
