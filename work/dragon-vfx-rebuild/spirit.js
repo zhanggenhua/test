@@ -279,7 +279,13 @@
   function integrateBrake(speed,age,tau){
     return -speed*tau*Math.expm1(-age/tau);
   }
-  function state(t,x,tx,ground) {
+  function flightProgress(u,startSlope,endSlope){
+    return u*(startSlope+u*(3-2*startSlope-endSlope+u*(startSlope+endSlope-2)));
+  }
+  function flightSlope(u,startSlope,endSlope){
+    return startSlope+u*(2*(3-2*startSlope-endSlope)+3*u*(startSlope+endSlope-2));
+  }
+  function state(t,x,tx,ground,animeBurst=false) {
     const gap=tx-x, radius=Math.min(87,Math.max(38,gap*.30));
     const heldX=x+2, heldY=ground-123-radius;
     const handX=x+61,handY=ground-71;
@@ -291,9 +297,10 @@
     const flightSpan=contact-release,pushSpan=release-swing;
     const vx=(endX-castX)/flightSpan,vy=(endY-castY)/flightSpan;
     const gravity=.34*vy/flightSpan;
-    const launchVY=vy-.5*gravity*flightSpan;
-    const hitVY=launchVY+gravity*flightSpan;
-    let cx,cy,r=radius,rx,ry,glow,flow=0;
+    const launchVX=animeBurst?.72*vx:vx, hitVX=animeBurst?1.24*vx:vx;
+    const launchVY=animeBurst?.47*vy:vy-.5*gravity*flightSpan;
+    const hitVY=animeBurst?1.68*vy:launchVY+gravity*flightSpan;
+    let cx,cy,r=radius,rx,ry,glow,flow=0,dirX=vx,dirY=vy;
     if(t<swing){
       const mass=packets.reduce((sum,p)=>sum+p.mass*ramp(p.at,p.at+.084,t),0)/totalMass;
       r=5+(radius-5)*Math.cbrt(mass);
@@ -302,7 +309,7 @@
       glow=ramp(.15,.37,t);
     }else if(t<release){
       const q=(t-swing)/pushSpan;
-      cx=push(heldX,castX,vx,pushSpan,q);
+      cx=push(heldX,castX,launchVX,pushSpan,q);
       cy=push(heldY,castY,launchVY,pushSpan,q);
       glow=1;
       flow=.36*ramp(.1,1,q);
@@ -310,21 +317,31 @@
       const dt=t-release;
       cx=castX+vx*dt;
       cy=castY+dt*(launchVY+.5*gravity*dt);
+      if(animeBurst){
+        const u=dt/flightSpan;
+        cx=castX+(endX-castX)*flightProgress(u,.72,1.24);
+        cy=castY+(endY-castY)*flightProgress(u,.47,1.68);
+        dirX=vx*flightSlope(u,.72,1.24);
+        dirY=vy*flightSlope(u,.47,1.68);
+      }
       glow=1;
       flow=mix(.36,1,ramp(0,.14,dt));
     }else{
       const age=t-contact;
       const drop=(ground-radius-endY)+2.3;
-      cx=endX+integrateBrake(vx,age,.177);
+      cx=endX+integrateBrake(hitVX,age,animeBurst?.143:.177);
       cy=endY+integrateBrake(hitVY,age,drop/hitVY);
+      if(animeBurst){dirX=hitVX;dirY=hitVY;}
       const crush=ramp(.015,.145,age)*(1-.70*ramp(.16,.29,age));
-      rx=radius*(1-.065*crush);ry=radius*(1-.038*crush);
+      rx=radius*(1-(animeBurst?.15:.065)*crush);
+      ry=radius*(1-(animeBurst?.080:.038)*crush);
+      if(animeBurst)cy+=radius*.080*crush;
       glow=1-ramp(.047,.215,age);
       flow=Math.exp(-age/.09);
     }
-    const directionLength=Math.hypot(vx,vy);
+    const directionLength=Math.hypot(dirX,dirY);
     return {x:cx,y:cy,r,rx:rx??r,ry:ry??r,glow,hitX,hitY,flow,
-            direction:[vx/directionLength,vy/directionLength]};
+            direction:[dirX/directionLength,dirY/directionLength]};
   }
 
   function intakePaths(x,tx,ground){
@@ -356,7 +373,7 @@
     }
     return data;
   }
-  function worldFlow(gl,makeProgram){
+  function worldFlow(gl,makeProgram,animeBurst){
     const pg=makeProgram(gl,`#version 300 es
       layout(location=0) in vec3 point;
       layout(location=1) in vec3 profile;
@@ -415,14 +432,14 @@
       }
       const wake=ramp(release-.015,release+.09,time)*(1-ramp(contact-.04,contact+.13,time));
       if(wake>.002){
-        const [ux,uy]=b.direction;
         for(let i=0;i<9;i++){
           const side=2*random(i+17)-1,delay=.036+.104*random(i+62);
           const z=(2*random(i+5)-1)*.49,across=.84*side;
           const back=Math.sqrt(Math.max(.05,1-across*across-z*z));
           const points=Array.from({length:9},(_,j)=>{
-            const u=j/8,old=state(time-delay*(1-u),x,tx,ground);
-            const extra=(1-u)*(9+24*random(i+19));
+            const u=j/8,old=state(time-delay*(1-u),x,tx,ground,animeBurst);
+            const [ux,uy]=animeBurst?old.direction:b.direction;
+            const extra=(1-u)*(9+24*random(i+19)+(animeBurst?old.flow*28:0));
             return [old.x-old.r*(ux*back+uy*across)-ux*extra,
                     old.y-old.r*(uy*back-ux*across)-uy*extra,old.r*z];
           });
@@ -430,6 +447,22 @@
         }
       }
       const age=time-contact;
+      if(animeBurst&&age>0&&age<.31){
+        // A low front skims the floor from the contact point before the volume rises.
+        const expand=t=>1-Math.exp(-Math.max(0,t)*9.2);
+        const visibility=ramp(0,.055,age)*(1-ramp(.12,.31,age));
+        for(let i=0;i<11;i++){
+          const angle=-1.05+i*.34+(.5-random(i+43))*.31;
+          const reach=99+130*random(i+26);
+          const points=Array.from({length:8},(_,j)=>{
+            const u=j/7,r=reach*expand(age-(1-u)*.088);
+            return [b.hitX-22+r*Math.cos(angle),
+                    ground-2-(3+8*random(i+39))*Math.sin(Math.PI*u),
+                    r*Math.sin(angle)];
+          });
+          ribbon(points,1.9+1.7*random(i+43),visibility*(.56+.36*random(i+61)));
+        }
+      }
       if(age>=0&&age<.145){
         const gain=(.53+.47*ramp(0,.025,age))*(1-ramp(.038,.145,age));
         for(let i=0;i<5;i++){
@@ -486,7 +519,7 @@
         gl.uniformMatrix4fv(u[0],false,vp);gl.uniform1f(u[1],age);gl.uniform3fv(u[2],eye);
       },
     };
-    const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram);
+    const renderOrb=worldOrb(gl,makeProgram,sphere),renderFlow=worldFlow(gl,makeProgram,animeBurst);
     const renderVolume=SpiritVolumeBuild(gl,geometry,groundImpact,arenaWake,animeBurst),renderEjecta=SpiritEjectaBuild(gl,geometry,groundImpact);
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
       const {clock,ball,matrix}=stage,age=clock-contact;
@@ -511,12 +544,12 @@
     };
   }
 
-  function arenaFrame(clock,scene){
+  function arenaFrame(clock,scene,animeBurst=false){
     const age=clock-contact;
     const casterPose=clock<.13?'idle':clock<.28?'raise':clock<1.86?'lift':
       clock<1.97?'drive':clock<2.23?'throw':clock<contact+1.24?'recover':'idle';
     const footOffset={idle:0,raise:1.45,lift:1.45,drive:1.78,throw:3.78,recover:.1};
-    return {clock,scene,ball:state(clock,scene.casterX,scene.targetX,scene.ground),
+    return {clock,scene,ball:state(clock,scene.casterX,scene.targetX,scene.ground,animeBurst),
             casterPose,casterOffset:footOffset[casterPose],casterDepth:-95,
             targetPose:age>=0&&age<1.30?'hurt':'idle',
             ambience:1-.28*ramp(.18,.83,clock)*(1-ramp(contact+.79,contact+1.60,clock))};
@@ -524,10 +557,11 @@
   const impactPhases=[...phases,{t:2.701,name:'撞地爆闪'},{t:4.1,name:'贴地旋涡'}].sort((a,b)=>a.t-b.t);
   function createArena(groundImpact,animeBurst=false){
     const arenaPhases=[...impactPhases.slice(0,-1),{t:5.29,name:'暗浪裂散'},{t:5.96,name:'余波散尽'}];
-    if(animeBurst)arenaPhases.push({t:3.55,name:'动画白闪'},{t:4.07,name:'尘浪翻起'});
+    if(animeBurst)arenaPhases.push({t:2.32,name:'球体下压'},{t:2.60,name:'冲击铺开'},
+      {t:3.55,name:'动画白闪'},{t:4.07,name:'尘浪翻起'});
     let ready,renderer;
     const sample=groundImpact?(clock,scene)=>{
-      const frame=arenaFrame(clock,scene),age=clock-contact;
+      const frame=arenaFrame(clock,scene,animeBurst),age=clock-contact;
       const flash=ramp(.08,.16,age)*(1-ramp(.24,.39,age));
       return {...frame,impactAge:age,targetLight:1+.21*flash};
     }:arenaFrame;

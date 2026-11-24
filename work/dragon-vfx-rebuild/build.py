@@ -94,12 +94,46 @@ for excerpt in identity["excerpts"]:
         take["cards"]=anime_cards
     anime_excerpts.append(dict(take,id=excerpt["id"],anchors=excerpt["anchors"]))
 
+# The anime separates the initial throw from the final explosion by several cuts.
+# Keep each excerpt intact within its span and declare the jump in the player.
+anime_hit,anime_throw=anime_excerpts[:2]
+phase_rel="reference/spirit/clips/dbz-buu-spirit-phase-comparison.mp4"
+anime_paths=refs/"spirit/clips"
+subprocess.run(
+    ["ffmpeg","-v","error","-y","-i",str(anime_paths/"dbz-buu-spirit-release.mp4"),
+     "-i",str(anime_paths/"dbz-buu-spirit-impact.mp4"),
+     "-filter_complex","[0:v]trim=end_frame=240,setpts=PTS-STARTPTS[a];[1:v]setpts=PTS-STARTPTS[b];[a][b]concat=n=2:v=1:a=0",
+     "-an","-c:v","libx264","-crf","16","-g","15","-pix_fmt","yuv420p","-movflags","+faststart",str(dst/phase_rel)],
+    check=True)
+throw_cards=[]
+for name,stamp,label in [
+    ("push",973.1,"龙珠原片 · 双掌推出"),
+    ("descent",974.0,"龙珠原片 · 白芯青边，球体下压"),
+    ("approach",977.0,"龙珠原片 · 球缘抵近地面，尘浪翻起"),
+]:
+    rel=f"reference/spirit/dragonball/anime-release-{name}.png"
+    subprocess.run(
+        ["ffmpeg","-v","error","-y","-ss",str(stamp-anime_throw["start"]),"-i",str(anime_paths/"dbz-buu-spirit-release.mp4"),
+         "-frames:v","1","-threads","1",str(dst/rel)],check=True)
+    throw_cards.append(dict(file="dragon-vfx/"+rel,label=label,time=stamp))
+anime_phases=dict(anime_hit,title="元气弹原片 ·《龙珠Z》布欧篇 · 投出与爆发",
+    film="dragon-vfx/"+phase_rel,start=0,end=31,sourceSpans=[[0,970],[8,1216]],
+    note="原片 16:10–16:18 用于投出和下压，20:16–20:39 用于命中、爆发和退场。跨段剪接保留，画面显示原片时码。",
+    cards=[*throw_cards,*anime_hit["cards"]],
+    anchors=[[0,0],[1.57,2.37],[2,3.1],[2.23,4.27],[2.5,7.5],[2.58,8.0],[2.70,12.0],[3.19,15.0],[3.73,21.0],[4.1,22.5],[5.29,27],[6.2,30.9667]])
+
 burst_clip=refs/"spirit/burst-clip.json"
 study_impact=[]
 arena_impact=[]
+spirit_secondary=None
 if burst_clip.is_file():
     source_shot=json.loads(burst_clip.read_text(encoding="utf-8"))
     full=resource("spirit",source_shot["clip"])
+    spirit_secondary=dict(film("spirit",source_shot,"第二参考 ·《失落的方舟》气宗师",
+        "前段 0.767–1.500 秒看冲击如何沿地面铺开。后段 3.267 秒起看球下移，3.600–4.100 秒看白核与外壳分层炸开。",
+        0,subset=[1,2,4,5,6,8],output=full),
+        anchors=[[0,3.20],[1.84,3.20],[2.0,3.267],[2.23,3.40],[2.50,3.533],[2.70,3.633],
+                 [3.19,4.100],[4.1,5.010],[6.2,7.110]])
 
     def matched_impact(filename,end,note):
         start=3.2
@@ -189,11 +223,12 @@ spirit_legacy_arena = dict(legacy("spirit.mp4","V17 · 同一横版擂台",
     "两版共用横版舞台、角色站位和时间。可逐帧比较撞地爆闪与贴地余波。",4.8,30),
     film="dragon-vfx/spirit.mp4")
 spirit_impact_baseline = dict(legacy("spirit-arena.mp4","上一版 · 2D 撞地冲击",
-    "两版共用擂台、角色和时间。可同帧检查动画版新增的白闪和浅尘浪。",6.2,30),
+    "两版共用擂台、角色和时间。可同帧检查球体下压、贴地冲击、白闪和浅尘浪。",6.2,30),
     film="dragon-vfx/spirit-arena.mp4")
 payload = {"actors":actors,
            "unityDemo":{"film":unity_film,"duration":unity_duration},
-           "sources":{"spiritImpactBaseline":spirit_impact_baseline,"spirit":[anime_excerpts[0],*study_impact,*anime_excerpts[1:],*spirit],
+           "sources":{"spiritImpactBaseline":spirit_impact_baseline,"spiritAnimePhases":anime_phases,"spiritSecondary":spirit_secondary,
+                      "spirit":[anime_excerpts[0],*study_impact,*anime_excerpts[1:],*spirit],
                       "spiritArena":[anime_excerpts[0],*arena_impact,*anime_excerpts[1:],*spirit,spirit_study_take,spirit_legacy_arena],
                       "kame":kame,"kameStudy":[study_ref,study_previous,study_early],
                       "kameUnity":[unity_original,unity_web],

@@ -506,12 +506,22 @@
     vec4 pressureDust(vec3 p,float age){
       float r=length(p.xz),a=atan(p.z,p.x);
       float speed=1.-exp(-max(0.,age-.05)*5.2);
-      float drift=noise3(p*6.+vec3(0.,age*2.4,0.));
       float front=(.61+1.92*speed)*(.91+.11*sin(3.*a+.9)+.055*sin(7.*a-age*4.));
+      #ifdef ANIME_BURST
+      vec2 fromStrike=p.xz-vec2(.68*exp(-age*6.4),0.);
+      r=length(fromStrike*vec2(.88,1.));
+      a=atan(fromStrike.y,fromStrike.x);
+      speed=1.-exp(-max(0.,age-.022)*7.8);
+      front=(.17+2.52*speed)*(.93+.15*cos(2.*a-.35)+.08*cos(5.*a-age*9.));
+      #endif
+      float drift=noise3(p*6.+vec3(0.,age*2.4,0.));
       float thickness=.11+.20*speed;
       float wave=exp(-pow((r-front+.085*(drift-.5))/thickness,2.));
       float spread=exp(-p.y*p.y/(.022+.12*speed*drift));
       float pulse=smoothstep(.065,.17,age)*(1.-smoothstep(.25,.62,age));
+      #ifdef ANIME_BURST
+      pulse=smoothstep(.026,.090,age)*(1.-smoothstep(.24,.62,age));
+      #endif
       float bands=smoothstep(.19,.72,drift+.20*cos(6.*a-r*4.+age*4.));
       float density=1.84*wave*spread*pulse*(.33+.67*bands)*smoothstep(0.,.046,p.y);
       return vec4(mix(vec3(.19,.33,.42),vec3(.47,.69,.94),bands),density);
@@ -623,6 +633,15 @@
       float shockTiming=smoothstep(.072,.166,age)*(1.-smoothstep(.193,.340,age));
       vec3 focus=vec3((above.x-.16)*.93,above.y-.48,above.z+.04);
       float shockShape=1.-smoothstep(.48+shockTiming*.27,.93+shockTiming*.22,length(focus)+.18*(mass-.5));
+      #ifdef ANIME_BURST
+      float opening=smoothstep(.035,.185,age);
+      shockTiming=smoothstep(.039,.142,age)*(1.-smoothstep(.205,.343,age));
+      vec3 strikeCenter=vec3(mix(.71,.15,opening),mix(.19,.49,opening),-.04);
+      vec3 strikeSpan=mix(vec3(.30,.21,.25),vec3(1.33,.88,1.11),opening);
+      focus=(above-strikeCenter)/strikeSpan;
+      float fracture=(mass-.5)*.31+(fiber-.5)*.12;
+      shockShape=1.-smoothstep(.53,.99,length(focus)+fracture);
+      #endif
       float ignition=6.9*shockTiming*shockShape*baseFade*(.62+.38*mass);
       vec3 flash=vec3(2.37,2.83,3.14)*(.76+.24*fiber);
       float upperGas=density*(1.-folding),sigma=upperGas+groundGas.a+ignition;

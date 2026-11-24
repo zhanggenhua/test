@@ -27,7 +27,9 @@
   const meshCamera={yaw:0,pitch:0,wire:false};
   const engine = spiritStudy ? window.DragonSpiritStudy : study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spiritArena ? (animeBurst?window.DragonSpiritAnimeArena:window.DragonSpiritArena) : spirit ? window.DragonSpirit : window.DragonKame;
   const selectedRefs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : arena ? DragonData.sources.kameArena.slice() : spiritArena ? DragonData.sources.spiritArena : DragonData.sources[key];
-  const refs=animeBurst?[...selectedRefs,DragonData.sources.spiritImpactBaseline]:selectedRefs;
+  const refs=animeBurst?[DragonData.sources.spiritAnimePhases,...selectedRefs,DragonData.sources.spiritImpactBaseline]:selectedRefs;
+  const secondary=animeBurst?DragonData.sources.spiritSecondary:null, secondaryFilm=el('secondaryFilm');
+  let secondarySynced=true;
   const actors = {};
   const title = spirit ? '元气弹' : '龟派气功';
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
@@ -63,13 +65,15 @@
   const refLength = () => current.end-current.start;
   const aligned = () => current.anchors && el('alignment').value==='phases';
   const inspecting = () => current.id==='mesh-view';
-  function referenceClock(){
-    if(!aligned())return {local:at-offset(),slope:1};
-    const points=current.anchors;
-    let i=1;while(i<points.length-1&&at>=points[i][0])i++;
+  function phaseClock(source,t){
+    const points=source.anchors;
+    let i=1;while(i<points.length-1&&t>=points[i][0])i++;
     const [t0,r0]=points[i-1],[t1,r1]=points[i];
     const slope=(r1-r0)/(t1-t0);
-    return {local:r0-current.start+(clamp(at,t0,t1)-t0)*slope,slope};
+    return {local:r0-source.start+(clamp(t,t0,t1)-t0)*slope,slope};
+  }
+  function referenceClock(){
+    return aligned()?phaseClock(current,at):{local:at-offset(),slope:1};
   }
   // The reference may begin before the game take when aligning a later action.
   const from = () => Math.min(0,offset());
@@ -110,7 +114,9 @@
     const local=referenceClock().local;
     const r=clamp(local,0,refLength()-1/current.fps);
     el('newTime').textContent=time(t)+(at>duration()?' · 末帧':'');
-    el('refTime').textContent=time(current.start+Math.max(0,r))+(local<0?' · 首帧':local>=refLength()?' · 末帧':'');
+    const span=current.sourceSpans?.findLast(([first])=>first<=r);
+    const timestamp=span?span[1]+r-span[0]:current.start+r;
+    el('refTime').textContent=time(timestamp)+(local<0?' · 首帧':local>=refLength()?' · 末帧':'');
     if(inspecting()){
       if(DragonBeamVolume.available)engine.draw(meshContext,t,scene,meshCamera);
       el('refTime').textContent=time(t)+' · '+(meshCamera.yaw===0&&meshCamera.pitch===0?'透视侧视':'透视检查机位');
@@ -125,14 +131,56 @@
     scrub.style.setProperty('--played',100*elapsed/total+'%');
     scrub.setAttribute('aria-valuetext',elapsed.toFixed(2)+' 秒，共 '+total.toFixed(2)+' 秒');
   }
-  function syncFilm(force=false){
-    if(!mediaReady||!current.film)return;
-    const {local,slope}=referenceClock(), shouldPlay=playing&&slope>0&&local>=0&&local<refLength();
-    const max=Math.max(0,Math.min(refLength(),film.duration)-1/current.fps);
+  function syncVideo(video,source,{local,slope},force){
+    const length=source.end-source.start;
+    const shouldPlay=playing&&slope>0&&local>=0&&local<length;
+    const max=Math.max(0,Math.min(length,video.duration)-1/source.fps);
     const want=clamp(local,0,max);
-    if(force||Math.abs(film.currentTime-want)>(shouldPlay?.115:.004))film.currentTime=want;
-    if(shouldPlay){film.playbackRate=clamp(rate*slope,.0625,16);if(film.paused)film.play().catch(()=>{});}
-    else if(!film.paused)film.pause();
+    if(force||Math.abs(video.currentTime-want)>(shouldPlay?.115:.004))video.currentTime=want;
+    if(shouldPlay){video.playbackRate=clamp(rate*slope,.0625,16);if(video.paused)video.play().catch(()=>{});}
+    else if(!video.paused)video.pause();
+  }
+  function syncFilm(force=false){
+    if(mediaReady&&current.film)syncVideo(film,current,referenceClock(),force);
+    if(secondary&&secondarySynced)syncSecondary(force);
+  }
+  function syncSecondary(force=false){
+    const position=phaseClock(secondary,sceneTime());
+    el('secondaryTime').textContent=time(secondary.start+position.local);
+    if(secondaryFilm.readyState>0)syncVideo(secondaryFilm,secondary,position,force);
+  }
+  async function loadSecondary(){
+    el('secondaryPanel').hidden=false;
+    el('secondaryNote').textContent=secondary.note;
+    el('secondarySource').href=secondary.source;
+    el('secondaryMode').onclick=()=>{
+      secondarySynced=!secondarySynced;
+      secondaryFilm.controls=!secondarySynced;
+      el('secondaryMode').textContent=secondarySynced?'看完整气宗师原速':'恢复阶段同步';
+      if(secondarySynced)syncSecondary(true);
+      else {
+        pause();secondaryFilm.playbackRate=1;
+        if(secondaryFilm.readyState>0)secondaryFilm.currentTime=0;
+        secondaryFilm.play().catch(()=>{});
+      }
+    };
+    secondaryFilm.onloadedmetadata=()=>{
+      mediaSize('secondaryMedia',secondaryFilm.videoWidth,secondaryFilm.videoHeight);
+      if(secondarySynced)syncSecondary(true);
+    };
+    secondaryFilm.ontimeupdate=()=>{
+      if(!secondarySynced)el('secondaryTime').textContent=time(secondaryFilm.currentTime);
+    };
+    try{
+      let url=secondary.film;
+      if(location.protocol!=='file:'){
+        const response=await fetch(url);
+        if(!response.ok)throw Error('HTTP '+response.status);
+        url=URL.createObjectURL(await response.blob());
+      }
+      secondaryFilm.onerror=()=>{el('secondaryNote').textContent='气宗师视频解码失败，可打开来源播放。';};
+      secondaryFilm.src=url;
+    }catch(e){el('secondaryNote').textContent='气宗师视频载入失败。'+e.message;}
   }
   function tick(now){
     if(!playing)return;
@@ -142,7 +190,7 @@
   }
   function pause(){
     autoplayPending=false;
-    playing=false;cancelAnimationFrame(raf);film.pause();recording?.pause();el('play').textContent='播放';
+    playing=false;cancelAnimationFrame(raf);film.pause();if(secondarySynced)secondaryFilm.pause();recording?.pause();el('play').textContent='播放';
   }
   function play(){
     if(!usable||!mediaReady)return;
@@ -168,7 +216,10 @@
   }
   function listCards(){
     const gallery=el('gallery');gallery.replaceChildren();
-    for(const card of current.cards){
+    const cards=secondary&&current===refs[0]
+      ?[...current.cards,...secondary.cards.map(card=>({...card,label:'气宗师 · '+card.label}))]
+      :current.cards;
+    for(const card of cards){
       const a=external('',card.file),img=new Image(),stamp=document.createElement('span');
       img.src=card.file;img.alt=card.label;img.loading='lazy';stamp.className='cardtime';stamp.textContent=time(card.time);
       a.append(img,stamp,document.createTextNode(card.label));gallery.append(a);
@@ -194,7 +245,8 @@
         external('作者 Unity 包 · 需解锁','https://www.patreon.com/hovl/posts/kamehameha-vfx-1-25583523'),
         external('作者贴图、模型与 Shader 包 · 需解锁','https://www.patreon.com/hovl/posts/only-textures-25713270'));
     }
-    el('galleryTitle').hidden=!current.cards.length;
+    el('galleryTitle').hidden=!cards.length;
+    el('galleryTitle').textContent=secondary&&current===refs[0]?'采用的原片与第二参考全幅选帧':'此次采用的原片全幅选帧';
   }
   function controls(){
     el('sources').value=index;
@@ -202,10 +254,10 @@
     el('back').textContent=aligned()?'新版上一帧':'上一帧';
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
-    el('newTitle').textContent=animeBurst?'元气弹 · 动画爆发试作':spiritArena?'元气弹 · 2D 横版擂台':spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
+    el('newTitle').textContent=animeBurst?'元气弹 · 动画投掷与爆发':spiritArena?'元气弹 · 2D 横版擂台':spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入球体，双掌推出。命中后内核高速旋开，外壳与碎片向外散开。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spiritArena)el('newNote').textContent=animeBurst
-      ?'撞地冲击后，白闪沿爆面外扩，浅色尘浪翻过已有的带电余波。'
+      ?'球体加速下压，触地处先亮，冲击沿地面铺开，随后白核撑开外壳。浅尘接过带电余波。'
       :'冲击半球塌向地面，带电余波在暗浪内回卷，随后分块散开。';
     if(spiritStudy)el('newNote').textContent='触地爆闪推开厚浪和溅射碎片，贴地冲击掠过网格，半球向地面塌为卷动的余波。';
     if(spirit&&!spiritStudy) {
@@ -220,6 +272,11 @@
         }
       }
       el('newNote').append(' ',burst,' · ',shape);
+      if(secondary){
+        const jump=document.createElement('a');
+        jump.href='#secondaryPanel';jump.textContent='第二参考 · 气宗师视频';
+        el('newNote').append(' · ',jump);
+      }
     }
     if(study)el('newNote').textContent=engine.sourceMaterials
       ?'由 Unity 采样的粒子网格驱动。网页实时计算原贴图、裁剪、混合和辉光。'
@@ -364,6 +421,7 @@
     }
     refs.forEach((r,i)=>el('sources').add(new Option(r.title,i)));
     usable=true;
+    if(secondary)void loadSecondary();
     let first=0;
     if(params.get('ref')==='burst'&&spirit)first=refs.findIndex(r=>r.id==='impact-stills');
     if(['hit','secondary'].includes(params.get('ref'))&&spirit)first=refs.findIndex(r=>r.id==='impact-film');

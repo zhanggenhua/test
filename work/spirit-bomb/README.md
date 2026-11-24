@@ -1,10 +1,14 @@
-# 元气弹横版动画爆发试作
+# 元气弹横版动画投掷与爆发
 
-[统一预览 · 动画爆发试作](../../outputs/index.html#spirit/anime-burst)从原版横版的命中材质和演出派生。原片在右侧作为默认，气宗师是第二参考。原横版在版本菜单仍可打开，也可手动选为同帧对照。
+[统一预览](../../outputs/index.html#spirit/anime-burst)左侧播放新版完整擂台，右侧默认按阶段同步《龙珠Z》布欧篇。下方的《失落的方舟》气宗师是第二参考，可以跟随同一进度条，也可以独立按原速看全片。
 
-《龙珠Z》布欧篇 [20:26–20:35.5](https://www.bilibili.com/video/BV1ACvYejEEA/?t=1226) 用于拆解末段的白闪、向外散出的亮面和分批翻起的浅色尘浪。新版在 3.55 秒由原有爆面向外放光，约 4.07 秒可见分块卷起的尘浪。旋转亮丝、离体电弧、飞石和爆发后的电旋继续使用已有表现。暗浪裂散时，主电流先减弱，随后留下从烟尘边缘接触地面的几处短弧。5.282 秒对照的是动画约 20:34.97 的尘浪和第二参考气宗师约 6.192 秒的裂散余电。
+| 参考与原片时码 | 用在新版的位置 |
+| --- | --- |
+| 龙珠原片 16:13.100 推掌、16:14.000 球体下压、16:17.000 球缘推起地面尘浪 | 2.000 秒离手，下降逐渐加快，拖尾沿球的实际轨迹弯转。球心、角色和镜头沿用同一擂台坐标。[下压全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-release-descent.png) · [球缘与尘浪全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-release-approach.png) |
+| 气宗师 0.767–1.500 第一轮冲击贴地铺开，3.267–3.533 球下移，3.600–4.100 亮核膨开并显出前后壳层 | 2.500 秒命中后，球在接触处压扁，亮点靠近地面起爆，低位冲击先外推，随后白核撑开外壳。青白配色、旋转亮丝、离体电弧和碎石沿用现版。[第一轮全幅](../../outputs/dragon-vfx/reference/spirit/cards/burst/burst-03.png) · [亮峰全幅](../../outputs/dragon-vfx/reference/spirit/cards/burst/user-burst-05-match-4.100.png) |
+| 龙珠原片 20:16–20:39 目标被吞没、远景白闪和尘浪翻起 | 对照播放器从前一段投掷剪接到后续爆发。新版 3.55 秒的白闪、约 4.07 秒翻起的浅尘和后续暗浪仍沿用上一轮演出。 |
 
-[末段白闪全幅](../../outputs/dragon-vfx/spirit-anime-arena-flash.png) · [浅尘与余波全幅](../../outputs/dragon-vfx/spirit-anime-arena-dust.png) · [完整录像](../../outputs/dragon-vfx/spirit-anime-arena.mp4)
+[飞行全幅](../../outputs/dragon-vfx/spirit-anime-arena-flight.png) · [贴地起爆全幅](../../outputs/dragon-vfx/spirit-anime-arena-pressure.png) · [爆发全幅](../../outputs/dragon-vfx/spirit-anime-arena-impact.png) · [完整录像](../../outputs/dragon-vfx/spirit-anime-arena.mp4)
 
 # 元气弹 2D 横版试演
 
