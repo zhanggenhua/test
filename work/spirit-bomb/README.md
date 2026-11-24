@@ -1,15 +1,23 @@
-# 元气弹横版动画远投与爆发
+# 元气弹实时追踪
 
-[统一预览](../../outputs/index.html#spirit/anime-burst)左侧是完整的 960×400 擂台。右侧默认按阶段同步《龙珠Z》布欧篇。下方的《失落的方舟》气宗师支持同步对照及全片原速播放。
+[独立 3D 检查](../../outputs/index.html#spirit/anime-study)可切换斜俯和透视侧视。[2D 横版预览](../../outputs/index.html#spirit/anime-burst)复用同一球体、轨迹、尘道、爆发和碰撞时点。两处都能切近距、远距或移动目标，并调整目标起点。右侧是龙珠原片，下方是气宗师完整视频。
 
-| 参考与原片时码 | 用在新版的位置 |
+| 验收 | 网页样例结果 |
 | --- | --- |
-| 龙珠原片 16:13.100 推掌，16:14.000 白芯青边的球体下压，16:17.000 球临近地面并掀尘 | 擂台两人站距 492 画布像素。2.000 秒离手，2.560 秒触地后继续前推。[下压全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-release-descent.png) |
-| 龙珠原片 20:29.167 起的连续镜头，20:30.167 球沿地表远去，尘道从近到远保持在地面 | 固定横版镜头用向右贴地推进表现远去。球在推进中收小，尘团沿实际路径分批升起、扩散和散开。3.000 秒经过目标，3.880 秒推进到终点。[地面推进全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-ground-travel.png) |
-| 龙珠原片 20:31.733，白闪从尘道远端向四周爆开并越过视口 | 4.05 秒在轨迹末端放出大范围白闪和辐射光束，扩张到画框之外。[白闪全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-final-outburst.png) |
-| 气宗师 0.767–1.500 贴地冲击，5.000–6.000 余势回卷 | 从冲击外扩转为贴地回卷。4.73 秒可看见多股尘流旋进，下层尘土和碎屑随后散开。[气宗师全幅录像](../../outputs/dragon-vfx/reference/spirit/clips/lostark-qizong-spirit-bomb.mp4) |
+| 近距 | 2.38 秒在空中碰到目标并引爆，未产生地面尘道。 |
+| 远距 | 2.98 秒落地，沿地面继续追踪和逐段掀尘，3.84 秒碰到目标并引爆。 |
+| 移动目标 | 目标沿场地移动，3.53 秒在实际相交位置触发。另测目标移到另一侧时反向追踪，无目标时按寿命结束。 |
+| 投影 | 两种 3D 机位和横版使用世界半径 87。缩放来自 3D 投影。横版飞行和贴地阶段球径保持稳定。 |
 
-[新版贴地推进全幅](../../outputs/dragon-vfx/spirit-anime-arena-impact.png) · [白闪全幅](../../outputs/dragon-vfx/spirit-anime-arena-flash.png) · [贴地漩涡全幅](../../outputs/dragon-vfx/spirit-anime-arena-wake.png) · [完整录像](../../outputs/dragon-vfx/spirit-anime-arena.mp4)
+| 参考与原片时码 | 用途 |
+| --- | --- |
+| 龙珠 16:13.100–16:17.000 与 20:30.167 | 推掌、球缘临近地面及远距推进留尘。原片后半随景深缩小，横版沿固定战斗轴追踪。[下压原帧](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-release-descent.png) · [推进原帧](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-ground-travel.png) |
+| 龙珠 20:31.733 | 白闪从撞击位置冲出画框。[原片白闪全幅](../../outputs/dragon-vfx/reference/spirit/dragonball/anime-final-outburst.png) |
+| 气宗师 4.100、5.000–6.000 秒 | 保留亮核、外壳、碎屑与贴地回卷的分层。回卷由尘流表现。[爆发原帧](../../outputs/dragon-vfx/reference/spirit/cards/burst/user-burst-05-match-4.100.png) · [气宗师全幅录像](../../outputs/dragon-vfx/reference/spirit/clips/lostark-qizong-spirit-bomb.mp4) |
+
+网页回放以 120 Hz 采样目标位置，用同一飞行模拟生成可拖动的画面。即时制接入时，`DragonSpiritAnimeArena.createHoming({x,y,ground,direction,radius},settings)` 由出手点创建模拟，逐步传入 `step(dt, {x,y,halfWidth,halfHeight})`，按 `groundAt` 和 `hit` 触发后续效果。参数单位沿用调用方的世界坐标和秒。网页的默认 2 秒出手和右侧原片时间码用于预览对齐。
+
+[3D 完整录像](../../outputs/dragon-vfx/spirit-anime-study.mp4) · [横版完整录像](../../outputs/dragon-vfx/spirit-anime-arena.mp4) · [横版外壳全幅](../../outputs/dragon-vfx/spirit-anime-arena-shell.png) · [横版漩涡全幅](../../outputs/dragon-vfx/spirit-anime-arena-wake.png)
 
 # 元气弹 2D 横版试演
 

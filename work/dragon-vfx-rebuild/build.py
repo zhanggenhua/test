@@ -129,7 +129,7 @@ def ground_time(stamp):
 
 anime_phases=dict(anime_hit,title="元气弹原片 ·《龙珠Z》布欧篇 · 贴地推进与爆发",
     film="dragon-vfx/"+phase_rel,start=0,end=ground_time(1239),sourceSpans=[[0,970],[8,ground_shot]],
-    note="16:10–16:18 看投出和下压。20:29.167 起连续看球沿地表远去、一路掀尘和远端白闪。保留两段原片的切换，显示原片时码。",
+    note="16:10–16:18 看投出和下压。20:29.167 起连续看远距推进与白闪。左侧可切换目标，按释放、触地或命中对齐；原片保留自己的远距镜头。",
     cards=[*throw_cards,*ground_cards],
     anchors=[[0,0],[1.57,2.37],[2,3.1],[2.43,4.12],[2.50,7.43],[2.56,8],
              [3.0,ground_time(1230+5/30)],[3.45,ground_time(1230.90)],
@@ -147,7 +147,7 @@ if burst_clip.is_file():
         "前段 0.767–1.500 秒用来核对贴地冲击，5.000–6.000 秒用来核对贴地回卷。新版漩涡用尘流与余光表现。",
         0,subset=[1,2,4,5,6,8,9],output=full),
         anchors=[[0,3.20],[1.84,3.20],[2.0,3.267],[2.56,3.45],[3.00,3.50],[3.88,3.56],
-                 [4.05,4.100],[4.73,5.44],[6.7,7.11]])
+                 [4.05,3.700],[4.29,4.100],[4.74,5.44],[6.7,7.11]])
 
     def matched_impact(filename,end,note):
         start=3.2
@@ -237,7 +237,7 @@ spirit_legacy_arena = dict(legacy("spirit.mp4","V17 · 同一横版擂台",
     "两版共用横版舞台、角色站位和时间。可逐帧比较撞地爆闪与贴地余波。",4.8,30),
     film="dragon-vfx/spirit.mp4")
 spirit_impact_baseline = dict(legacy("spirit-arena.mp4","上一版 · 2D 撞地冲击",
-    "上一版站距更近，按离手、命中和退场对齐。",6.2,30),
+    "旧版采用较近站距，供检查原来的撞地演出。",6.2,30),
     film="dragon-vfx/spirit-arena.mp4",
     anchors=[[0,0],[2.0,2.0],[3.0,2.50],[6.7,6.16667]])
 payload = {"actors":actors,

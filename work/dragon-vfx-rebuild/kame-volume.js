@@ -483,7 +483,7 @@
     return {canvas,get active(){return !gl.isContextLost();},draw(time,origin,view={}){
       if(gl.isContextLost())return null;
       const yaw=view.yaw??0,pitch=view.pitch??0,wire=!!view.wire;
-      const signature=[time,origin.x,origin.y,yaw,pitch,wire,view.camera??'',view.hiddenLayer??''].join('/');
+      const signature=[time,origin.x,origin.y,yaw,pitch,wire,view.camera??'',view.hiddenLayer??'',view.sceneKey??''].join('/');
       if(previous===signature)return canvas;
       previous=signature;
       bind(scene);

@@ -107,12 +107,13 @@
       stage.frontZ=distance*((scene.ground+1-center[1])/(frontPixel-center[1])-1);
       gl.useProgram(program);gl.bindVertexArray(quad);
       gl.disable(gl.CULL_FACE);
-      const key=[scene.casterX,scene.targetX,scene.ground].join('/');
+      const targetX=frame.targetX??scene.targetX;
+      const key=[scene.casterX,targetX,scene.ground].join('/');
       const repaint=stageKey!==key;
       if(repaint){
         scene.stage(paint);
         paint.fillStyle='rgba(32,34,49,.27)';
-        for(const x of [scene.casterX,scene.targetX]){
+        for(const x of [scene.casterX,targetX]){
           paint.beginPath();paint.ellipse(x,scene.ground+1,30,4.5,0,0,2*Math.PI);paint.fill();
         }
         stageKey=key;
@@ -139,15 +140,15 @@
       }
       gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       gl.uniform1i(u.layer,2);
-      function sprite(role,x,pose,depth){
+      function sprite(role,x,pose,depth,feet=scene.ground){
         gl.uniform1f(u.ambience,(role==='target'?frame.targetLight:undefined)??frame.characterLight??1);
         bind(scene.fighterFrame(role,pose));
-        gl.uniform4f(u.rect,x-75.6,scene.ground-150.78,151.2,151.2);
+        gl.uniform4f(u.rect,x-75.6,feet-150.78,151.2,151.2);
         gl.uniform1f(u.depth,depth);
         gl.uniform1i(u.mirrored,+(role==='target'));
         gl.drawArrays(gl.TRIANGLES,0,6);
       }
-      sprite('target',scene.targetX,frame.targetPose,18);
+      sprite('target',targetX,frame.targetPose,18,frame.targetGround);
       sprite('caster',scene.casterX+(frame.casterOffset??0),frame.casterPose,frame.casterDepth??5);
     }});
   }

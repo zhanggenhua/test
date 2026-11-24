@@ -2,7 +2,7 @@
   'use strict';
   const TAU = 2 * Math.PI;
   const swing = 1.57, release = 2.0, contact = 2.50, duration = 4.80;
-  const animeGround=2.56, animeContact=3.0, animeBlast=3.88;
+  const animeLayout=Object.freeze({casterX:288,targetX:780,ground:318,scenario:'far'});
   const phases = [
     {t:0, name:'举手'}, {t:.48, name:'四周汇气'}, {t:1.67, name:'托球前送'},
     {t:release, name:'双掌投出'}, {t:2.23, name:'飞行'}, {t:contact, name:'球沿触敌'}, {t:2.66, name:'球体压入'},
@@ -289,59 +289,122 @@
   function integrateBrake(speed,age,tau){
     return -speed*tau*Math.expm1(-age/tau);
   }
-  function flightProgress(u,startSlope,endSlope){
-    return u*(startSlope+u*(3-2*startSlope-endSlope+u*(startSlope+endSlope-2)));
-  }
-  function flightSlope(u,startSlope,endSlope){
-    return startSlope+u*(2*(3-2*startSlope-endSlope)+3*u*(startSlope+endSlope-2));
-  }
-  function animeTravel(t,castX,castY,hitX,hitY,ground,radius){
-    const flightSpan=animeGround-release, runSpan=animeContact-animeGround;
-    const approachRadius=mix(radius,radius*.58,ramp(animeGround,animeBlast,animeContact));
-    const approachY=ground-1-approachRadius;
-    const approachX=hitX-Math.sqrt(Math.max(1,approachRadius**2-(hitY-approachY)**2));
-    const landX=mix(castX,approachX,.51), landY=ground-1-radius;
-    const finishX=Math.min(hitX+57,835);
-    const atLanding=(approachX-landX)/runSpan, throughTarget=atLanding*.71;
-    const launchVX=.85*(landX-castX)/flightSpan;
-    const launchVY=.32*(landY-castY)/flightSpan;
-    let x,y,r=radius,rx,ry,dx=launchVX,dy=launchVY,glow=1,flow=0;
-    if(t<release)return {launchVX,launchVY};
-    if(t<animeGround){
-      const u=(t-release)/flightSpan;
-      const landingSlope=atLanding*flightSpan/(landX-castX);
-      x=mix(castX,landX,flightProgress(u,.85,landingSlope));
-      y=mix(castY,landY,flightProgress(u,.32,0));
-      dx=(landX-castX)/flightSpan*flightSlope(u,.85,landingSlope);
-      dy=(landY-castY)/flightSpan*flightSlope(u,.32,0);
-      flow=mix(.36,1,ramp(0,.14,t-release));
-    }else{
-      const firstLeg=t<animeContact;
-      const a=firstLeg?landX:approachX,b=firstLeg?approachX:finishX;
-      const span=firstLeg?runSpan:animeBlast-animeContact;
-      const u=clamp((t-(firstLeg?animeGround:animeContact))/span);
-      const v0=(firstLeg?atLanding:throughTarget)*span/(b-a),v1=firstLeg?throughTarget*span/(b-a):0;
-      x=mix(a,b,flightProgress(u,v0,v1));
-      dx=(b-a)/span*flightSlope(u,v0,v1);
-      const roll=ramp(animeGround,animeBlast,t);
-      r=mix(radius,radius*.58,roll);
-      const compression=ramp(animeGround,animeGround+.10,t)*(1-ramp(animeBlast-.22,animeBlast,t));
-      ry=r*(1-.055*compression);rx=r*(1+.052*compression);
-      y=ground-1-ry;dy=0;
-      flow=mix(.73,.32,roll);
-      glow=1-ramp(animeBlast+.011,animeBlast+.137,t);
+  const spiritFlight={radius:87,launchSpeed:156,descentSpeed:26,speed:176,acceleration:630,dropSpeed:82,gravity:140,lifetime:5};
+  function createHoming({x,y,ground,direction=1,radius=spiritFlight.radius},settings={}){
+    const {launchSpeed,descentSpeed,speed,acceleration,dropSpeed,gravity,lifetime}={...spiritFlight,...settings};
+    let current={x,y,vx:direction*launchSpeed,vy:descentSpeed,time:0,landed:false},hit=null,groundAt=null;
+    const floor=ground-radius-1;
+    const overlaps=(p,target)=>{
+      const dx=Math.max(0,Math.abs(p.x-target.x)-target.halfWidth);
+      const dy=Math.max(0,Math.abs(p.y-target.y)-target.halfHeight);
+      return dx*dx+dy*dy<=radius*radius;
+    };
+    function step(dt,target){
+      if(hit||current.time>=lifetime||!(dt>0))return current;
+      if(target&&overlaps(current,target)){hit=current;return current;}
+      const until=Math.min(current.time+dt,lifetime);
+      while(!hit&&current.time<until-1e-7){
+        const old=current,h=Math.min(1/120,until-old.time);
+        const aim=target?Math.sign(target.x-old.x):Math.sign(old.vx);
+        const delta=aim*speed-old.vx;
+        const vx=old.vx+Math.sign(delta)*Math.min(Math.abs(delta),acceleration*h);
+        const vy=Math.min(dropSpeed,old.vy+gravity*h);
+        const toX=old.x+vx*h,toY=old.landed?floor:old.y+vy*h;
+        const positionAt=q=>({x:mix(old.x,toX,q),y:Math.min(floor,mix(old.y,toY,q))});
+        let fraction=1;
+        const collision=target&&overlaps(positionAt(1),target);
+        if(collision){
+          let lo=0,hi=1;
+          for(let i=0;i<9;i++){
+            const mid=(lo+hi)*.5;
+            if(overlaps(positionAt(mid),target))hi=mid;
+            else lo=mid;
+          }
+          fraction=hi;
+        }
+        const time=old.time+h*fraction,at=positionAt(fraction);
+        const reachedFloor=at.y>=floor;
+        if(reachedFloor&&groundAt===null){
+          const q=old.landed?0:clamp((floor-old.y)/(toY-old.y));
+          groundAt=old.time+h*q;
+        }
+        current={...at,vx,vy:reachedFloor?0:vy,time,landed:reachedFloor};
+        if(collision)hit=current;
+      }
+      return current;
     }
-    const speed=Math.max(1e-6,Math.hypot(dx,dy));
-    return {x,y,r,rx:rx??r,ry:ry??r,hitX,hitY,glow,flow,direction:[dx/speed,dy/speed],burstRadius:radius};
+    return {step,get state(){return current;},get hit(){return hit;},get groundAt(){return groundAt;},radius};
+  }
+
+  function launchPoint(x,ground,radius=spiritFlight.radius){
+    return {x:x+67,y:ground-71-Math.sqrt(radius*radius-36),ground,radius};
+  }
+  function targetAt(scene,time){
+    const t=Math.max(0,time-release);
+    if(scene.scenario==='moving'){
+      const retreat=ramp(0,1.08,t), advance=ramp(1.15,2.65,t);
+      const hop=Math.sin(Math.PI*ramp(.66,1.43,t))*59;
+      return {x:scene.targetX+122*retreat-203*advance,y:scene.ground-54-hop,halfWidth:14,halfHeight:47};
+    }
+    return {x:scene.targetX,y:scene.ground-54,halfWidth:14,halfHeight:47};
+  }
+  const animeRuns=new WeakMap();
+  function runFor(scene){
+    const key=[scene.casterX,scene.targetX,scene.ground,scene.scenario].join('/');
+    const previous=animeRuns.get(scene);
+    if(previous?.key===key)return previous;
+    const flight=createHoming(launchPoint(scene.casterX,scene.ground));
+    const snapshots=[flight.state], dt=1/120;
+    for(let i=1;i<=spiritFlight.lifetime/dt&&!flight.hit;i++){
+      const time=i*dt;
+      snapshots.push(flight.step(dt,targetAt(scene,release+time)));
+    }
+    const stopAt=release+snapshots.at(-1).time;
+    const impactAt=flight.hit?release+flight.hit.time:Infinity;
+    const groundAt=flight.groundAt===null?Infinity:release+flight.groundAt;
+    const duration=Math.ceil((stopAt+(flight.hit?2.82:.24))*30)/30;
+    const run={key,snapshots,stopAt,impactAt,groundAt,duration,dt};
+    animeRuns.set(scene,run);
+    return run;
+  }
+  function sampleAnime(time,scene,run=runFor(scene)){
+    const target=targetAt(scene,time);
+    if(time<release)return state(time,scene.casterX,target.x,scene.ground,true);
+    const t=Math.min(time,run.stopAt)-release;
+    const i=Math.min(run.snapshots.length-2,Math.floor(t/run.dt));
+    const a=run.snapshots[Math.max(0,i)],b=run.snapshots[i+1]??a;
+    const f=b.time>a.time?clamp((t-a.time)/(b.time-a.time)):0;
+    const x=mix(a.x,b.x,f),y=mix(a.y,b.y,f);
+    const radius=spiritFlight.radius;
+    const age=time-run.stopAt,terrain=run.groundAt<=time;
+    const crush=Number.isFinite(run.impactAt)?ramp(0,.11,age):0;
+    const rx=radius*(1+.052*crush),ry=radius*(1-.055*crush);
+    const dx=mix(a.vx,b.vx,f),dy=mix(a.vy,b.vy,f),length=Math.max(1e-6,Math.hypot(dx,dy));
+    return {x,y:y+(terrain?radius-ry:0),r:radius,rx,ry,hitX:target.x,hitY:target.y,
+      glow:1-ramp(.011,.137,age),flow:mix(.36,1,ramp(0,.14,t)),
+      direction:[dx/length,dy/length]};
+  }
+
+  function animeTimeline(scene){
+    const run=runFor(scene),impact=run.impactAt,hasTrail=run.groundAt<impact&&run.groundAt<run.stopAt;
+    const stages=phases.filter(phase=>phase.t<=release);
+    if(hasTrail){
+      stages.push({t:run.groundAt,name:'球缘贴地'},{t:mix(run.groundAt,run.stopAt,.56),name:'沿地追踪与尘道'});
+    }else if(run.stopAt-release>.08){
+      stages.push({t:mix(release,run.stopAt,.51),name:'空中追踪'});
+    }
+    if(Number.isFinite(impact))stages.push({t:impact,name:'接触引爆'},{t:impact+.17,name:'白闪冲出画面'},
+      {t:impact+.41,name:'亮核与外壳'},{t:impact+.86,name:'贴地漩涡'},{t:impact+1.89,name:'尘浪散开'});
+    stages.push({t:run.duration,name:'清场'});
+    return {impactAt:impact,groundAt:run.groundAt,stopAt:run.stopAt,duration:run.duration,phases:stages};
   }
   function state(t,x,tx,ground,animeBurst=false) {
-    const gap=tx-x, radius=Math.min(87,Math.max(38,gap*.30));
+    const gap=tx-x, radius=animeBurst?spiritFlight.radius:Math.min(87,Math.max(38,gap*.30));
     const heldX=x+2, heldY=ground-123-radius;
     const handX=x+61,handY=ground-71;
-    const castX=Math.min(x+67,tx-radius-40);
+    const castX=animeBurst?launchPoint(x,ground,radius).x:Math.min(x+67,tx-radius-40);
     const castY=handY-Math.sqrt(Math.max(1,radius*radius-(castX-handX)**2));
     const hitX=tx-30, hitY=ground-64;
-    if(animeBurst&&t>=release)return animeTravel(t,castX,castY,hitX,hitY,ground,radius);
     const endY=ground-radius-7;
     const endX=hitX-Math.sqrt(Math.max(1,radius*radius-(hitY-endY)**2));
     const flightSpan=contact-release,pushSpan=release-swing;
@@ -358,9 +421,8 @@
       glow=ramp(.15,.37,t);
     }else if(t<release){
       const q=(t-swing)/pushSpan;
-      const handoff=animeBurst?animeTravel(t,castX,castY,hitX,hitY,ground,radius):null;
-      cx=push(heldX,castX,handoff?.launchVX??vx,pushSpan,q);
-      cy=push(heldY,castY,handoff?.launchVY??launchVY,pushSpan,q);
+      cx=push(heldX,castX,animeBurst?spiritFlight.launchSpeed:vx,pushSpan,q);
+      cy=push(heldY,castY,animeBurst?spiritFlight.descentSpeed:launchVY,pushSpan,q);
       glow=1;
       flow=.36*ramp(.1,1,q);
     }else if(t<contact){
@@ -383,9 +445,9 @@
     return {x:cx,y:cy,r,rx:rx??r,ry:ry??r,glow,hitX,hitY,flow,direction:[vx/length,vy/length]};
   }
 
-  function intakePaths(x,tx,ground){
+  function intakePaths(x,tx,ground,animeBurst){
     return packets.map((p,i)=>{
-      const shell=state(p.at,x,tx,ground);
+      const shell=state(p.at,x,tx,ground,animeBurst);
       const depth=.62*(2*random(i+29)-1),plane=Math.sqrt(1-depth*depth);
       const nx=plane*Math.cos(p.angle),ny=plane*Math.sin(p.angle);
       const end=[shell.x+shell.r*nx,shell.y+shell.r*ny,shell.r*depth];
@@ -437,7 +499,7 @@
     return function(time,stage){
       const {casterX:x,targetX:tx,ground}=stage.scene;
       const b=stage.ball,data=[];
-      const impactAt=animeBurst?animeBlast:contact;
+      const impactAt=animeBurst?stage.run.impactAt:contact;
       function ribbon(points,width,visibility){
         const strips=points.map((p,i)=>{
           const before=points[Math.max(0,i-1)],after=points[Math.min(points.length-1,i+1)];
@@ -458,7 +520,7 @@
       }
       if(time<swing){
         const current=[x,tx,ground].join('/');
-        if(current!==key){paths=intakePaths(x,tx,ground);key=current;}
+        if(current!==key){paths=intakePaths(x,tx,ground,animeBurst);key=current;}
         for(const p of paths){
           const phase=(time-p.at)/p.travel+1;
           if(phase<=0||phase>=1.065)continue;
@@ -470,7 +532,7 @@
           ribbon(points,2.9+1.6*p.mass,visibility);
         }
       }
-      const wakeEnd=animeBurst?animeGround:impactAt;
+      const wakeEnd=animeBurst?Math.min(stage.run.groundAt,stage.run.stopAt):impactAt;
       const wake=ramp(release-.015,release+.09,time)*(1-ramp(wakeEnd-.04,wakeEnd+(animeBurst?.21:.13),time));
       if(wake>.002){
         for(let i=0;i<(animeBurst?6:9);i++){
@@ -478,7 +540,8 @@
           const z=(2*random(i+5)-1)*.49,across=.84*side;
           const back=Math.sqrt(Math.max(.05,1-across*across-z*z));
           const points=Array.from({length:9},(_,j)=>{
-            const u=j/8,old=state(time-delay*(1-u),x,tx,ground,animeBurst);
+            const u=j/8,t=time-delay*(1-u);
+            const old=animeBurst?sampleAnime(t,stage.scene,stage.run):state(t,x,tx,ground);
             const [ux,uy]=animeBurst?old.direction:b.direction;
             const extra=(1-u)*(9+24*random(i+19)+(animeBurst?old.flow*28:0));
             return [old.x-old.r*(ux*back+uy*across)-ux*extra,
@@ -554,12 +617,13 @@
       layout(location=1) in vec4 shape;
       layout(location=2) in float opacity;
       uniform mat4 vp;
+      uniform vec3 across;
       out vec2 uv;
       flat out vec3 cloud;
       void main(){
         const vec2 corners[6]=vec2[6](vec2(-1,0),vec2(1,0),vec2(1,1),vec2(-1,0),vec2(1,1),vec2(-1,1));
         uv=corners[gl_VertexID];cloud=vec3(shape.zw,opacity);
-        gl_Position=vp*vec4(base+vec3(uv.x*shape.x,-uv.y*shape.y,0.),1.);
+        gl_Position=vp*vec4(base+across*(uv.x*shape.x)+vec3(0.,-uv.y*shape.y,0.),1.);
       }`,`#version 300 es
       precision highp float;
       in vec2 uv;
@@ -586,7 +650,8 @@
         float alpha=cloud.z*envelope*fade*(.74+.26*roll);
         color=vec4(dust*alpha,alpha);
       }`);
-    const vp=gl.getUniformLocation(program,'vp'),vao=gl.createVertexArray(),buffer=gl.createBuffer();
+    const vp=gl.getUniformLocation(program,'vp'),across=gl.getUniformLocation(program,'across');
+    const vao=gl.createVertexArray(),buffer=gl.createBuffer();
     gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     for(const [index,components,offset] of [[0,3,0],[1,4,12],[2,1,28]]){
       gl.enableVertexAttribArray(index);
@@ -594,20 +659,23 @@
       gl.vertexAttribDivisor(index,1);
     }
     return (time,stage)=>{
-      if(time<animeGround-.05||time>animeBlast+1.02)return;
-      const {casterX,targetX,ground}=stage.scene;
+      const {groundAt,stopAt}=stage.run;
+      if(time<groundAt||groundAt>=stopAt||time>stopAt+1.28)return;
+      const {ground}=stage.scene;
+      const first=Math.max(0,Math.ceil((time-1.28-groundAt)/.062));
+      const last=Math.floor((Math.min(time,stopAt)-groundAt)/.062);
       const puffs=[];
-      for(let i=0;i<22;i++){
-        const born=animeGround-.045+.062*i, age=time-born;
-        if(age<0||age>1.28)continue;
-        const shell=state(Math.max(animeGround,born),casterX,targetX,ground,true);
+      for(let i=first;i<=last;i++){
+        const born=groundAt+.062*i, age=time-born;
+        const shell=sampleAnime(born,stage.scene,stage.run);
         for(let side=0;side<2;side++){
           const seed=i*17+side*31+.7;
           const life=.77+.43*random(seed+42), elapsed=age/life;
           const opacity=ramp(0,.105,age)*(1-ramp(.39,1,elapsed));
           if(opacity<.004)continue;
           const size=.78+.45*random(seed+63), push=1-Math.exp(-age*4.7);
-          const x=shell.x-shell.r*(.33+.36*random(seed+1))-(9+15*random(seed+19))*push;
+          const direction=Math.sign(shell.direction[0]);
+          const x=shell.x-direction*(shell.r*(.33+.36*random(seed+1))+(9+15*random(seed+19))*push);
           const z=(side?1:-1)*(17+27*random(seed+19)+37*push);
           const width=size*(14+29*push);
           const height=size*(17+46*push)*(side?.76:1)*(i%5===2?1.35:1);
@@ -615,8 +683,10 @@
         }
       }
       if(!puffs.length)return;
-      puffs.sort((a,b)=>b[2]-a[2]);
+      const distance=p=>Math.hypot(p[0]-stage.eye[0],p[1]-stage.eye[1],p[2]-stage.eye[2]);
+      puffs.sort((a,b)=>distance(b)-distance(a));
       gl.useProgram(program);gl.uniformMatrix4fv(vp,false,stage.matrix);
+      gl.uniform3fv(across,stage.right??[1,0,0]);
       gl.enable(gl.DEPTH_TEST);gl.depthMask(false);gl.disable(gl.CULL_FACE);
       gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
       gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
@@ -662,10 +732,14 @@
       }`);
     const source=gl.getUniformLocation(program,'source'),ageUniform=gl.getUniformLocation(program,'age');
     const vao=gl.createVertexArray();
-    return (age,x,ground)=>{
+    return (age,x,ground,matrix)=>{
       if(age<=.026||age>=.310)return;
+      const y=ground-48, w=matrix[3]*x+matrix[7]*y+matrix[15];
+      if(w<=0)return;
+      const nx=(matrix[0]*x+matrix[4]*y+matrix[12])/w;
+      const ny=(matrix[1]*x+matrix[5]*y+matrix[13])/w;
       gl.useProgram(program);
-      gl.uniform2f(source,x,gl.drawingBufferHeight-ground+48);
+      gl.uniform2f(source,(nx+1)*.5*gl.drawingBufferWidth,(ny+1)*.5*gl.drawingBufferHeight);
       gl.uniform1f(ageUniform,age);
       gl.bindVertexArray(vao);
       gl.disable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);
@@ -693,15 +767,16 @@
     const renderTrail=animeBurst?groundTrail(gl,makeProgram):null;
     const renderFlash=animeBurst?blastFlash(gl,makeProgram):null;
     return (_age,stage,_hiddenLayer,opaqueDepth)=>{
-      const {clock,ball,matrix}=stage,age=clock-(animeBurst?animeBlast:contact);
+      const {clock,ball,matrix}=stage,age=animeBurst?stage.impactAge:clock-contact;
       const inlet=groundImpact&&age>0?{...ball,glow:ball.glow*(1-ramp(.008,.075,age))}:ball;
       renderOrb(clock,inlet,stage);
       renderFlow(clock,stage);
       renderTrail?.(clock,stage);
       if(age<0||age>(arenaWake?3.50:groundImpact?2.23:1.67))return;
       // Impact meshes use sphere units around local (0,1,0). Transform them into the arena.
-      const bloom=animeBurst?mix(.66,1,ramp(0,.23,age))*ball.burstRadius:0;
-      const rx=bloom||ball.rx,ry=bloom||ball.ry,rz=bloom||ball.r;
+      const rx=animeBurst?mix(ball.rx,ball.r,ramp(0,.16,age)):ball.rx;
+      const ry=animeBurst?mix(ball.ry,ball.r,ramp(0,.16,age)):ball.ry;
+      const rz=ball.r;
       const base=ball.y+ball.ry;
       for(let row=0;row<4;row++){
         vp[row]=matrix[row]*rx;
@@ -716,41 +791,42 @@
       renderEjecta(age,'stones');renderEjecta(age,'floor');renderEjecta(age,'back');
       const floorHeight=(base-stage.scene.ground)/ry;
       renderVolume(age,opaqueDepth,floorHeight);renderEjecta(age,'front');
-      renderFlash?.(age,ball.x,base);
+      renderFlash?.(age,ball.x,base,matrix);
     };
   }
 
   function arenaFrame(clock,scene,animeBurst=false){
-    const impactAt=animeBurst?animeContact:contact,age=clock-impactAt;
+    const run=animeBurst?runFor(scene):null;
+    const impactAt=run?.impactAt??contact, age=clock-impactAt;
+    const target=animeBurst?targetAt(scene,clock):null;
     const casterPose=clock<.13?'idle':clock<.28?'raise':clock<1.86?'lift':
       clock<1.97?'drive':clock<2.23?'throw':age<1.24?'recover':'idle';
     const footOffset={idle:0,raise:1.45,lift:1.45,drive:1.78,throw:3.78,recover:.1};
-    return {clock,scene,ball:state(clock,scene.casterX,scene.targetX,scene.ground,animeBurst),
+    const reveal=run?.stopAt??impactAt;
+    return {clock,scene,run,impactAge:age,
+            ball:animeBurst?sampleAnime(clock,scene,run):state(clock,scene.casterX,scene.targetX,scene.ground),
             casterPose,casterOffset:footOffset[casterPose],casterDepth:-95,
+            targetX:target?.x,targetGround:target?target.y+54:scene.ground,
             targetPose:age>=0&&age<1.30?'hurt':'idle',
-            ambience:1-.28*ramp(.18,.83,clock)*(1-ramp(impactAt+.79,impactAt+1.60,clock))};
+            ambience:1-.28*ramp(.18,.83,clock)*(1-ramp(reveal+.79,reveal+1.60,clock))};
   }
   const impactPhases=[...phases,{t:2.701,name:'撞地爆闪'},{t:4.1,name:'贴地旋涡'}].sort((a,b)=>a.t-b.t);
   function createArena(groundImpact,animeBurst=false){
-    const arenaPhases=animeBurst?[
-      ...phases.filter(phase=>phase.t<=release),
-      {t:2.43,name:'远距飞行'},{t:animeGround,name:'球缘贴地'},{t:animeContact,name:'撞过目标'},
-      {t:3.45,name:'贴地推进与尘道'},{t:4.05,name:'白闪冲出画面'},
-      {t:4.73,name:'贴地漩涡'},{t:5.77,name:'尘浪散开'},{t:6.65,name:'清场'},
-    ]:[...impactPhases.slice(0,-1),{t:5.29,name:'暗浪裂散'},{t:5.96,name:'余波散尽'}];
+    const arenaPhases=[...impactPhases.slice(0,-1),{t:5.29,name:'暗浪裂散'},{t:5.96,name:'余波散尽'}];
     let ready,renderer;
     const sample=groundImpact?(clock,scene)=>{
-      const frame=arenaFrame(clock,scene,animeBurst),age=clock-(animeBurst?animeBlast:contact);
+      const frame=arenaFrame(clock,scene,animeBurst),age=frame.impactAge;
       const flash=ramp(.08,.16,age)*(1-ramp(.24,.39,age));
       return {...frame,impactAge:age,targetLight:1+.21*flash};
     }:arenaFrame;
     return {
-      duration:animeBurst?6.7:groundImpact?6.2:duration,
-      phases:groundImpact?arenaPhases.sort((a,b)=>a.t-b.t):phases,
+      get duration(){return animeBurst?animeTimeline(animeLayout).duration:groundImpact?6.2:duration;},
+      get phases(){return animeBurst?animeTimeline(animeLayout).phases:groundImpact?arenaPhases.sort((a,b)=>a.t-b.t):phases;},
       get realtime(){return renderer?.active??false;},
       draw(ctx,t,scene){
         if(!renderer){scene.stage(ctx);return;}
-        const layer=renderer.draw(t,{x:scene.casterX,y:scene.ground},{scene});
+        const view={scene,sceneKey:animeBurst?[scene.targetX,scene.scenario].join('/'):''};
+        const layer=renderer.draw(t,{x:scene.casterX,y:scene.ground},view);
         if(layer)ctx.drawImage(layer,0,0);
       },
       get ready(){
@@ -767,5 +843,9 @@
     buildStudyEffects:(gl,program)=>worldEffects(gl,program,true),
   });
   window.DragonSpiritArena=createArena(true);
-  window.DragonSpiritAnimeArena=createArena(true,true);
+  window.DragonSpiritAnimeArena=Object.assign(createArena(true,true),{
+    layout:animeLayout,timeline:animeTimeline,createHoming,
+    sampleFrame:(time,scene)=>arenaFrame(time,scene,true),
+    buildStudyEffects:(gl,program)=>worldEffects(gl,program,true,true,true),
+  });
 })();

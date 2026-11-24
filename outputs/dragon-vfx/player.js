@@ -8,8 +8,10 @@
   const study = !spirit&&params.has('study');
   const spiritStudy = spirit&&params.has('study');
   const spiritArena = spirit&&!spiritStudy&&params.has('arena');
-  const animeBurst = spiritArena&&params.has('anime-burst');
+  const animeBurst = (spiritArena||spiritStudy)&&params.has('anime-burst');
+  const animeStudy = spiritStudy&&animeBurst;
   const spiritArenaFile = animeBurst?'spirit-anime-arena':'spirit-arena';
+  const spiritStudyFile = animeStudy?'spirit-anime-study':'spirit-study';
   const unityDemo = study&&params.has('unity-demo');
   const arena = !spirit&&!study&&params.has('arena');
   const unitySource = DragonData.unityDemo;
@@ -25,7 +27,7 @@
   stillImage.addEventListener('load',sizeStill);
   const meshView=el('meshView'),meshContext=meshView.getContext('2d');
   const meshCamera={yaw:0,pitch:0,wire:false};
-  const engine = spiritStudy ? window.DragonSpiritStudy : study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spiritArena ? (animeBurst?window.DragonSpiritAnimeArena:window.DragonSpiritArena) : spirit ? window.DragonSpirit : window.DragonKame;
+  const engine = spiritStudy ? (animeStudy?window.DragonSpiritAnimeStudy:window.DragonSpiritStudy) : study ? window.DragonBeamStudy : arena ? window.DragonBeamArena : spiritArena ? (animeBurst?window.DragonSpiritAnimeArena:window.DragonSpiritArena) : spirit ? window.DragonSpirit : window.DragonKame;
   const selectedRefs = unityDemo ? DragonData.sources.kameUnity : study ? DragonData.sources.kameStudy : arena ? DragonData.sources.kameArena.slice() : spiritArena ? DragonData.sources.spiritArena : DragonData.sources[key];
   const refs=animeBurst?[DragonData.sources.spiritAnimePhases,...selectedRefs,DragonData.sources.spiritImpactBaseline]:selectedRefs;
   const secondary=animeBurst?DragonData.sources.spiritSecondary:null, secondaryFilm=el('secondaryFilm');
@@ -35,7 +37,7 @@
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
   const time = t => t.toFixed(3)+' s';
   const scene = {
-    casterX:animeBurst?288:390, targetX:animeBurst?780:680, ground:318,
+    ...(animeBurst?DragonSpiritAnimeArena.layout:{casterX:390,targetX:680,ground:318}),
     stage(c){ c.drawImage(actors.stage,0,0,960,400); },
     palm(pose,x){
       const offset = ({gather:[-1.8,-55.4],charge:[-10.50,-44.94],drive:[52.08,-58.8],fire:[55.86,-63]})[pose] || [-10.5,-44.94];
@@ -52,6 +54,15 @@
       c.scale(role==='target'?-1:1,1);c.drawImage(frame,-75.6,-150.78,151.2,151.2);c.restore();
     }
   };
+  const scenarioSelect=el('spiritScenario'), distanceSlider=el('spiritDistance');
+  const presetX={near:514,far:780,moving:637};
+  if(animeBurst){
+    scene.scenario=Object.keys(presetX).includes(params.get('scenario'))?params.get('scenario'):'far';
+    scene.targetX=presetX[scene.scenario];
+    scenarioSelect.value=scene.scenario;
+    distanceSlider.value=scene.targetX;
+  }
+  let trial=animeBurst?engine.timeline(scene):null;
   const assetReady = unityDemo||spiritStudy ? Promise.resolve() : Promise.all(Object.entries(DragonData.actors).map(async ([k,src])=>{
     const img=new Image();img.src=src;await img.decode();actors[k]=img;
   }));
@@ -60,7 +71,7 @@
   let loading=Promise.resolve(), mediaReady=false, scrubFrame=0, autoplayPending=false;
   let recording;
   let firstPaint=true;
-  const duration = () => unityDemo ? unitySource.duration : engine.duration;
+  const duration = () => unityDemo ? unitySource.duration : (trial?.duration??engine.duration);
   const offset = () => current.offset;
   const refLength = () => current.end-current.start;
   const aligned = () => current.anchors && el('alignment').value==='phases';
@@ -72,8 +83,25 @@
     const slope=(r1-r0)/(t1-t0);
     return {local:r0-source.start+(clamp(t,t0,t1)-t0)*slope,slope};
   }
+  function animeReferenceClock(source,t){
+    if(!trial||t<=2)return phaseClock(source,t);
+    const stop=Number.isFinite(trial.impactAt)?trial.impactAt:trial.stopAt;
+    let mapped,ratio;
+    if(t>=stop){mapped=3.88+t-stop;ratio=1;}
+    else if(t<trial.groundAt){
+      const descent=trial.groundAt<stop;
+      ratio=((descent?2.56:3.88)-2)/Math.max(.001,(descent?trial.groundAt:stop)-2);
+      mapped=2+(t-2)*ratio;
+    }else{
+      ratio=(3.88-2.56)/Math.max(.001,stop-trial.groundAt);
+      mapped=2.56+(t-trial.groundAt)*ratio;
+    }
+    const clock=phaseClock(source,mapped);
+    return {...clock,slope:clock.slope*ratio};
+  }
   function referenceClock(){
-    return aligned()?phaseClock(current,at):{local:at-offset(),slope:1};
+    if(!aligned())return {local:at-offset(),slope:1};
+    return trial&&current===refs[0]?animeReferenceClock(current,at):phaseClock(current,at);
   }
   // The reference may begin before the game take when aligning a later action.
   const from = () => Math.min(0,offset());
@@ -145,7 +173,7 @@
     if(secondary&&secondarySynced)syncSecondary(force);
   }
   function syncSecondary(force=false){
-    const position=phaseClock(secondary,sceneTime());
+    const position=animeReferenceClock(secondary,sceneTime());
     el('secondaryTime').textContent=time(secondary.start+position.local);
     if(secondaryFilm.readyState>0)syncVideo(secondaryFilm,secondary,position,force);
   }
@@ -233,7 +261,7 @@
     }else{
       const clip=engine.sourceMaterials
         ?'dragon-vfx/local/kame/'+(arena?'kame-source-arena':'kame-source-materials')+'.mp4'
-        :'dragon-vfx/'+(spiritStudy?'spirit-study':spiritArena?spiritArenaFile:study?'kame-study':key)+'.mp4';
+        :'dragon-vfx/'+(spiritStudy?spiritStudyFile:spiritArena?spiritArenaFile:study?'kame-study':key)+'.mp4';
       links.append(external('单独播放左侧完整演出',clip));
       links.append(external('查看本版特效源码','dragon-vfx/'+(spiritStudy?'spirit-study':study?'kame-study':arena?'kame-arena':key)+'.js'));
       if(spirit)links.append(external('查看三维命中材质','dragon-vfx/spirit-volume.js'));
@@ -254,16 +282,17 @@
     el('back').textContent=aligned()?'新版上一帧':'上一帧';
     el('forth').textContent=aligned()?'新版下一帧':'下一帧';
     el('refTitle').textContent=current.title;
-    el('newTitle').textContent=animeBurst?'元气弹 · 动画远投与爆发':spiritArena?'元气弹 · 2D 横版擂台':spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
+    el('newTitle').textContent=animeStudy?'元气弹 · 独立 3D 追踪':animeBurst?'元气弹 · 2D 追踪与爆发':spiritArena?'元气弹 · 2D 横版擂台':spiritStudy?'元气弹 · 独立 3D 场景':arena?(engine.sourceMaterials?'原材质 · 2D 横版擂台':'较早横版 · 网页试作'):unityDemo?'作者 Unity 原场景 · 实录':study?(engine.sourceMaterials?'原材质移植 · WebGL 3D':'程序化试作 · WebGL 3D'):spirit?title+' · 完整擂台':'网页候选 · 完整擂台';
     el('newNote').textContent=spirit?'光流汇入球体，双掌推出。命中后内核高速旋开，外壳与碎片向外散开。':'掌心聚气、出束、持续喷射、断流消散。';
     if(spiritArena)el('newNote').textContent=animeBurst
-      ?'球贴地压过目标，身后逐段掀起尘道，白闪从尘道末端炸出画框，贴地漩涡卷起尘土后散开。'
+      ?'球追踪目标并缓慢下落，碰到目标时爆发。先触地才会沿地追踪并掀起尘道。'
       :'冲击半球塌向地面，带电余波在暗浪内回卷，随后分块散开。';
-    if(spiritStudy)el('newNote').textContent='触地爆闪推开厚浪和溅射碎片，贴地冲击掠过网格，半球向地面塌为卷动的余波。';
+    if(spiritStudy)el('newNote').textContent=animeStudy?'试切近距、远距和移动目标，再换机位检查球径、触地和命中。'
+      :'触地爆闪推开厚浪和溅射碎片，贴地冲击掠过网格，半球向地面塌为卷动的余波。';
     if(spirit&&!spiritStudy) {
       const base=spiritArena?'?fx=spirit&arena=1'+(animeBurst?'&anime-burst=1':''):'?fx=spirit';
       const shape=external('对照球体配色',base+'&ref=shape&at=2');
-      const burst=external('第二参考命中图 · 4.100 秒',base+'&ref=burst&at='+(animeBurst?'4.05':'3.19'));
+      const burst=external('第二参考命中图 · 4.100 秒',base+'&ref=burst&at='+(animeBurst?engine.timeline(DragonSpiritAnimeArena.layout).impactAt+.41:3.19));
       if(params.has('embedded')){
         for(const link of [burst,shape]){
           link.removeAttribute('target');
@@ -272,11 +301,11 @@
         }
       }
       el('newNote').append(' ',burst,' · ',shape);
-      if(secondary){
-        const jump=document.createElement('a');
-        jump.href='#secondaryPanel';jump.textContent='第二参考 · 气宗师视频';
-        el('newNote').append(' · ',jump);
-      }
+    }
+    if(secondary){
+      const jump=document.createElement('a');
+      jump.href='#secondaryPanel';jump.textContent='第二参考 · 气宗师视频';
+      el('newNote').append(' ',jump);
     }
     if(study)el('newNote').textContent=engine.sourceMaterials
       ?'由 Unity 采样的粒子网格驱动。网页实时计算原贴图、裁剪、混合和辉光。'
@@ -288,7 +317,7 @@
     const phases=unityDemo?[
       {t:0,name:'准备'},{t:30/30,name:'蓄力'},{t:58/30,name:'首束'},
       {t:59/30,name:'展开'},{t:69/30,name:'冲圈'},{t:110/30,name:'残束'},{t:117/30,name:'退场'},
-    ]:engine.phases;
+    ]:trial?.phases??engine.phases;
     for(const m of phases){
       const b=document.createElement('button');
       b.textContent=spiritStudy&&m.name==='球沿触敌'?'首次接触':m.name;
@@ -332,6 +361,23 @@
     }catch(e){if(rev===id&&e.name!=='AbortError')el('notice').textContent='右侧视频载入失败。'+e.message;}
   }
   const cameraSelect=el('studyCamera');
+  function resetScenario(){
+    scene.scenario=scenarioSelect.value;
+    scene.targetX=presetX[scene.scenario];
+    distanceSlider.value=scene.targetX;
+    updateTrial();
+  }
+  function updateTrial(){
+    trial=engine.timeline(scene);
+    controls();seek(from());
+  }
+  if(animeBurst){
+    scenarioSelect.onchange=resetScenario;
+    distanceSlider.onchange=()=>{
+      scene.targetX=distanceSlider.valueAsNumber;
+      updateTrial();
+    };
+  }
   el('studyCameraLabel').hidden=!(study||spiritStudy)||unityDemo;
   const orbit=el('spiritOrbit');
   function resetSpiritOrbit(){
@@ -342,7 +388,7 @@
     }
   }
   if(spiritStudy){
-    cameraSelect.replaceChildren(new Option('斜俯视 · 气宗师机位','reference'),
+    cameraSelect.replaceChildren(new Option(animeStudy?'斜俯视':'斜俯视 · 气宗师机位','reference'),
       new Option('透视侧视','side'),new Option('反向透视','reverse'));
     orbit.hidden=false;
     resetSpiritOrbit();
@@ -410,6 +456,10 @@
     }else{
       await Promise.all([assetReady,engine.ready]);
       if(spirit&&!spiritStudy&&!engine.realtime){
+        if(animeBurst){
+          Object.assign(scene,DragonSpiritAnimeArena.layout);
+          trial=engine.timeline(scene);
+        }
         const file=spiritArena?spiritArenaFile:'spirit';
         await loadRecording('dragon-vfx/'+file+'.mp4','元气弹完整擂台 · 三维渲染录像');
       }
@@ -418,6 +468,10 @@
       const comparison=DragonData.sources.kameArena3d;
       const available=await fetch(comparison.film,{method:'HEAD'}).then(r=>r.ok,()=>false);
       if(available)refs.unshift(comparison);
+    }
+    if(animeBurst&&!recording){
+      el('spiritScenarioLabel').hidden=false;
+      el('spiritDistanceLabel').hidden=false;
     }
     refs.forEach((r,i)=>el('sources').add(new Option(r.title,i)));
     usable=true;
